@@ -1,0 +1,6 @@
+agent:
+- name: agent1
+  potentialGoals:
+  - [2, 2]
+  start: [16, 16]
+map: test.map
