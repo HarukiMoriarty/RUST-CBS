@@ -3,8 +3,14 @@ use std::io::{self, BufRead, BufReader};
 
 #[derive(Debug, Clone)]
 pub struct Tile {
-    pub passable: bool,
+    passable: bool,
     pub neighbors: Vec<(usize, usize)>, // Stores coordinates of accessible neighbors
+}
+
+impl Tile {
+    pub fn is_passable(&self) -> bool {
+        self.passable
+    }
 }
 
 #[derive(Debug)]
@@ -30,7 +36,7 @@ impl Map {
             let row: Vec<char> = line?.chars().collect();
             let tiles_row: Vec<Tile> = row.into_iter().map(|ch| Tile {
                 passable: ch == '.',
-                neighbors: Vec::new(), // Initially empty, to be filled later
+                neighbors: Vec::new(), 
             }).collect();
             grid.push(tiles_row);
         }
@@ -42,29 +48,54 @@ impl Map {
     }
 
     fn initialize_neighbors(&mut self) {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                if self.grid[y][x].passable {
-                    self.grid[y][x].neighbors = self.get_neighbors(x, y);
+        for x in 0..self.height {
+            for y in 0..self.width {
+                if self.grid[x][y].passable {
+                    self.grid[x][y].neighbors = self.get_neighbors(x, y);
                 }
             }
         }
     }
 
-    fn get_neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
+    pub fn get_neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
         let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]; // Up, down, left, right
         let mut neighbors = Vec::new();
 
         for &(dx, dy) in &directions {
             let new_x = x as i32 + dx;
             let new_y = y as i32 + dy;
-            if new_x >= 0 && new_y >= 0 && new_x < self.width as i32 && new_y < self.height as i32 {
-                if self.grid[new_y as usize][new_x as usize].passable {
+            if new_x >= 0 && new_y >= 0 && new_x < self.height as i32 && new_y < self.width as i32 && self.grid[new_x as usize][new_y as usize].passable {
                     neighbors.push((new_x as usize, new_y as usize));
-                }
             }
         }
 
         neighbors
+    }
+
+    pub fn is_passable(&self, x: usize, y: usize) -> bool {
+        self.grid[x][y].is_passable()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_read_map() {
+        let map = Map::from_file("map_file/test/test.map").unwrap();
+
+        assert_eq!(map.height, 32);
+        assert_eq!(map.width, 32);
+
+        assert!(!map.is_passable(0, 0));  
+        assert!(!map.is_passable(1, 0));  
+        assert!(!map.is_passable(0, 1));  
+        assert!(map.is_passable(1, 1)); 
+
+        let neighbors = map.get_neighbors(1, 1);
+        assert_eq!(neighbors.len(), 2);
+        assert!(neighbors.contains(&(2, 1)));
+        assert!(neighbors.contains(&(1, 2)));
     }
 }
