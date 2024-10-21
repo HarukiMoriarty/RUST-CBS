@@ -13,7 +13,7 @@ impl Tile {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Map {
     pub height: usize,
     pub width: usize,

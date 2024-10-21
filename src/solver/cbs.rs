@@ -10,8 +10,8 @@ pub struct CBS {
 }
 
 impl Solver for CBS {
-    fn new(agents: Vec<Agent>, map: Map) -> Self {
-        CBS { agents, map }
+    fn new(agents: Vec<Agent>, map: &Map) -> Self {
+        CBS { agents, map: map.clone() }
     }
 
     fn solve(&self) -> Solution {

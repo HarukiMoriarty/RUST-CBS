@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use crate::map::Map;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Constraint {
     agent_id: usize,
@@ -14,6 +16,12 @@ pub struct Agent {
     pub goal: (usize, usize),
 }
 
+impl Agent {
+    pub fn verify(&self, map: &Map) -> bool {
+        map.is_passable(self.start.0, self.start.1) && map.is_passable(self.goal.0, self.goal.1)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Path {
     pub steps: Vec<(usize, usize)>,
@@ -25,20 +33,26 @@ pub struct Solution {
 }
 
 impl Solution {
-    pub fn verify(&self) -> bool {
+    pub fn verify(&self, map: &Map) -> bool {
         if self.paths.is_empty() {
             return true;  
         }
 
-        let path_length = self.paths[0].steps.len(); 
+        let max_path_length = self.paths.iter()
+            .map(|p| p.steps.len())
+            .max()
+            .unwrap_or(0);
 
-        for time_step in 0..path_length {
+        for time_step in 0..max_path_length {
             let mut seen_positions = HashSet::new();
 
             for path in &self.paths {
-                let pos = &path.steps[time_step];
-                if !seen_positions.insert(pos) {
-                    return false; 
+                // Check if the current path has a position at this time step
+                if let Some(pos) = path.steps.get(time_step) {
+                    // Check for passability and if the position is already taken
+                    if !map.is_passable(pos.0, pos.1) || !seen_positions.insert(pos) {
+                        return false;  
+                    }
                 }
             }
         }
