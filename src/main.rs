@@ -13,6 +13,7 @@ fn main() {
 
     let solver = CBS::new(setting.to_agents(), map);
     let solution = solver.solve();
+    assert!(solution.verify());
 
     println!("solution: {solution:?}");
 }
