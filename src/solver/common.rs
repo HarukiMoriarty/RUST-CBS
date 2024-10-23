@@ -11,6 +11,18 @@ pub(super) struct LowLevelNode {
     pub(super) position: (usize, usize),
     pub(super) f_cost: usize,
     pub(super) g_cost: usize,
+    pub(super) h_open_cost: usize,
+    pub(super) h_focal_cost: usize,
+}
+
+impl LowLevelNode {
+    pub(super) fn f_open(&mut self) {
+        self.f_cost = self.h_open_cost + self.g_cost;
+    }
+
+    pub(super) fn f_focal(&mut self) {
+        self.f_cost = self.h_focal_cost + self.g_cost;
+    }
 }
 
 impl Ord for LowLevelNode {
