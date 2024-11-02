@@ -14,13 +14,13 @@ pub struct AgentYaml {
 }
 
 impl AgentYaml {
-    pub fn to_agent(&self, id:usize) -> Agent {
+    pub fn to_agent(&self, id: usize) -> Agent {
         let goal = (self.potential_goals[0][0], self.potential_goals[0][1]);
 
         Agent {
             id,
             start: (self.start[0], self.start[1]),
-            goal
+            goal,
         }
     }
 }
@@ -57,7 +57,7 @@ impl Yaml {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_read_yaml() {
         let map = Map::from_file("map_file/test/test.map").unwrap();

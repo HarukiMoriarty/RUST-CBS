@@ -27,21 +27,42 @@ impl Map {
         let mut lines = reader.lines();
 
         let _type = lines.next().unwrap()?;
-        let height = lines.next().unwrap()?.split_whitespace().last().unwrap().parse::<usize>().unwrap();
-        let width = lines.next().unwrap()?.split_whitespace().last().unwrap().parse::<usize>().unwrap();
+        let height = lines
+            .next()
+            .unwrap()?
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        let width = lines
+            .next()
+            .unwrap()?
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
         let _map = lines.next().unwrap()?;
 
         let mut grid = Vec::with_capacity(height);
         for line in lines.take(height) {
             let row: Vec<char> = line?.chars().collect();
-            let tiles_row: Vec<Tile> = row.into_iter().map(|ch| Tile {
-                passable: ch == '.',
-                neighbors: Vec::new(), 
-            }).collect();
+            let tiles_row: Vec<Tile> = row
+                .into_iter()
+                .map(|ch| Tile {
+                    passable: ch == '.',
+                    neighbors: Vec::new(),
+                })
+                .collect();
             grid.push(tiles_row);
         }
 
-        let mut map = Map { height, width, grid };
+        let mut map = Map {
+            height,
+            width,
+            grid,
+        };
         map.initialize_neighbors();
 
         Ok(map)
@@ -58,14 +79,19 @@ impl Map {
     }
 
     pub fn get_neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]; // Up, down, left, right
+        let directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]; // Up, down, left, right, stay
         let mut neighbors = Vec::new();
 
         for &(dx, dy) in &directions {
             let new_x = x as i32 + dx;
             let new_y = y as i32 + dy;
-            if new_x >= 0 && new_y >= 0 && new_x < self.height as i32 && new_y < self.width as i32 && self.grid[new_x as usize][new_y as usize].passable {
-                    neighbors.push((new_x as usize, new_y as usize));
+            if new_x >= 0
+                && new_y >= 0
+                && new_x < self.height as i32
+                && new_y < self.width as i32
+                && self.grid[new_x as usize][new_y as usize].passable
+            {
+                neighbors.push((new_x as usize, new_y as usize));
             }
         }
 
@@ -80,7 +106,7 @@ impl Map {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_read_map() {
         let map = Map::from_file("map_file/test/test.map").unwrap();
@@ -88,10 +114,10 @@ mod tests {
         assert_eq!(map.height, 32);
         assert_eq!(map.width, 32);
 
-        assert!(!map.is_passable(0, 0));  
-        assert!(!map.is_passable(1, 0));  
-        assert!(!map.is_passable(0, 1));  
-        assert!(map.is_passable(1, 1)); 
+        assert!(!map.is_passable(0, 0));
+        assert!(!map.is_passable(1, 0));
+        assert!(!map.is_passable(0, 1));
+        assert!(map.is_passable(1, 1));
 
         let neighbors = map.get_neighbors(1, 1);
         assert_eq!(neighbors.len(), 2);

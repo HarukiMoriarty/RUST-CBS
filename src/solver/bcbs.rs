@@ -5,16 +5,16 @@ use crate::map::Map;
 use tracing::info;
 
 use std::collections::{BinaryHeap, HashSet};
-pub struct CBS {
+pub struct BCBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    subopt_factor: Option<f64>, // Should be always none for CBS
+    subopt_factor: Option<f64>,
 }
 
-impl Solver for CBS {
+impl Solver for BCBS {
     fn new(agents: Vec<Agent>, map: &Map, subopt_factor: Option<f64>) -> Self {
-        CBS {
+        BCBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
@@ -64,9 +64,9 @@ impl Solver for CBS {
                 } else {
                     // No conflicts, return solution
                     info!(
-                        "High level expand nodes number: {:?} Low level expand nodes number {:?} Cost {:?}",
-                        self.stats.high_level_expand_nodes, self.stats.low_level_expand_nodes, current_node.cost
-                    );
+                    "High level expand nodes number: {:?} Low level expand nodes number {:?} Cost {:?}",
+                    self.stats.high_level_expand_nodes, self.stats.low_level_expand_nodes, current_node.cost
+                );
                     return Some(Solution {
                         paths: current_node.paths,
                     });

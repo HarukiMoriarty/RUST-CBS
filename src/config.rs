@@ -2,7 +2,12 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug)]
-#[command(name = "Rust MAPF", about = "Kinds of MAPF algorithm implemented in Rust.", author = "Moriarty Yu", version = "1.0")]
+#[command(
+    name = "Rust MAPF",
+    about = "Kinds of MAPF algorithm implemented in Rust.",
+    author = "Moriarty Yu",
+    version = "1.0"
+)]
 pub struct Cli {
     #[arg(long, short, help = "Path to the YAML config file")]
     pub config: Option<String>,
