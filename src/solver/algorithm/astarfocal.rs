@@ -43,6 +43,7 @@ pub(crate) fn focal_a_star_search(
     g_cost.insert((start, 0), 0);
 
     while let Some(current) = focal_list.pop() {
+        let f_min = current.g_cost + current.h_open_cost;
         open_list.remove(&(
             current.h_open_cost + current.g_cost,
             current.time,
@@ -88,17 +89,24 @@ pub(crate) fn focal_a_star_search(
                 };
                 open_list.insert((f_open_cost, next_time, *neighbor), neighbor_node.clone());
 
-                if f_open_cost
-                    <= (open_list.iter().next().unwrap().1.f_cost as f64 * subopt_factor) as usize
-                {
+                if f_open_cost <= (f_min as f64 * subopt_factor) as usize {
                     focal_list.push(neighbor_node);
                 }
             }
         }
 
         // Maintain the focal list
-        if focal_list.is_empty() {
-            update_focal_list(&mut focal_list, &mut open_list, subopt_factor);
+        let new_f_min = open_list
+            .iter()
+            .next()
+            .map_or(usize::MAX, |((f_open_cost, _, _), _)| *f_open_cost);
+        if !open_list.is_empty() && f_min < new_f_min {
+            update_lower_bound(
+                &mut focal_list,
+                &mut open_list,
+                subopt_factor * f_min as f64,
+                subopt_factor * new_f_min as f64,
+            );
         }
 
         // Update stats
@@ -108,18 +116,14 @@ pub(crate) fn focal_a_star_search(
     None
 }
 
-fn update_focal_list(
+fn update_lower_bound(
     focal_list: &mut BinaryHeap<LowLevelNode>,
     open_list: &BTreeMap<(usize, usize, (usize, usize)), LowLevelNode>,
-    subopt_factor: f64,
+    old_bound: f64,
+    new_bound: f64,
 ) {
-    let min_f_cost = open_list
-        .iter()
-        .next()
-        .map_or(usize::MAX, |(_, n)| n.f_cost);
-
-    open_list.iter().for_each(|(_, node)| {
-        if node.f_cost <= (min_f_cost as f64 * subopt_factor) as usize {
+    open_list.iter().for_each(|((f_open_cost, _, _), node)| {
+        if *f_open_cost as f64 > old_bound && *f_open_cost as f64 <= new_bound {
             focal_list.push(node.clone());
         }
     });

@@ -38,12 +38,12 @@ fn main() -> anyhow::Result<()> {
         error!("cbs solve fails");
     }
 
-    let mut bcbs_solver = BCBS::new(agent.clone(), &map, Some(1.8));
+    let mut bcbs_solver = BCBS::new(agent.clone(), &map, Some(1.0));
     if let Some(bcbs_solution) = bcbs_solver.solve() {
         // println!("bcbs solution: {bcbs_solution:#?}");
         assert!(bcbs_solution.verify(&map, &agent));
     } else {
-        println!("bcbs solve fails");
+        info!("bcbs solve fails");
     }
 
     Ok(())
