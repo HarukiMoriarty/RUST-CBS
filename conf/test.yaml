@@ -1,1 +1,5 @@
-test_path: map_file/test/
+test_yaml_path: "map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen"
+test_map_path: "map_file/maze-32-32-2-scen-even/maze-32-32-2.map"
+num_agents: 10
+agents_dist: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+seed: 0

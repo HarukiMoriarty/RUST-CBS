@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_read_map() {
-        let map = Map::from_file("map_file/test/test.map").unwrap();
+        let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
 
         assert_eq!(map.height, 32);
         assert_eq!(map.width, 32);
@@ -120,7 +120,7 @@ mod tests {
         assert!(map.is_passable(1, 1));
 
         let neighbors = map.get_neighbors(1, 1);
-        assert_eq!(neighbors.len(), 2);
+        assert_eq!(neighbors.len(), 3);
         assert!(neighbors.contains(&(2, 1)));
         assert!(neighbors.contains(&(1, 2)));
     }

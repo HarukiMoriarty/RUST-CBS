@@ -1,55 +1,132 @@
-use serde::{Deserialize, Serialize};
+use anyhow::Result;
+use rand::prelude::*;
+use serde::Deserialize;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{self, BufRead, BufReader};
 
 use crate::common::Agent;
-use crate::map::Map;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AgentYaml {
-    pub name: String,
-    #[serde(rename = "potentialGoals")]
-    pub potential_goals: Vec<[usize; 2]>,
-    pub start: [usize; 2],
+#[derive(Debug, Deserialize, Clone)]
+pub struct Route {
+    pub start_x: usize,
+    pub start_y: usize,
+    pub goal_x: usize,
+    pub goal_y: usize,
+    pub optimal_length: f64,
 }
 
-impl AgentYaml {
-    pub fn to_agent(&self, id: usize) -> Agent {
-        let goal = (self.potential_goals[0][0], self.potential_goals[0][1]);
+type Bucket = Vec<Route>;
 
-        Agent {
-            id,
-            start: (self.start[0], self.start[1]),
-            goal,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Yaml {
-    pub agent: Vec<AgentYaml>,
+#[derive(Debug, Deserialize)]
+pub struct Scenario {
     pub map: String,
+    pub map_width: usize,
+    pub map_height: usize,
+    pub buckets: HashMap<usize, Bucket>,
 }
 
-impl Yaml {
-    pub fn from_yaml(path: &str) -> Result<Self, serde_yaml::Error> {
-        let file = File::open(path).unwrap_or_else(|err| {
-            panic!("Failed to open file {:?}: {}", path, err);
-        });
+impl Scenario {
+    pub fn load_from_file(path: &str) -> io::Result<Scenario> {
+        let file = File::open(path)?;
         let reader = BufReader::new(file);
-        serde_yaml::from_reader(reader)
+        let mut lines = reader.lines().map(|line| line.unwrap());
+
+        // First line is "version x.x" which we can skip
+        let _version = lines.next().unwrap();
+
+        // Initialize the scenario with an empty HashMap
+        let mut scenario: Scenario = Scenario {
+            map: String::new(),
+            map_width: 0,
+            map_height: 0,
+            buckets: HashMap::new(),
+        };
+
+        for line in lines {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            let bucket_index: usize = parts[0].parse().unwrap();
+
+            let route = Route {
+                start_x: parts[5].parse().unwrap(),
+                start_y: parts[4].parse().unwrap(),
+                goal_x: parts[7].parse().unwrap(),
+                goal_y: parts[6].parse().unwrap(),
+                optimal_length: parts[8].parse().unwrap(),
+            };
+
+            if scenario.map.is_empty() {
+                // Initialize map details from the first route entry
+                scenario.map = parts[1].to_string();
+                scenario.map_width = parts[2].parse().unwrap();
+                scenario.map_height = parts[3].parse().unwrap();
+            }
+
+            // Access the bucket, or initialize it if it does not exist
+            scenario
+                .buckets
+                .entry(bucket_index)
+                .or_insert_with(Vec::new)
+                .push(route);
+        }
+
+        Ok(scenario)
     }
 
-    pub fn to_agents(&self, map: &Map) -> Result<Vec<Agent>, String> {
-        let mut agents = Vec::new();
-        for (index, agent_yaml) in self.agent.iter().enumerate() {
-            let agent = agent_yaml.to_agent(index);
-            if agent.verify(map) {
-                agents.push(agent);
-            } else {
-                return Err(format!("Verification failed for agent at index {}", index));
-            }
+    pub fn generate_agents<R: Rng + ?Sized>(
+        &self,
+        num_agents: usize,
+        agent_buckets: Vec<usize>,
+        rng: &mut R,
+    ) -> Result<Vec<Agent>, String> {
+        if agent_buckets.len() != num_agents {
+            return Err("Number of agents does not match the length of agent_buckets".to_string());
         }
+
+        let mut agents: Vec<Agent> = Vec::new();
+        let mut used_routes: HashMap<usize, HashSet<usize>> = HashMap::new();
+
+        for (agent_id, &bucket_index) in agent_buckets.iter().enumerate() {
+            let bucket = self
+                .buckets
+                .get(&bucket_index)
+                .ok_or_else(|| format!("Bucket {} not found", bucket_index))?;
+
+            // Find unused routes
+            let available_routes: Vec<usize> = (0..bucket.len())
+                .filter(|idx| {
+                    used_routes
+                        .get(&bucket_index)
+                        .map_or(true, |used| !used.contains(idx))
+                })
+                .collect();
+
+            if available_routes.is_empty() {
+                return Err(format!(
+                    "No available routes left in bucket {}",
+                    bucket_index
+                ));
+            }
+
+            // Select a random route from available ones
+            let route_index = available_routes
+                .choose(rng)
+                .ok_or_else(|| "Failed to choose a random route".to_string())?;
+
+            let route = &bucket[*route_index];
+            agents.push(Agent {
+                id: agent_id,
+                start: (route.start_x, route.start_y),
+                goal: (route.goal_x, route.goal_y),
+            });
+
+            // Mark this route as used
+            used_routes
+                .entry(bucket_index)
+                .or_insert_with(HashSet::new)
+                .insert(*route_index);
+        }
+
         Ok(agents)
     }
 }
@@ -57,16 +134,36 @@ impl Yaml {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::rngs::StdRng;
+    use rand::SeedableRng;
 
     #[test]
     fn test_read_yaml() {
-        let map = Map::from_file("map_file/test/test.map").unwrap();
-        let yaml = Yaml::from_yaml("map_file/test/test.yaml").unwrap();
-        let agents = yaml.to_agents(&map).unwrap();
+        let scen =
+            Scenario::load_from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen")
+                .expect("Error loading YAML config");
 
-        assert_eq!(agents.len(), 10);
-        assert_eq!(agents[0].id, 0);
-        assert_eq!(agents[0].start, (16, 16));
-        assert_eq!(agents[0].goal, (2, 2));
+        let seed = [0u8; 32];
+        let mut rng = StdRng::from_seed(seed);
+
+        let num_agents = 2;
+        let agent_buckets = vec![0, 1];
+
+        let agents = scen
+            .generate_agents(num_agents, agent_buckets, &mut rng)
+            .unwrap();
+        let answer = [
+            Agent {
+                id: 0,
+                start: (23, 30),
+                goal: (20, 29),
+            },
+            Agent {
+                id: 1,
+                start: (26, 13),
+                goal: (22, 11),
+            },
+        ];
+        assert_eq!(agents, answer);
     }
 }

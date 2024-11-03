@@ -1,10 +1,12 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
 use mapf_rust::solver::{Solver, BCBS, CBS};
-use mapf_rust::yaml::Yaml;
+use mapf_rust::yaml::Scenario;
 
 use anyhow::Context;
 use clap::Parser;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 use tracing::{error, info, Level};
 use tracing_subscriber;
 
@@ -26,22 +28,29 @@ fn main() -> anyhow::Result<()> {
         .override_from_command_line(&cli)?,
     ));
 
-    let setting = Yaml::from_yaml(&config.test_yaml_path).expect("Error loading YAML config");
+    let setting =
+        Scenario::load_from_file(&config.test_yaml_path).expect("Error loading YAML config");
     let map = Map::from_file(&config.test_map_path).expect("Error loading map");
-    let agent = setting.to_agents(&map).unwrap();
+    let mut rng = StdRng::seed_from_u64(config.seed as u64);
+    let agents = setting
+        .generate_agents(config.num_agents, config.agents_dist.clone(), &mut rng)
+        .unwrap();
+    for agent in agents.clone() {
+        assert!(agent.verify(&map));
+    }
 
-    let mut cbs_solver = CBS::new(agent.clone(), &map, None);
+    let mut cbs_solver = CBS::new(agents.clone(), &map, None);
     if let Some(cbs_solution) = cbs_solver.solve() {
-        // println!("cbs solution: {cbs_solution:#?}");
-        assert!(cbs_solution.verify(&map, &agent));
+        // info!("cbs solution: {cbs_solution:?}");
+        assert!(cbs_solution.verify(&map, &agents));
     } else {
         error!("cbs solve fails");
     }
 
-    let mut bcbs_solver = BCBS::new(agent.clone(), &map, Some(1.0));
+    let mut bcbs_solver = BCBS::new(agents.clone(), &map, Some(1.8));
     if let Some(bcbs_solution) = bcbs_solver.solve() {
         // println!("bcbs solution: {bcbs_solution:#?}");
-        assert!(bcbs_solution.verify(&map, &agent));
+        assert!(bcbs_solution.verify(&map, &agents));
     } else {
         info!("bcbs solve fails");
     }
