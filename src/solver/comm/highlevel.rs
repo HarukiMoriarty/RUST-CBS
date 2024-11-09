@@ -1,7 +1,7 @@
 use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::algorithm::{a_star_search, focal_a_star_search};
-use crate::solver::Stats;
+use crate::stat::Stats;
 
 use std::cmp::Ordering;
 use std::collections::HashSet;

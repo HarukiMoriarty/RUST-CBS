@@ -1,8 +1,9 @@
 use super::comm::HighLevelNode;
-use super::{Solver, Stats};
+use super::Solver;
 use crate::common::{Agent, Solution};
 use crate::map::Map;
-use tracing::info;
+use crate::stat::Stats;
+use std::time::Instant;
 
 use std::collections::{BinaryHeap, HashSet};
 pub struct CBS {
@@ -23,6 +24,7 @@ impl Solver for CBS {
     }
 
     fn solve(&mut self) -> Option<Solution> {
+        let total_solve_start_time = Instant::now();
         let mut open = BinaryHeap::new();
         let mut closed = HashSet::new();
 
@@ -63,10 +65,11 @@ impl Solver for CBS {
                     }
                 } else {
                     // No conflicts, return solution
-                    info!(
-                        "High level expand nodes number: {:?} Low level expand nodes number {:?} Cost {:?}",
-                        self.stats.high_level_expand_nodes, self.stats.low_level_expand_nodes, current_node.cost
-                    );
+                    let total_solve_time = total_solve_start_time.elapsed();
+                    self.stats.time_ms = total_solve_time.as_micros() as usize;
+                    self.stats.costs = current_node.cost;
+
+                    self.stats.print();
                     return Some(Solution {
                         paths: current_node.paths,
                     });

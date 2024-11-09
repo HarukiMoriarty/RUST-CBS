@@ -3,7 +3,9 @@ use rand::prelude::*;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::io::{self, BufRead, BufReader};
+use tracing::info;
 
 use crate::common::Agent;
 
@@ -14,6 +16,26 @@ pub struct Route {
     pub goal_x: usize,
     pub goal_y: usize,
     pub optimal_length: f64,
+}
+
+impl PartialEq for Route {
+    fn eq(&self, other: &Self) -> bool {
+        self.start_x == other.start_x
+            && self.start_y == other.start_y
+            && self.goal_x == other.goal_x
+            && self.goal_y == other.goal_y
+    }
+}
+
+impl Eq for Route {}
+
+impl Hash for Route {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.start_x.hash(state);
+        self.start_y.hash(state);
+        self.goal_x.hash(state);
+        self.goal_y.hash(state);
+    }
 }
 
 type Bucket = Vec<Route>;
@@ -73,7 +95,7 @@ impl Scenario {
         Ok(scenario)
     }
 
-    pub fn generate_agents<R: Rng + ?Sized>(
+    pub fn generate_agents_by_buckets<R: Rng + ?Sized>(
         &self,
         num_agents: usize,
         agent_buckets: Vec<usize>,
@@ -127,6 +149,50 @@ impl Scenario {
                 .insert(*route_index);
         }
 
+        info!("Generate scen: {agents:?}");
+        Ok(agents)
+    }
+
+    pub fn generate_agents_randomly<R: Rng + ?Sized>(
+        &self,
+        num_agents: usize,
+        rng: &mut R,
+    ) -> Result<Vec<Agent>, String> {
+        let mut agents: Vec<Agent> = Vec::new();
+        let mut used_routes: HashSet<Route> = HashSet::new();
+
+        let mut available_routes: Vec<Route> = self
+            .buckets
+            .clone()
+            .into_iter()
+            .flat_map(|(_, bucket)| bucket)
+            .collect();
+
+        if available_routes.len() < num_agents {
+            return Err(
+                "Not enough unique routes available to match the number of agents".to_string(),
+            );
+        }
+
+        // Shuffle the available routes to randomize the route selection
+        available_routes.shuffle(rng);
+
+        for agent_id in 0..num_agents {
+            let route = available_routes
+                .pop()
+                .ok_or("Ran out of routes unexpectedly")?;
+
+            agents.push(Agent {
+                id: agent_id,
+                start: (route.start_x, route.start_y),
+                goal: (route.goal_x, route.goal_y),
+            });
+
+            // Mark this route as used
+            used_routes.insert(route);
+        }
+
+        info!("Generate scen: {agents:?}");
         Ok(agents)
     }
 }
@@ -150,7 +216,7 @@ mod tests {
         let agent_buckets = vec![0, 1];
 
         let agents = scen
-            .generate_agents(num_agents, agent_buckets, &mut rng)
+            .generate_agents_by_buckets(num_agents, agent_buckets, &mut rng)
             .unwrap();
         let answer = [
             Agent {

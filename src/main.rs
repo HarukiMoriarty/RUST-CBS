@@ -11,9 +11,7 @@ use tracing::{error, info, Level};
 use tracing_subscriber;
 
 fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
     let cli = Cli::parse();
 
     let config = Box::leak(Box::new(
@@ -33,7 +31,7 @@ fn main() -> anyhow::Result<()> {
     let map = Map::from_file(&config.test_map_path).expect("Error loading map");
     let mut rng = StdRng::seed_from_u64(config.seed as u64);
     let agents = setting
-        .generate_agents(config.num_agents, config.agents_dist.clone(), &mut rng)
+        .generate_agents_randomly(config.num_agents, &mut rng)
         .unwrap();
     for agent in agents.clone() {
         assert!(agent.verify(&map));
@@ -47,7 +45,7 @@ fn main() -> anyhow::Result<()> {
         error!("cbs solve fails");
     }
 
-    let mut bcbs_solver = BCBS::new(agents.clone(), &map, Some(1.8));
+    let mut bcbs_solver = BCBS::new(agents.clone(), &map, Some(1.2));
     if let Some(bcbs_solution) = bcbs_solver.solve() {
         // println!("bcbs solution: {bcbs_solution:#?}");
         assert!(bcbs_solution.verify(&map, &agents));

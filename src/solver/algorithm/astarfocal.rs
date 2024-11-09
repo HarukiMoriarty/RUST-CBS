@@ -1,9 +1,7 @@
 use super::{construct_path, heuristic, heuristic_focal};
 use crate::map::Map;
-use crate::solver::{
-    comm::{Constraint, LowLevelNode},
-    Stats,
-};
+use crate::solver::comm::{Constraint, LowLevelNode};
+use crate::stat::Stats;
 use std::{
     collections::{BTreeMap, BinaryHeap, HashMap, HashSet},
     usize,

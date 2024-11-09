@@ -1,7 +1,7 @@
 use super::{construct_path, heuristic};
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelNode};
-use crate::solver::Stats;
+use crate::stat::Stats;
 use std::{
     collections::{BinaryHeap, HashMap, HashSet},
     usize,
