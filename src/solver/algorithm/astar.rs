@@ -27,7 +27,7 @@ pub(crate) fn a_star_search(
         f_cost: heuristic(start, goal),
         g_cost: 0,
         h_open_cost: heuristic(start, goal),
-        h_focal_cost: 0,
+        h_focal_cost: None,
         time: 0,
     };
 
@@ -64,7 +64,7 @@ pub(crate) fn a_star_search(
                     f_cost: tentative_g_cost + h_open_cost,
                     g_cost: tentative_g_cost,
                     h_open_cost,
-                    h_focal_cost: 0,
+                    h_focal_cost: None,
                     time: next_time,
                 });
             }
@@ -88,7 +88,7 @@ mod tests {
     //  (14, 18), (14, 19), (15, 19), (16, 19), (17, 19)]
     #[test]
     fn test_a_star_normal() {
-        let map = Map::from_file("map_file/test/test.map").unwrap();
+        let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
         let constraints = HashSet::new();
         let stats = &mut Stats::default();
         let path = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_a_star_in_path_conflict() {
-        let map = Map::from_file("map_file/test/test.map").unwrap();
+        let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
             position: (23, 14),
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_a_star_out_path_conflict() {
-        let map = Map::from_file("map_file/test/test.map").unwrap();
+        let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
             position: (17, 19),

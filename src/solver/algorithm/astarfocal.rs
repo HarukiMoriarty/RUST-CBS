@@ -32,7 +32,7 @@ pub(crate) fn focal_a_star_search(
         f_cost: 0,
         g_cost: 0,
         h_open_cost: start_h_open_cost,
-        h_focal_cost: 0,
+        h_focal_cost: Some(0),
         time: 0,
     };
 
@@ -70,8 +70,8 @@ pub(crate) fn focal_a_star_search(
             }
 
             let h_open_cost = heuristic(*neighbor, goal);
-            let h_focal_cost =
-                current.h_focal_cost + heuristic_focal(current_agent, *neighbor, next_time, paths);
+            let h_focal_cost = current.h_focal_cost.unwrap()
+                + heuristic_focal(current_agent, *neighbor, next_time, paths);
             let f_open_cost = tentative_g_cost + h_open_cost;
 
             if tentative_g_cost < *g_cost.get(&(*neighbor, next_time)).unwrap_or(&usize::MAX) {
@@ -82,12 +82,12 @@ pub(crate) fn focal_a_star_search(
                     f_cost: tentative_g_cost + h_focal_cost,
                     g_cost: tentative_g_cost,
                     h_open_cost,
-                    h_focal_cost,
+                    h_focal_cost: Some(h_focal_cost),
                     time: next_time,
                 };
                 open_list.insert((f_open_cost, next_time, *neighbor), neighbor_node.clone());
 
-                if f_open_cost <= (f_min as f64 * subopt_factor) as usize {
+                if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
                     focal_list.push(neighbor_node);
                 }
             }

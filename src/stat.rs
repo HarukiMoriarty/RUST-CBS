@@ -20,9 +20,9 @@ impl Default for Stats {
 }
 
 impl Stats {
-    pub(crate) fn print(&self) {
+    pub(crate) fn print(&self, solver_name: String) {
         info!(
-            "Cost {:?} Time(microseconds) {:?} High level expand nodes number: {:?} Low level expand nodes number {:?}",
+            "{solver_name:?} Cost {:?} Time(microseconds) {:?} High level expand nodes number: {:?} Low level expand nodes number {:?}",
             self.costs, self.time_ms, self.high_level_expand_nodes, self.low_level_expand_nodes
         );
     }

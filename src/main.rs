@@ -1,6 +1,6 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
-use mapf_rust::solver::{Solver, BCBS, CBS};
+use mapf_rust::solver::{Solver, CBS, HBCBS, LBCBS};
 use mapf_rust::yaml::Scenario;
 
 use anyhow::Context;
@@ -25,6 +25,7 @@ fn main() -> anyhow::Result<()> {
         }
         .override_from_command_line(&cli)?,
     ));
+    info!("Config: {config:#?}");
 
     let setting =
         Scenario::load_from_file(&config.test_yaml_path).expect("Error loading YAML config");
@@ -37,20 +38,23 @@ fn main() -> anyhow::Result<()> {
         assert!(agent.verify(&map));
     }
 
-    let mut cbs_solver = CBS::new(agents.clone(), &map, None);
-    if let Some(cbs_solution) = cbs_solver.solve() {
-        // info!("cbs solution: {cbs_solution:?}");
-        assert!(cbs_solution.verify(&map, &agents));
-    } else {
-        error!("cbs solve fails");
-    }
+    for solver_string in &config.solver {
+        let mut solver =
+            match solver_string.as_str() {
+                "cbs" => Box::new(CBS::new(agents.clone(), &map)) as Box<dyn Solver>,
+                "lbcbs" => Box::new(LBCBS::new(agents.clone(), &map, config.sub_optimal))
+                    as Box<dyn Solver>,
+                "hbcbs" => Box::new(HBCBS::new(agents.clone(), &map, config.sub_optimal))
+                    as Box<dyn Solver>,
+                _ => unreachable!(),
+            };
 
-    let mut bcbs_solver = BCBS::new(agents.clone(), &map, Some(1.2));
-    if let Some(bcbs_solution) = bcbs_solver.solve() {
-        // println!("bcbs solution: {bcbs_solution:#?}");
-        assert!(bcbs_solution.verify(&map, &agents));
-    } else {
-        info!("bcbs solve fails");
+        if let Some(solution) = solver.solve() {
+            // info!("{solver_string:?} solution: {solution:?}");
+            assert!(solution.verify(&map, &agents));
+        } else {
+            error!("{solver_string:?} solve fails");
+        }
     }
 
     Ok(())

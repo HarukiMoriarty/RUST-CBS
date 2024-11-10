@@ -28,6 +28,8 @@ pub struct Config {
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
     pub seed: usize,
+    pub sub_optimal: (Option<f64>, Option<f64>),
+    pub solver: Vec<String>,
 }
 
 impl Default for Config {
@@ -38,6 +40,8 @@ impl Default for Config {
             num_agents: 10,
             agents_dist: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].to_vec(),
             seed: 0,
+            sub_optimal: (None, None),
+            solver: vec!["cbs".to_string()],
         };
 
         config

@@ -10,41 +10,40 @@ pub struct CBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    subopt_factor: Option<f64>, // Should be always none for CBS
 }
 
-impl Solver for CBS {
-    fn new(agents: Vec<Agent>, map: &Map, subopt_factor: Option<f64>) -> Self {
+impl CBS {
+    pub fn new(agents: Vec<Agent>, map: &Map) -> Self {
         CBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
-            subopt_factor,
         }
     }
+}
 
+impl Solver for CBS {
     fn solve(&mut self) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
         let mut open = BinaryHeap::new();
         let mut closed = HashSet::new();
 
-        if let Some(root) =
-            HighLevelNode::new(&self.agents, &self.map, self.subopt_factor, &mut self.stats)
-        {
+        if let Some(root) = HighLevelNode::new(&self.agents, &self.map, None, &mut self.stats) {
             open.push(root);
             while let Some(current_node) = open.pop() {
                 closed.insert(current_node.clone());
-                if let Some(conflicts) = current_node.detect_conflicts() {
-                    for conflict in conflicts {
+                if !current_node.conflicts.is_empty() {
+                    for conflict in &current_node.conflicts {
                         if let Some(child_1) = current_node.update_constraint(
                             &conflict,
                             true,
                             &self.map,
-                            self.subopt_factor,
+                            None,
                             &mut self.stats,
                         ) {
                             if !closed.contains(&child_1) {
                                 open.push(child_1);
+                                self.stats.high_level_expand_nodes += 1;
                             }
                         }
 
@@ -52,16 +51,14 @@ impl Solver for CBS {
                             &conflict,
                             false,
                             &self.map,
-                            self.subopt_factor,
+                            None,
                             &mut self.stats,
                         ) {
                             if !closed.contains(&child_2) {
                                 open.push(child_2);
+                                self.stats.high_level_expand_nodes += 1;
                             }
                         }
-
-                        // Updates stats
-                        self.stats.high_level_expand_nodes += 2;
                     }
                 } else {
                     // No conflicts, return solution
@@ -69,7 +66,7 @@ impl Solver for CBS {
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;
 
-                    self.stats.print();
+                    self.stats.print("CBS".to_string());
                     return Some(Solution {
                         paths: current_node.paths,
                     });

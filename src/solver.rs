@@ -2,14 +2,16 @@ mod algorithm;
 mod bcbs;
 mod cbs;
 mod comm;
+mod hbcbs;
+mod lbcbs;
 
 pub use bcbs::BCBS;
 pub use cbs::CBS;
+pub use hbcbs::HBCBS;
+pub use lbcbs::LBCBS;
 
-use crate::common::{Agent, Solution};
-use crate::map::Map;
+use crate::common::Solution;
 
 pub trait Solver {
-    fn new(agents: Vec<Agent>, map: &Map, subopt_factor: Option<f64>) -> Self;
     fn solve(&mut self) -> Option<Solution>;
 }

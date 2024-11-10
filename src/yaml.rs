@@ -221,13 +221,13 @@ mod tests {
         let answer = [
             Agent {
                 id: 0,
-                start: (23, 30),
-                goal: (20, 29),
+                start: (30, 23),
+                goal: (29, 20),
             },
             Agent {
                 id: 1,
-                start: (26, 13),
-                goal: (22, 11),
+                start: (13, 26),
+                goal: (11, 22),
             },
         ];
         assert_eq!(agents, answer);

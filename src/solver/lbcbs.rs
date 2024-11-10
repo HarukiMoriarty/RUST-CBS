@@ -6,16 +6,16 @@ use crate::stat::Stats;
 use std::time::Instant;
 
 use std::collections::{BinaryHeap, HashSet};
-pub struct BCBS {
+pub struct LBCBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
     subopt_factor: (Option<f64>, Option<f64>),
 }
 
-impl BCBS {
+impl LBCBS {
     pub fn new(agents: Vec<Agent>, map: &Map, subopt_factor: (Option<f64>, Option<f64>)) -> Self {
-        BCBS {
+        LBCBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
@@ -24,7 +24,7 @@ impl BCBS {
     }
 }
 
-impl Solver for BCBS {
+impl Solver for LBCBS {
     fn solve(&mut self) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
         let mut open = BinaryHeap::new();
