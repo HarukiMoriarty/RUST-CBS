@@ -1,6 +1,6 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
-use mapf_rust::solver::{Solver, CBS, HBCBS, LBCBS};
+use mapf_rust::solver::{Solver, BCBS, CBS, HBCBS, LBCBS};
 use mapf_rust::yaml::Scenario;
 
 use anyhow::Context;
@@ -46,6 +46,9 @@ fn main() -> anyhow::Result<()> {
                     as Box<dyn Solver>,
                 "hbcbs" => Box::new(HBCBS::new(agents.clone(), &map, config.sub_optimal))
                     as Box<dyn Solver>,
+                "bcbs" => {
+                    Box::new(BCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
+                }
                 _ => unreachable!(),
             };
 
