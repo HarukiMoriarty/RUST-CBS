@@ -6,12 +6,6 @@ pub(super) use astarfocal::focal_a_star_search;
 
 use std::{collections::HashMap, usize};
 
-fn heuristic(start: (usize, usize), goal: (usize, usize)) -> usize {
-    // Using Manhattan distance as heuristic
-    (start.0 as isize - goal.0 as isize).unsigned_abs()
-        + (start.1 as isize - goal.1 as isize).unsigned_abs()
-}
-
 fn heuristic_focal(
     agent: usize,
     position: (usize, usize),

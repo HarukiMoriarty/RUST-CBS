@@ -32,32 +32,30 @@ impl Solver for CBS {
             open.push(root);
             while let Some(current_node) = open.pop() {
                 closed.insert(current_node.clone());
-                if !current_node.conflicts.is_empty() {
-                    for conflict in &current_node.conflicts {
-                        if let Some(child_1) = current_node.update_constraint(
-                            &conflict,
-                            true,
-                            &self.map,
-                            None,
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_1) {
-                                open.push(child_1);
-                                self.stats.high_level_expand_nodes += 1;
-                            }
+                if let Some(conflict) = &current_node.conflicts.first() {
+                    if let Some(child_1) = current_node.update_constraint(
+                        &conflict,
+                        true,
+                        &self.map,
+                        None,
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_1) {
+                            open.push(child_1);
+                            self.stats.high_level_expand_nodes += 1;
                         }
+                    }
 
-                        if let Some(child_2) = current_node.update_constraint(
-                            &conflict,
-                            false,
-                            &self.map,
-                            None,
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_2) {
-                                open.push(child_2);
-                                self.stats.high_level_expand_nodes += 1;
-                            }
+                    if let Some(child_2) = current_node.update_constraint(
+                        &conflict,
+                        false,
+                        &self.map,
+                        None,
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_2) {
+                            open.push(child_2);
+                            self.stats.high_level_expand_nodes += 1;
                         }
                     }
                 } else {

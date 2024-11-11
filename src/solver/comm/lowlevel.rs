@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 
-#[derive(Clone, Eq, Debug, PartialEq)]
+#[derive(Clone, Eq, Debug, PartialEq, Hash)]
 pub(crate) struct LowLevelNode {
     pub(crate) position: (usize, usize),
-    pub(crate) f_cost: usize,
+    pub(crate) sort_key: usize,
     pub(crate) g_cost: usize,
     pub(crate) h_open_cost: usize,
     pub(crate) h_focal_cost: Option<usize>,
@@ -12,7 +12,11 @@ pub(crate) struct LowLevelNode {
 
 impl Ord for LowLevelNode {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.f_cost.cmp(&other.f_cost).reverse()
+        self.sort_key
+            .cmp(&other.sort_key)
+            .reverse()
+            .then_with(|| self.g_cost.cmp(&other.g_cost))
+            .then_with(|| self.h_open_cost.cmp(&other.h_open_cost).reverse())
     }
 }
 

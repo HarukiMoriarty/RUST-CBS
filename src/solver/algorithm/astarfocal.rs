@@ -1,4 +1,5 @@
-use super::{construct_path, heuristic, heuristic_focal};
+use super::{construct_path, heuristic_focal};
+use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelNode};
 use crate::stat::Stats;
@@ -9,11 +10,9 @@ use std::{
 
 pub(crate) fn focal_a_star_search(
     map: &Map,
-    start: (usize, usize),
-    goal: (usize, usize),
+    agent: &Agent,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
-    current_agent: usize,
     paths: &Vec<Vec<(usize, usize)>>,
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
@@ -22,25 +21,30 @@ pub(crate) fn focal_a_star_search(
     // Open list is indexed based on (f_open_cost, time, position)
     let mut open_list = BTreeMap::new();
     let mut focal_list = BinaryHeap::new();
+    let mut closed_list = HashSet::new();
     let mut trace = HashMap::new();
     let mut g_cost = HashMap::new();
 
-    let start_h_open_cost = heuristic(start, goal);
+    let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
     // Calculate as f open cost
     let start_node = LowLevelNode {
-        position: start,
-        f_cost: 0,
+        position: agent.start,
+        sort_key: 0,
         g_cost: 0,
         h_open_cost: start_h_open_cost,
         h_focal_cost: Some(0),
         time: 0,
     };
 
-    open_list.insert((0 + start_h_open_cost, 0, start), start_node.clone());
+    open_list.insert((0 + start_h_open_cost, 0, agent.start), start_node.clone());
     focal_list.push(start_node);
-    g_cost.insert((start, 0), 0);
+    g_cost.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop() {
+        // Update stats
+        stats.low_level_expand_nodes += 1;
+        closed_list.insert((current.position, current.time));
+
         let f_min = current.g_cost + current.h_open_cost;
         open_list.remove(&(
             current.h_open_cost + current.g_cost,
@@ -49,7 +53,7 @@ pub(crate) fn focal_a_star_search(
         ));
 
         let current_time = current.time;
-        if current.position == goal && current_time > max_time {
+        if current.position == agent.goal && current_time > max_time {
             return Some((
                 construct_path(&trace, (current.position, current_time)),
                 Some(f_min),
@@ -64,6 +68,10 @@ pub(crate) fn focal_a_star_search(
 
         // Expanding nodes from the current position
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+            if closed_list.contains(&(*neighbor, next_time)) {
+                continue;
+            }
+
             // Check for constraints before exploring the neighbor.
             if constraints.contains(&Constraint {
                 position: *neighbor,
@@ -72,9 +80,9 @@ pub(crate) fn focal_a_star_search(
                 continue; // This move is prohibited due to a constraint.
             }
 
-            let h_open_cost = heuristic(*neighbor, goal);
+            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
             let h_focal_cost = current.h_focal_cost.unwrap()
-                + heuristic_focal(current_agent, *neighbor, next_time, paths);
+                + heuristic_focal(agent.id, *neighbor, next_time, paths);
             let f_open_cost = tentative_g_cost + h_open_cost;
 
             if tentative_g_cost < *g_cost.get(&(*neighbor, next_time)).unwrap_or(&usize::MAX) {
@@ -82,12 +90,13 @@ pub(crate) fn focal_a_star_search(
                 g_cost.insert((*neighbor, next_time), tentative_g_cost);
                 let neighbor_node = LowLevelNode {
                     position: *neighbor,
-                    f_cost: tentative_g_cost + h_focal_cost,
+                    sort_key: h_focal_cost,
                     g_cost: tentative_g_cost,
                     h_open_cost,
                     h_focal_cost: Some(h_focal_cost),
                     time: next_time,
                 };
+
                 open_list.insert((f_open_cost, next_time, *neighbor), neighbor_node.clone());
 
                 if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
@@ -109,9 +118,6 @@ pub(crate) fn focal_a_star_search(
                 subopt_factor * new_f_min as f64,
             );
         }
-
-        // Update stats
-        stats.low_level_expand_nodes += 1;
     }
 
     None

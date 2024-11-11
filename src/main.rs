@@ -29,11 +29,11 @@ fn main() -> anyhow::Result<()> {
 
     let setting =
         Scenario::load_from_file(&config.test_yaml_path).expect("Error loading YAML config");
-    let map = Map::from_file(&config.test_map_path).expect("Error loading map");
     let mut rng = StdRng::seed_from_u64(config.seed as u64);
     let agents = setting
-        .generate_agents_by_buckets(config.num_agents, config.agents_dist.clone(), &mut rng)
+        .generate_agents_randomly(config.num_agents, &mut rng)
         .unwrap();
+    let map = Map::from_file(&config.test_map_path, &agents).expect("Error loading map");
     for agent in agents.clone() {
         assert!(agent.verify(&map));
     }

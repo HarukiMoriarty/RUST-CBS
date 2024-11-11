@@ -1,5 +1,9 @@
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
+
+use crate::common::Agent;
 
 #[derive(Debug, Clone)]
 pub struct Tile {
@@ -18,10 +22,11 @@ pub struct Map {
     pub height: usize,
     pub width: usize,
     pub grid: Vec<Vec<Tile>>,
+    pub heuristic: Vec<Vec<Vec<usize>>>,
 }
 
 impl Map {
-    pub fn from_file(path: &str) -> io::Result<Self> {
+    pub fn from_file(path: &str, agents: &Vec<Agent>) -> io::Result<Self> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
@@ -62,8 +67,12 @@ impl Map {
             height,
             width,
             grid,
+            heuristic: Vec::new(),
         };
         map.initialize_neighbors();
+        for agent in agents {
+            map.heuristic.push(map.heuristic_dji(agent.goal));
+        }
 
         Ok(map)
     }
@@ -101,6 +110,30 @@ impl Map {
     pub fn is_passable(&self, x: usize, y: usize) -> bool {
         self.grid[x][y].is_passable()
     }
+
+    pub fn heuristic_dji(&self, goal: (usize, usize)) -> Vec<Vec<usize>> {
+        let mut heuristic = vec![vec![usize::MAX; self.width]; self.height];
+        let mut heap = BinaryHeap::new();
+
+        heuristic[goal.0][goal.1] = 0;
+        heap.push((Reverse(0), goal));
+
+        while let Some((Reverse(cost), (x, y))) = heap.pop() {
+            if cost > heuristic[x][y] {
+                continue;
+            }
+
+            for &(new_x, new_y) in &self.grid[x][y].neighbors {
+                let next_cost = cost + 1;
+                if next_cost < heuristic[new_x][new_y] {
+                    heap.push((Reverse(next_cost), (new_x, new_y)));
+                    heuristic[new_x][new_y] = next_cost;
+                }
+            }
+        }
+
+        heuristic
+    }
 }
 
 #[cfg(test)]
@@ -109,7 +142,13 @@ mod tests {
 
     #[test]
     fn test_read_map() {
-        let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
+        let agents = vec![Agent {
+            id: 0,
+            start: (1, 1),
+            goal: (2, 2),
+        }];
+        let map =
+            Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map", &agents).unwrap();
 
         assert_eq!(map.height, 32);
         assert_eq!(map.width, 32);
