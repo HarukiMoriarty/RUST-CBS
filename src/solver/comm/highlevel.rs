@@ -31,6 +31,7 @@ pub(crate) struct HighLevelNode {
     pub(crate) cost: usize, // Total cost for all paths under current constraints
     pub(crate) focal: Option<usize>, // Focal cost under current constraints
     pub(crate) conflicts_hash: Option<usize>, // Hash value of conflicts for Btree index
+    pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
 }
 
 impl Hash for HighLevelNode {
@@ -64,11 +65,12 @@ impl HighLevelNode {
         stats: &mut Stats,
     ) -> Option<Self> {
         let mut paths: Vec<Vec<(usize, usize)>> = Vec::new();
+        let mut low_level_f_min_agents = Vec::new();
         let mut total_cost = 0;
         let mut solve = true;
 
         for agent in agents {
-            let path = if let Some(factor) = low_level_subopt_factor {
+            let path_f = if let Some(factor) = low_level_subopt_factor {
                 // If a suboptimal factor is provided, use the focal A* search
                 focal_a_star_search(
                     map,
@@ -85,9 +87,12 @@ impl HighLevelNode {
                 a_star_search(map, agent.start, agent.goal, &HashSet::new(), stats)
             };
 
-            if let Some(path) = path {
+            if let Some((path, low_level_f_min)) = path_f {
                 total_cost += path.len();
                 paths.insert(agent.id, path);
+                if let Some(low_level_f_min) = low_level_f_min {
+                    low_level_f_min_agents.push(low_level_f_min);
+                }
             } else {
                 solve = false;
             }
@@ -102,6 +107,7 @@ impl HighLevelNode {
                 cost: total_cost,
                 focal: None,
                 conflicts_hash: None,
+                low_level_f_min_agents,
             };
             start.detect_conflicts();
             debug!("High level start node {start:?}");
@@ -169,6 +175,7 @@ impl HighLevelNode {
     ) -> Option<HighLevelNode> {
         let mut new_constraints = self.constraints.clone();
         let mut new_paths = self.paths.clone();
+        let mut new_low_level_f_min_agents = self.low_level_f_min_agents.clone();
 
         let agent_to_update = if resolve_first {
             conflict.agent_1
@@ -203,7 +210,7 @@ impl HighLevelNode {
             )
         };
 
-        if let Some(new_path) = new_path {
+        if let Some((new_path, new_low_level_f_min)) = new_path {
             debug!(
                 "Update agent {agent_to_update:?} with path {new_path:?} for conflict {conflict:?}"
             );
@@ -211,6 +218,9 @@ impl HighLevelNode {
             let new_path_length = new_path.len();
             new_paths[agent_to_update] = new_path;
             let new_cost = self.cost - old_path_length + new_path_length;
+            if let Some(new_low_level_f_min) = new_low_level_f_min {
+                new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
+            }
 
             let mut new_node = HighLevelNode {
                 agents: self.agents.clone(),
@@ -220,6 +230,7 @@ impl HighLevelNode {
                 cost: new_cost,
                 focal: None,
                 conflicts_hash: None,
+                low_level_f_min_agents: new_low_level_f_min_agents,
             };
             new_node.detect_conflicts();
             Some(new_node)
@@ -266,6 +277,7 @@ mod tests {
             cost: 0,
             focal: None,
             conflicts_hash: None,
+            low_level_f_min_agents: Vec::new(),
         };
         node_1.paths.insert(0, path_1.to_vec());
         node_1.constraints[0].insert(constraint_1.clone());
@@ -279,6 +291,7 @@ mod tests {
             cost: 0,
             focal: None,
             conflicts_hash: None,
+            low_level_f_min_agents: Vec::new(),
         };
         node_2.paths.insert(0, path_1.to_vec());
         node_2.paths.insert(1, path_2.to_vec());
@@ -293,6 +306,7 @@ mod tests {
             cost: 0,
             focal: None,
             conflicts_hash: None,
+            low_level_f_min_agents: Vec::new(),
         };
         node_3.paths.insert(0, path_1.to_vec());
         node_3.paths.insert(1, path_2.to_vec());

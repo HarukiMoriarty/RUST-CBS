@@ -1,6 +1,6 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
-use mapf_rust::solver::{Solver, BCBS, CBS, HBCBS, LBCBS};
+use mapf_rust::solver::{Solver, BCBS, CBS, ECBS, HBCBS, LBCBS};
 use mapf_rust::yaml::Scenario;
 
 use anyhow::Context;
@@ -32,7 +32,7 @@ fn main() -> anyhow::Result<()> {
     let map = Map::from_file(&config.test_map_path).expect("Error loading map");
     let mut rng = StdRng::seed_from_u64(config.seed as u64);
     let agents = setting
-        .generate_agents_randomly(config.num_agents, &mut rng)
+        .generate_agents_by_buckets(config.num_agents, config.agents_dist.clone(), &mut rng)
         .unwrap();
     for agent in agents.clone() {
         assert!(agent.verify(&map));
@@ -48,6 +48,9 @@ fn main() -> anyhow::Result<()> {
                     as Box<dyn Solver>,
                 "bcbs" => {
                     Box::new(BCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
+                }
+                "ecbs" => {
+                    Box::new(ECBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
                 }
                 _ => unreachable!(),
             };

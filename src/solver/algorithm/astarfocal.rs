@@ -16,7 +16,7 @@ pub(crate) fn focal_a_star_search(
     current_agent: usize,
     paths: &Vec<Vec<(usize, usize)>>,
     stats: &mut Stats,
-) -> Option<Vec<(usize, usize)>> {
+) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // Open list is indexed based on (f_open_cost, time, position)
@@ -50,7 +50,10 @@ pub(crate) fn focal_a_star_search(
 
         let current_time = current.time;
         if current.position == goal && current_time > max_time {
-            return Some(construct_path(&trace, (current.position, current_time)));
+            return Some((
+                construct_path(&trace, (current.position, current_time)),
+                Some(f_min),
+            ));
         }
 
         // Time step increases as we move to the next node.

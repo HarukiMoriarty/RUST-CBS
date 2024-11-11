@@ -13,7 +13,7 @@ pub(crate) fn a_star_search(
     goal: (usize, usize),
     constraints: &HashSet<Constraint>,
     stats: &mut Stats,
-) -> Option<Vec<(usize, usize)>> {
+) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     let mut open = BinaryHeap::new();
@@ -37,7 +37,10 @@ pub(crate) fn a_star_search(
         let current_time = current.time;
 
         if current.position == goal && current_time > max_time {
-            return Some(construct_path(&trace, (current.position, current_time)));
+            return Some((
+                construct_path(&trace, (current.position, current_time)),
+                None,
+            ));
         }
 
         // Time step increases as we move to the next node.
@@ -91,7 +94,7 @@ mod tests {
         let map = Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map").unwrap();
         let constraints = HashSet::new();
         let stats = &mut Stats::default();
-        let path = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
         assert_eq!(path.len(), 20);
     }
 
@@ -104,7 +107,7 @@ mod tests {
             time_step: 2,
         });
         let stats = &mut Stats::default();
-        let path = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
         assert_eq!(path.len(), 21);
     }
 
@@ -117,7 +120,7 @@ mod tests {
             time_step: 29,
         });
         let stats = &mut Stats::default();
-        let path = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, (25, 14), (17, 19), &constraints, stats).unwrap();
         assert_eq!(path.len(), 31);
     }
 }
