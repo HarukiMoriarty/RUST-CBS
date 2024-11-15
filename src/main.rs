@@ -1,7 +1,7 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
+use mapf_rust::scenario::Scenario;
 use mapf_rust::solver::{Solver, BCBS, CBS, ECBS, HBCBS, LBCBS};
-use mapf_rust::yaml::Scenario;
 
 use anyhow::Context;
 use clap::Parser;
@@ -27,12 +27,17 @@ fn main() -> anyhow::Result<()> {
     ));
     info!("Config: {config:#?}");
 
-    let setting =
-        Scenario::load_from_file(&config.test_yaml_path).expect("Error loading YAML config");
-    let mut rng = StdRng::seed_from_u64(config.seed as u64);
-    let agents = setting
-        .generate_agents_randomly(config.num_agents, &mut rng)
-        .unwrap();
+    let agents = if cli.debug_yaml {
+        Scenario::load_agents_from_yaml("./debug.yaml").unwrap()
+    } else {
+        let setting =
+            Scenario::load_from_scen(&config.test_yaml_path).expect("Error loading YAML config");
+        let mut rng = StdRng::seed_from_u64(config.seed as u64);
+        setting
+            .generate_agents_randomly(config.num_agents, &mut rng)
+            .unwrap()
+    };
+
     let map = Map::from_file(&config.test_map_path, &agents).expect("Error loading map");
     for agent in agents.clone() {
         assert!(agent.verify(&map));

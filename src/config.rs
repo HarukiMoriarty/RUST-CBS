@@ -18,6 +18,9 @@ pub struct Cli {
         default_value_t = 0
     )]
     pub seed: usize,
+
+    #[arg(long, help = "Enable debugging for YAML scenos")]
+    pub debug_yaml: bool,
 }
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
@@ -30,6 +33,7 @@ pub struct Config {
     pub seed: usize,
     pub sub_optimal: (Option<f64>, Option<f64>),
     pub solver: Vec<String>,
+    pub debug_yaml: bool,
 }
 
 impl Default for Config {
@@ -42,6 +46,7 @@ impl Default for Config {
             seed: 0,
             sub_optimal: (None, None),
             solver: vec!["cbs".to_string()],
+            debug_yaml: false,
         };
 
         config
@@ -56,6 +61,7 @@ impl Config {
 
     pub fn override_from_command_line(mut self, cli: &Cli) -> anyhow::Result<Self> {
         self.seed = cli.seed;
+        self.debug_yaml = cli.debug_yaml;
         self.validate()
     }
 

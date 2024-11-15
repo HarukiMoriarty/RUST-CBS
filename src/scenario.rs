@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Write};
 use tracing::info;
 
 use crate::common::Agent;
@@ -45,11 +45,11 @@ pub struct Scenario {
     pub map: String,
     pub map_width: usize,
     pub map_height: usize,
-    pub buckets: HashMap<usize, Bucket>,
+    pub buckets: Option<HashMap<usize, Bucket>>,
 }
 
 impl Scenario {
-    pub fn load_from_file(path: &str) -> io::Result<Scenario> {
+    pub fn load_from_scen(path: &str) -> io::Result<Scenario> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut lines = reader.lines().map(|line| line.unwrap());
@@ -62,7 +62,7 @@ impl Scenario {
             map: String::new(),
             map_width: 0,
             map_height: 0,
-            buckets: HashMap::new(),
+            buckets: Some(HashMap::new()),
         };
 
         for line in lines {
@@ -87,6 +87,8 @@ impl Scenario {
             // Access the bucket, or initialize it if it does not exist
             scenario
                 .buckets
+                .as_mut()
+                .unwrap()
                 .entry(bucket_index)
                 .or_insert_with(Vec::new)
                 .push(route);
@@ -111,6 +113,8 @@ impl Scenario {
         for (agent_id, &bucket_index) in agent_buckets.iter().enumerate() {
             let bucket = self
                 .buckets
+                .as_ref()
+                .unwrap()
                 .get(&bucket_index)
                 .ok_or_else(|| format!("Bucket {} not found", bucket_index))?;
 
@@ -163,6 +167,8 @@ impl Scenario {
 
         let mut available_routes: Vec<Route> = self
             .buckets
+            .as_ref()
+            .unwrap()
             .clone()
             .into_iter()
             .flat_map(|(_, bucket)| bucket)
@@ -193,7 +199,24 @@ impl Scenario {
         }
 
         info!("Generate scen: {agents:?}");
+        Self::write_agents_to_yaml("debug.yaml", &agents).unwrap();
         Ok(agents)
+    }
+
+    pub fn load_agents_from_yaml(path: &str) -> Result<Vec<Agent>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let agents = serde_yaml::from_reader(reader)?;
+        Ok(agents)
+    }
+
+    pub(crate) fn write_agents_to_yaml(path: &str, agents: &[Agent]) -> Result<()> {
+        let file = File::create(path)?;
+        let mut writer = io::BufWriter::new(file);
+        let yaml_data = serde_yaml::to_string(&agents)?;
+        writer.write_all(yaml_data.as_bytes())?;
+
+        Ok(())
     }
 }
 
@@ -204,9 +227,9 @@ mod tests {
     use rand::SeedableRng;
 
     #[test]
-    fn test_read_yaml() {
+    fn test_read_scenario() {
         let scen =
-            Scenario::load_from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen")
+            Scenario::load_from_scen("map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen")
                 .expect("Error loading YAML config");
 
         let seed = [0u8; 32];

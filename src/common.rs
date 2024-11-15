@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::collections::HashSet;
 
@@ -10,7 +11,7 @@ struct Constraint {
     time_step: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Agent {
     pub id: usize,
     pub start: (usize, usize),
