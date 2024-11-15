@@ -90,7 +90,7 @@ impl Scenario {
                 .as_mut()
                 .unwrap()
                 .entry(bucket_index)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(route);
         }
 
@@ -149,7 +149,7 @@ impl Scenario {
             // Mark this route as used
             used_routes
                 .entry(bucket_index)
-                .or_insert_with(HashSet::new)
+                .or_default()
                 .insert(*route_index);
         }
 

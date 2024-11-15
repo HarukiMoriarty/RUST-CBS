@@ -42,7 +42,7 @@ impl Solver for LBCBS {
                 if !current_node.conflicts.is_empty() {
                     for conflict in &current_node.conflicts {
                         if let Some(child_1) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             true,
                             &self.map,
                             self.low_level_subopt_factor,
@@ -55,7 +55,7 @@ impl Solver for LBCBS {
                         }
 
                         if let Some(child_2) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             false,
                             &self.map,
                             self.low_level_subopt_factor,

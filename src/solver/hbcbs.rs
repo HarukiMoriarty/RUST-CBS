@@ -45,7 +45,7 @@ impl Solver for HBCBS {
                 if !current_node.conflicts.is_empty() {
                     for conflict in &current_node.conflicts {
                         if let Some(child_1) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             true,
                             &self.map,
                             None,
@@ -67,7 +67,7 @@ impl Solver for HBCBS {
                         }
 
                         if let Some(child_2) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             false,
                             &self.map,
                             None,

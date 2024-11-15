@@ -61,7 +61,7 @@ impl Solver for ECBS {
                 if !current_node.conflicts.is_empty() {
                     for conflict in &current_node.conflicts {
                         if let Some(child_1) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             true,
                             &self.map,
                             self.subopt_factor.1,
@@ -87,7 +87,7 @@ impl Solver for ECBS {
                         }
 
                         if let Some(child_2) = current_node.update_constraint(
-                            &conflict,
+                            conflict,
                             false,
                             &self.map,
                             self.subopt_factor.1,

@@ -30,7 +30,7 @@ pub struct Solution {
 }
 
 impl Solution {
-    pub fn verify(&self, map: &Map, agents: &Vec<Agent>) -> bool {
+    pub fn verify(&self, map: &Map, agents: &[Agent]) -> bool {
         if self.paths.is_empty() {
             return true;
         }

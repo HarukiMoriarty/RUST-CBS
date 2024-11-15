@@ -13,7 +13,7 @@ pub(crate) fn focal_a_star_search(
     agent: &Agent,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
-    paths: &Vec<Vec<(usize, usize)>>,
+    paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
@@ -35,7 +35,7 @@ pub(crate) fn focal_a_star_search(
         time: 0,
     };
 
-    open_list.insert((0 + start_h_open_cost, 0, agent.start), start_node.clone());
+    open_list.insert((start_h_open_cost, 0, agent.start), start_node.clone());
     focal_list.push(start_node);
     g_cost.insert((agent.start, 0), 0);
 

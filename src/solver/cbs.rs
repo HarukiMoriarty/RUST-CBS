@@ -34,7 +34,7 @@ impl Solver for CBS {
                 closed.insert(current_node.clone());
                 if let Some(conflict) = &current_node.conflicts.first() {
                     if let Some(child_1) = current_node.update_constraint(
-                        &conflict,
+                        conflict,
                         true,
                         &self.map,
                         None,
@@ -47,7 +47,7 @@ impl Solver for CBS {
                     }
 
                     if let Some(child_2) = current_node.update_constraint(
-                        &conflict,
+                        conflict,
                         false,
                         &self.map,
                         None,

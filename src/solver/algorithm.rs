@@ -10,7 +10,7 @@ fn heuristic_focal(
     agent: usize,
     position: (usize, usize),
     time: usize,
-    paths: &Vec<Vec<(usize, usize)>>,
+    paths: &[Vec<(usize, usize)>],
 ) -> usize {
     let mut conflict_count = 0;
 

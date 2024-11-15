@@ -72,10 +72,10 @@ impl HighLevelNode {
         for agent in agents {
             let path_f = if let Some(factor) = low_level_subopt_factor {
                 // If a suboptimal factor is provided, use the focal A* search
-                focal_a_star_search(map, &agent, factor, &HashSet::new(), &paths, stats)
+                focal_a_star_search(map, agent, factor, &HashSet::new(), &paths, stats)
             } else {
                 // Otherwise, use the standard A* search
-                a_star_search(map, &agent, &HashSet::new(), stats)
+                a_star_search(map, agent, &HashSet::new(), stats)
             };
 
             if let Some((path, low_level_f_min)) = path_f {
