@@ -26,5 +26,5 @@ solver                  | Solver to use
 Run the solver
 
 ```
-cargo run --release
+cargo run --release -- $(paras)
 ```
