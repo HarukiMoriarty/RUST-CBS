@@ -1,9 +1,0 @@
-test_yaml_path: "map_file/Boston-0-256-scen-even/Boston_0_256-even-1.scen"
-test_map_path: "map_file/Boston-0-256-scen-even/Boston_0_256.map"
-num_agents: 10
-agents_dist: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-seed: 0
-sub_optimal: 
-  - 1.2
-  - 1.2
-solver: ["cbs", "lbcbs"]

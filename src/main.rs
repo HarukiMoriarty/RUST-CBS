@@ -4,7 +4,7 @@ use mapf_rust::scenario::Scenario;
 use mapf_rust::solver::{Solver, BCBS, CBS, ECBS, HBCBS, LBCBS};
 
 use clap::Parser;
-use rand::rngs::StdRng;
+use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use tracing::{debug, error, info};
 use tracing_subscriber::{fmt, EnvFilter};
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
     } else {
         let setting =
             Scenario::load_from_scen(&config.yaml_path).expect("Error loading YAML config");
-        let mut rng = StdRng::seed_from_u64(config.seed as u64);
+        let mut rng = SmallRng::seed_from_u64(config.seed as u64);
         setting
             .generate_agents_randomly(config.num_agents, &mut rng)
             .unwrap()

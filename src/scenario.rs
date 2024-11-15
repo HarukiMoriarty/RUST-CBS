@@ -3,39 +3,17 @@ use rand::prelude::*;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::hash::{Hash, Hasher};
 use std::io::{self, BufRead, BufReader, Write};
 use tracing::info;
 
 use crate::common::Agent;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Route {
     pub start_x: usize,
     pub start_y: usize,
     pub goal_x: usize,
     pub goal_y: usize,
-    pub optimal_length: f64,
-}
-
-impl PartialEq for Route {
-    fn eq(&self, other: &Self) -> bool {
-        self.start_x == other.start_x
-            && self.start_y == other.start_y
-            && self.goal_x == other.goal_x
-            && self.goal_y == other.goal_y
-    }
-}
-
-impl Eq for Route {}
-
-impl Hash for Route {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.start_x.hash(state);
-        self.start_y.hash(state);
-        self.goal_x.hash(state);
-        self.goal_y.hash(state);
-    }
 }
 
 type Bucket = Vec<Route>;
@@ -74,7 +52,6 @@ impl Scenario {
                 start_y: parts[4].parse().unwrap(),
                 goal_x: parts[7].parse().unwrap(),
                 goal_y: parts[6].parse().unwrap(),
-                optimal_length: parts[8].parse().unwrap(),
             };
 
             if scenario.map.is_empty() {
@@ -173,6 +150,7 @@ impl Scenario {
             .into_iter()
             .flat_map(|(_, bucket)| bucket)
             .collect();
+        available_routes.sort();
 
         if available_routes.len() < num_agents {
             return Err(

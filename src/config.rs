@@ -12,14 +12,14 @@ pub struct Cli {
     #[arg(
         long,
         help = "Path to the YAML scenario file",
-        default_value = "map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen"
+        default_value = "map_file/Boston-0-256-scen-even/Boston_0_256-even-1.scen"
     )]
     pub yaml_path: String,
 
     #[arg(
         long,
         help = "Path to the map file",
-        default_value = "map_file/maze-32-32-2-scen-even/maze-32-32-2.map"
+        default_value = "map_file/Boston-0-256-scen-even/Boston_0_256.map"
     )]
     pub map_path: String,
 
@@ -81,7 +81,7 @@ impl Config {
 
     pub fn validate(&self) -> anyhow::Result<()> {
         if let Some(low_level_sub_optimal) = self.sub_optimal.0 {
-            if low_level_sub_optimal <= 1.0 {
+            if low_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "Low-level sub-optimal value must be greater than 1.0, got {}",
                     low_level_sub_optimal
@@ -90,7 +90,7 @@ impl Config {
         }
 
         if let Some(high_level_sub_optimal) = self.sub_optimal.1 {
-            if high_level_sub_optimal <= 1.0 {
+            if high_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "High-level sub-optimal value must be greater than 1.0, got {}",
                     high_level_sub_optimal
