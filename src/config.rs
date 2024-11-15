@@ -1,5 +1,5 @@
+use anyhow::anyhow;
 use clap::Parser;
-use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -9,8 +9,25 @@ use serde::{Deserialize, Serialize};
     version = "1.0"
 )]
 pub struct Cli {
-    #[arg(long, short, help = "Path to the YAML config file")]
-    pub config: Option<String>,
+    #[arg(
+        long,
+        help = "Path to the YAML scenario file",
+        default_value = "map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen"
+    )]
+    pub yaml_path: String,
+
+    #[arg(
+        long,
+        help = "Path to the map file",
+        default_value = "map_file/maze-32-32-2-scen-even/maze-32-32-2.map"
+    )]
+    pub map_path: String,
+
+    #[arg(long, help = "Number of agents", default_value_t = 10)]
+    pub num_agents: usize,
+
+    #[arg(long, help = "Distribution of agents", use_value_delimiter = true)]
+    pub agents_dist: Vec<usize>,
 
     #[arg(
         long,
@@ -19,53 +36,67 @@ pub struct Cli {
     )]
     pub seed: usize,
 
-    #[arg(long, help = "Enable debugging for YAML scenos")]
+    #[arg(long, help = "Suboptimal limit for low-level operations")]
+    pub low_level_sub_optimal: Option<f64>,
+
+    #[arg(long, help = "Suboptimal limit for high-level operations")]
+    pub high_level_sub_optimal: Option<f64>,
+
+    #[arg(long, help = "Solver to use", default_value = "cbs")]
+    pub solver: String,
+
+    #[arg(
+        long,
+        help = "Enable debugging for YAML scenarios",
+        default_value_t = false
+    )]
     pub debug_yaml: bool,
 }
 
-#[derive(Serialize, Debug, Deserialize, Clone)]
-#[serde(default)]
+#[derive(Debug, Clone)]
 pub struct Config {
-    pub test_yaml_path: String,
-    pub test_map_path: String,
+    pub yaml_path: String,
+    pub map_path: String,
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
     pub seed: usize,
     pub sub_optimal: (Option<f64>, Option<f64>),
-    pub solver: Vec<String>,
+    pub solver: String,
     pub debug_yaml: bool,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        let config = Self {
-            test_yaml_path: "map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen".to_string(),
-            test_map_path: "map_file/maze-32-32-2-scen-even/maze-32-32-2.map".to_string(),
-            num_agents: 10,
-            agents_dist: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].to_vec(),
-            seed: 0,
-            sub_optimal: (None, None),
-            solver: vec!["cbs".to_string()],
-            debug_yaml: false,
-        };
-
-        config
-    }
-}
-
 impl Config {
-    pub fn from_yaml_str(config_str: &str) -> anyhow::Result<Self> {
-        let config: Self = serde_yaml::from_str(config_str)?;
-        config.validate()
+    pub fn new(cli: &Cli) -> Self {
+        Self {
+            yaml_path: cli.yaml_path.clone(),
+            map_path: cli.map_path.clone(),
+            num_agents: cli.num_agents,
+            agents_dist: cli.agents_dist.clone(),
+            seed: cli.seed,
+            sub_optimal: (cli.high_level_sub_optimal, cli.low_level_sub_optimal),
+            solver: cli.solver.clone(),
+            debug_yaml: cli.debug_yaml,
+        }
     }
 
-    pub fn override_from_command_line(mut self, cli: &Cli) -> anyhow::Result<Self> {
-        self.seed = cli.seed;
-        self.debug_yaml = cli.debug_yaml;
-        self.validate()
-    }
+    pub fn validate(&self) -> anyhow::Result<()> {
+        if let Some(low_level_sub_optimal) = self.sub_optimal.0 {
+            if low_level_sub_optimal <= 1.0 {
+                return Err(anyhow!(
+                    "Low-level sub-optimal value must be greater than 1.0, got {}",
+                    low_level_sub_optimal
+                ));
+            }
+        }
 
-    pub fn validate(self) -> anyhow::Result<Self> {
-        Ok(self)
+        if let Some(high_level_sub_optimal) = self.sub_optimal.1 {
+            if high_level_sub_optimal <= 1.0 {
+                return Err(anyhow!(
+                    "High-level sub-optimal value must be greater than 1.0, got {}",
+                    high_level_sub_optimal
+                ));
+            }
+        }
+        Ok(())
     }
 }

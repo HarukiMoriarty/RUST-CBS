@@ -59,7 +59,7 @@ impl Solver for CBS {
                         }
                     }
                 } else {
-                    // No conflicts, return solution
+                    // No conflicts, return solution.
                     let total_solve_time = total_solve_start_time.elapsed();
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;

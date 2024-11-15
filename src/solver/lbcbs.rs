@@ -10,7 +10,7 @@ pub struct LBCBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    subopt_factor: (Option<f64>, Option<f64>),
+    low_level_subopt_factor: Option<f64>,
 }
 
 impl LBCBS {
@@ -19,7 +19,7 @@ impl LBCBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
-            subopt_factor,
+            low_level_subopt_factor: subopt_factor.1,
         }
     }
 }
@@ -33,7 +33,7 @@ impl Solver for LBCBS {
         if let Some(root) = HighLevelNode::new(
             &self.agents,
             &self.map,
-            self.subopt_factor.1,
+            self.low_level_subopt_factor,
             &mut self.stats,
         ) {
             open.push(root);
@@ -45,11 +45,12 @@ impl Solver for LBCBS {
                             &conflict,
                             true,
                             &self.map,
-                            self.subopt_factor.1,
+                            self.low_level_subopt_factor,
                             &mut self.stats,
                         ) {
                             if !closed.contains(&child_1) {
                                 open.push(child_1);
+                                self.stats.high_level_expand_nodes += 1;
                             }
                         }
 
@@ -57,19 +58,17 @@ impl Solver for LBCBS {
                             &conflict,
                             false,
                             &self.map,
-                            self.subopt_factor.1,
+                            self.low_level_subopt_factor,
                             &mut self.stats,
                         ) {
                             if !closed.contains(&child_2) {
                                 open.push(child_2);
+                                self.stats.high_level_expand_nodes += 1;
                             }
                         }
-
-                        // Updates stats
-                        self.stats.high_level_expand_nodes += 2;
                     }
                 } else {
-                    // No conflicts, return solution
+                    // No conflicts, return solution.
                     let total_solve_time = total_solve_start_time.elapsed();
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;

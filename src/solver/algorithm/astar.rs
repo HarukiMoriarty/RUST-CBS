@@ -16,29 +16,30 @@ pub(crate) fn a_star_search(
 ) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
-    let mut open = BinaryHeap::new();
-    let mut close = HashSet::new();
-    let mut trace: HashMap<((usize, usize), usize), ((usize, usize), usize)> = HashMap::new();
+    let mut open_list = BinaryHeap::new();
+    let mut closed_list = HashSet::new();
+    let mut trace = HashMap::new();
     let mut g_cost = HashMap::new();
 
-    g_cost.insert((agent.start, 0), 0);
-
-    let start_heuristic = map.heuristic[agent.id][agent.start.0][agent.start.1];
+    let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
     let start_node = LowLevelNode {
         position: agent.start,
-        sort_key: start_heuristic,
+        sort_key: start_h_open_cost,
         g_cost: 0,
-        h_open_cost: start_heuristic,
-        h_focal_cost: None,
+        h_open_cost: start_h_open_cost,
+        h_focal_cost: 0,
         time: 0,
     };
 
-    open.push(start_node);
+    open_list.push(start_node);
+    g_cost.insert((agent.start, 0), 0);
 
-    while let Some(current) = open.pop() {
-        // Update stats
+    while let Some(current) = open_list.pop() {
+        // Update stats.
         stats.low_level_expand_nodes += 1;
-        close.insert((current.position, current.time));
+
+        closed_list.insert((current.position, current.time));
+
         let current_time = current.time;
 
         if current.position == agent.goal && current_time > max_time {
@@ -51,11 +52,13 @@ pub(crate) fn a_star_search(
         // Time step increases as we move to the next node.
         let next_time = current_time + 1;
 
-        // Assuming uniform cost, typically 1 in a grid.
+        // Assuming uniform cost.
         let tentative_g_cost = current.g_cost + 1;
 
+        // Expand nodes from the current position.
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
-            if close.contains(&(*neighbor, next_time)) {
+            // If node (position at current time) has closed, ignore.
+            if closed_list.contains(&(*neighbor, next_time)) {
                 continue;
             }
 
@@ -70,13 +73,15 @@ pub(crate) fn a_star_search(
             if tentative_g_cost < *g_cost.get(&(*neighbor, next_time)).unwrap_or(&usize::MAX) {
                 trace.insert((*neighbor, next_time), (current.position, current_time));
                 g_cost.insert((*neighbor, next_time), tentative_g_cost);
+
                 let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
-                open.push(LowLevelNode {
+
+                open_list.push(LowLevelNode {
                     position: *neighbor,
                     sort_key: tentative_g_cost + h_open_cost,
                     g_cost: tentative_g_cost,
                     h_open_cost,
-                    h_focal_cost: None,
+                    h_focal_cost: 0,
                     time: next_time,
                 });
             }

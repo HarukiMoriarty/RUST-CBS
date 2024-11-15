@@ -6,7 +6,7 @@ pub(crate) struct LowLevelNode {
     pub(crate) sort_key: usize,
     pub(crate) g_cost: usize,
     pub(crate) h_open_cost: usize,
-    pub(crate) h_focal_cost: Option<usize>,
+    pub(crate) h_focal_cost: usize,
     pub(crate) time: usize,
 }
 

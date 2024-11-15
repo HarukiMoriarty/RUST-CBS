@@ -26,13 +26,12 @@ pub(crate) fn focal_a_star_search(
     let mut g_cost = HashMap::new();
 
     let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
-    // Calculate as f open cost
     let start_node = LowLevelNode {
         position: agent.start,
-        sort_key: 0,
+        sort_key: 0, // At start point, should have no conflicts with any other agents.
         g_cost: 0,
         h_open_cost: start_h_open_cost,
-        h_focal_cost: Some(0),
+        h_focal_cost: 0,
         time: 0,
     };
 
@@ -41,18 +40,22 @@ pub(crate) fn focal_a_star_search(
     g_cost.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop() {
-        // Update stats
+        // Update stats.
         stats.low_level_expand_nodes += 1;
+
         closed_list.insert((current.position, current.time));
 
+        let current_time = current.time;
+
         let f_min = current.g_cost + current.h_open_cost;
+
+        // Remove the same node from open list.
         open_list.remove(&(
             current.h_open_cost + current.g_cost,
             current.time,
             current.position,
         ));
 
-        let current_time = current.time;
         if current.position == agent.goal && current_time > max_time {
             return Some((
                 construct_path(&trace, (current.position, current_time)),
@@ -68,6 +71,7 @@ pub(crate) fn focal_a_star_search(
 
         // Expanding nodes from the current position
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+            // If node (position at current time) has closed, ignore.
             if closed_list.contains(&(*neighbor, next_time)) {
                 continue;
             }
@@ -80,58 +84,50 @@ pub(crate) fn focal_a_star_search(
                 continue; // This move is prohibited due to a constraint.
             }
 
-            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
-            let h_focal_cost = current.h_focal_cost.unwrap()
-                + heuristic_focal(agent.id, *neighbor, next_time, paths);
-            let f_open_cost = tentative_g_cost + h_open_cost;
-
             if tentative_g_cost < *g_cost.get(&(*neighbor, next_time)).unwrap_or(&usize::MAX) {
                 trace.insert((*neighbor, next_time), (current.position, current_time));
                 g_cost.insert((*neighbor, next_time), tentative_g_cost);
+
+                let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
+                let h_focal_cost =
+                    current.h_focal_cost + heuristic_focal(agent.id, *neighbor, next_time, paths);
+                let f_open_cost = tentative_g_cost + h_open_cost;
+
                 let neighbor_node = LowLevelNode {
                     position: *neighbor,
                     sort_key: h_focal_cost,
                     g_cost: tentative_g_cost,
                     h_open_cost,
-                    h_focal_cost: Some(h_focal_cost),
+                    h_focal_cost,
                     time: next_time,
                 };
 
                 open_list.insert((f_open_cost, next_time, *neighbor), neighbor_node.clone());
 
+                // If the node is in the suboptimal bound, push it into focal list.
                 if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
                     focal_list.push(neighbor_node);
                 }
             }
         }
 
-        // Maintain the focal list
-        let new_f_min = open_list
-            .iter()
-            .next()
-            .map_or(usize::MAX, |((f_open_cost, _, _), _)| *f_open_cost);
-        if !open_list.is_empty() && f_min < new_f_min {
-            update_lower_bound(
-                &mut focal_list,
-                &mut open_list,
-                subopt_factor * f_min as f64,
-                subopt_factor * new_f_min as f64,
-            );
+        if !open_list.is_empty() {
+            // Maintain the focal list, since we have changed the f min.
+            let new_f_min = open_list
+                .iter()
+                .next()
+                .map_or(usize::MAX, |((f_open_cost, _, _), _)| *f_open_cost);
+            if f_min < new_f_min {
+                open_list.iter().for_each(|((f_open_cost, _, _), node)| {
+                    if *f_open_cost as f64 > f_min as f64 * subopt_factor
+                        && *f_open_cost as f64 <= new_f_min as f64 * subopt_factor
+                    {
+                        focal_list.push(node.clone());
+                    }
+                });
+            }
         }
     }
 
     None
-}
-
-fn update_lower_bound(
-    focal_list: &mut BinaryHeap<LowLevelNode>,
-    open_list: &BTreeMap<(usize, usize, (usize, usize)), LowLevelNode>,
-    old_bound: f64,
-    new_bound: f64,
-) {
-    open_list.iter().for_each(|((f_open_cost, _, _), node)| {
-        if *f_open_cost as f64 > old_bound && *f_open_cost as f64 <= new_bound {
-            focal_list.push(node.clone());
-        }
-    });
 }
