@@ -13,19 +13,18 @@ cargo build --release
 Config test scripts and save as `yaml` file under `config` filefolder, an example is showed in `conf/test.yaml`
 
 ```
-test_yaml_path: --String, path to the test scene, default to "map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen"
-test_map_path: --String, path to the mao, default to "map_file/maze-32-32-2-scen-even/maze-32-32-2.map"
-num_agents: --Uint, number of agents, default to 10
-agents_dist: --Optional<List of Uint>, Specify scene buckets 
-seed: --Uint, random seed, default to 0
-sub_optimal: 
-  - --Float, high level suboptimal constant, default to 1.0
-  - --Float, low level suboptimal constant, default to 1.0
-solver: --List of solver, choose in CBS, HBCBS. LBCBS, BCBS, ECBS
+yaml-path               | Path to the YAML scenario file
+map-file                | Path to the map file
+num-agents              | Number of agents
+agents-dist             | Distribution of agents buckets
+seed                    | Seed for the random number generator
+low-level-sub-optimal   | Suboptimal limit for low-level operations
+high-level-sub-optimal  | Suboptimal limit for high-level operations
+solver                  | Solver to use
 ```
 
-Run the benchmark
+Run the solver
 
 ```
-cargo run --release -- --config ./conf/$(test script)
+cargo run --release
 ```
