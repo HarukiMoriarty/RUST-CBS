@@ -23,6 +23,13 @@ pub struct Cli {
     )]
     pub map_path: String,
 
+    #[arg(
+        long,
+        help = "Path to the output file",
+        default_value = "result/result.csv"
+    )]
+    pub output_path: String,
+
     #[arg(long, help = "Number of agents", default_value_t = 10)]
     pub num_agents: usize,
 
@@ -57,6 +64,7 @@ pub struct Cli {
 pub struct Config {
     pub yaml_path: String,
     pub map_path: String,
+    pub output_path: String,
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
     pub seed: usize,
@@ -70,6 +78,7 @@ impl Config {
         Self {
             yaml_path: cli.yaml_path.clone(),
             map_path: cli.map_path.clone(),
+            output_path: cli.output_path.clone(),
             num_agents: cli.num_agents,
             agents_dist: cli.agents_dist.clone(),
             seed: cli.seed,

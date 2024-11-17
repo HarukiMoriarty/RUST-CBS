@@ -1,56 +1,58 @@
 use super::construct_path;
 use crate::common::Agent;
 use crate::map::Map;
-use crate::solver::comm::{Constraint, LowLevelNode};
+use crate::solver::comm::{Constraint, LowLevelOpenNode};
 use crate::stat::Stats;
 use std::{
-    collections::{BinaryHeap, HashMap, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     usize,
 };
+use tracing::{debug, instrument, trace};
 
+#[instrument(skip_all, name="low_level_a_star", fields(agent = agent.id), level = "debug")]
 pub(crate) fn a_star_search(
     map: &Map,
     agent: &Agent,
     constraints: &HashSet<Constraint>,
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
+    debug!("constraints: {constraints:?}");
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
-    let mut open_list = BinaryHeap::new();
+    let mut open_list = BTreeSet::new();
     let mut closed_list = HashSet::new();
     let mut trace = HashMap::new();
-    let mut g_cost = HashMap::new();
+
+    let mut g_cost_map = HashMap::new();
 
     let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
-    let start_node = LowLevelNode {
+    let start_node = LowLevelOpenNode {
         position: agent.start,
-        sort_key: start_h_open_cost,
+        f_open_cost: start_h_open_cost,
         g_cost: 0,
-        h_open_cost: start_h_open_cost,
-        h_focal_cost: 0,
         time: 0,
     };
 
-    open_list.push(start_node);
-    g_cost.insert((agent.start, 0), 0);
+    open_list.insert(start_node.clone());
+    g_cost_map.insert((agent.start, 0), 0);
 
-    while let Some(current) = open_list.pop() {
+    while let Some(current) = open_list.pop_first() {
+        debug!("expand node: {current:?}");
+
         // Update stats.
         stats.low_level_expand_nodes += 1;
 
         closed_list.insert((current.position, current.time));
 
-        let current_time = current.time;
-
-        if current.position == agent.goal && current_time > max_time {
+        if current.position == agent.goal && current.time > max_time {
             return Some((
-                construct_path(&trace, (current.position, current_time)),
+                construct_path(&trace, (current.position, current.time)),
                 None,
             ));
         }
 
         // Time step increases as we move to the next node.
-        let next_time = current_time + 1;
+        let next_time = current.time + 1;
 
         // Assuming uniform cost.
         let tentative_g_cost = current.g_cost + 1;
@@ -70,22 +72,41 @@ pub(crate) fn a_star_search(
                 continue; // This move is prohibited due to a constraint.
             }
 
-            if tentative_g_cost < *g_cost.get(&(*neighbor, next_time)).unwrap_or(&usize::MAX) {
-                trace.insert((*neighbor, next_time), (current.position, current_time));
-                g_cost.insert((*neighbor, next_time), tentative_g_cost);
+            let old_g_cost = *g_cost_map
+                .get(&(*neighbor, next_time))
+                .unwrap_or(&usize::MAX);
+            if tentative_g_cost < old_g_cost {
+                trace.insert((*neighbor, next_time), (current.position, current.time));
+                g_cost_map.insert((*neighbor, next_time), tentative_g_cost);
 
                 let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
 
-                open_list.push(LowLevelNode {
+                // Update old node in open list if it is already appear in open list.
+                // Question: is this really needed?
+                if old_g_cost != usize::MAX {
+                    debug!(
+                        "find a small g cost {:?} for node {:?} at time {next_time:?}",
+                        tentative_g_cost + h_open_cost,
+                        *neighbor
+                    );
+                    // We should find such node already in open list.
+                    assert!(open_list.remove(&LowLevelOpenNode {
+                        position: *neighbor,
+                        f_open_cost: old_g_cost + h_open_cost,
+                        g_cost: old_g_cost,
+                        time: next_time,
+                    }));
+                }
+
+                open_list.insert(LowLevelOpenNode {
                     position: *neighbor,
-                    sort_key: tentative_g_cost + h_open_cost,
+                    f_open_cost: tentative_g_cost + h_open_cost,
                     g_cost: tentative_g_cost,
-                    h_open_cost,
-                    h_focal_cost: 0,
                     time: next_time,
                 });
             }
         }
+        trace!("open list {open_list:#?}");
     }
 
     None

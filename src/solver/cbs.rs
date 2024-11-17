@@ -1,11 +1,12 @@
 use super::comm::HighLevelNode;
 use super::Solver;
 use crate::common::{Agent, Solution};
+use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
-use std::time::Instant;
 
 use std::collections::{BinaryHeap, HashSet};
+use std::time::Instant;
 pub struct CBS {
     agents: Vec<Agent>,
     map: Map,
@@ -23,7 +24,7 @@ impl CBS {
 }
 
 impl Solver for CBS {
-    fn solve(&mut self) -> Option<Solution> {
+    fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
         let mut open = BinaryHeap::new();
         let mut closed = HashSet::new();
@@ -64,7 +65,7 @@ impl Solver for CBS {
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;
 
-                    self.stats.print("CBS".to_string());
+                    self.stats.print(config);
                     return Some(Solution {
                         paths: current_node.paths,
                     });

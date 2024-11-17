@@ -1,12 +1,13 @@
 use super::comm::HighLevelNode;
 use super::Solver;
 use crate::common::{Agent, Solution};
+use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
-use std::time::Instant;
-use tracing::debug;
 
 use std::collections::{BTreeMap, BinaryHeap, HashSet};
+use std::time::Instant;
+use tracing::debug;
 
 pub struct BCBS {
     agents: Vec<Agent>,
@@ -27,7 +28,7 @@ impl BCBS {
 }
 
 impl Solver for BCBS {
-    fn solve(&mut self) -> Option<Solution> {
+    fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
 
         // Open lisst is indexed based on (cost, conflicts_hash)
@@ -100,7 +101,7 @@ impl Solver for BCBS {
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;
 
-                    self.stats.print("BCBS".to_string());
+                    self.stats.print(config);
                     return Some(Solution {
                         paths: current_node.paths,
                     });

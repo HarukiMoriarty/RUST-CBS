@@ -50,7 +50,7 @@ fn main() -> anyhow::Result<()> {
         _ => unreachable!(),
     };
 
-    if let Some(solution) = solver.solve() {
+    if let Some(solution) = solver.solve(&config) {
         debug!("{:?} solution: {solution:?}", cli.solver);
         assert!(solution.verify(&map, &agents));
     } else {

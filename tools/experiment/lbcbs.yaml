@@ -1,0 +1,7 @@
+yaml_path: ["map_file/Boston-0-256-scen-even/Boston_0_256-even-1.scen"]
+map_path: ["map_file/Boston-0-256-scen-even/Boston_0_256.map"]
+num_agents: [10]
+seed_num: 1000
+low_level_sub_optimal: [1.2]
+solver: "lbcbs"
+time_out: 30

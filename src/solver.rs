@@ -13,9 +13,8 @@ pub use hbcbs::HBCBS;
 pub use lbcbs::LBCBS;
 
 use crate::common::Solution;
+use crate::config::Config;
 
 pub trait Solver {
-    fn solve(&mut self) -> Option<Solution>;
+    fn solve(&mut self, config: &Config) -> Option<Solution>;
 }
-
-
