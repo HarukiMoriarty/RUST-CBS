@@ -4,7 +4,7 @@ use crate::solver::algorithm::{a_star_search, focal_a_star_search};
 use crate::stat::Stats;
 
 use std::cmp::Ordering;
-use std::collections::{hash_map::DefaultHasher, HashSet};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use tracing::debug;
 
@@ -23,20 +23,22 @@ pub(crate) struct Constraint {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(crate) struct HighLevelNode {
+pub(crate) struct HighLevelOpenNode {
     pub(crate) agents: Vec<Agent>,
     pub(crate) constraints: Vec<HashSet<Constraint>>,
     pub(crate) conflicts: Vec<Conflict>,
     pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
     pub(crate) cost: usize, // Total cost for all paths under current constraints
-    pub(crate) focal: Option<usize>, // Focal cost under current constraints
-    pub(crate) conflicts_hash: Option<usize>, // Hash value of conflicts for Btree index
     pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
 }
 
-impl Hash for HighLevelNode {
+impl Hash for HighLevelOpenNode {
     fn hash<H: Hasher>(&self, state: &mut H) {
+        // Agents should be always equal during the experiment.
+        // Check paths.
+        // If paths are equal, then cost and conflicts should be equal too.
         self.paths.hash(state);
+        // Check constraints.
         for constraint in &self.constraints {
             let mut sorted_constraints: Vec<_> = constraint.iter().collect();
             sorted_constraints.sort_unstable();
@@ -45,19 +47,19 @@ impl Hash for HighLevelNode {
     }
 }
 
-impl Ord for HighLevelNode {
+impl Ord for HighLevelOpenNode {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cost.cmp(&other.cost).reverse()
+        self.cost.cmp(&other.cost)
     }
 }
 
-impl PartialOrd for HighLevelNode {
+impl PartialOrd for HighLevelOpenNode {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl HighLevelNode {
+impl HighLevelOpenNode {
     pub(crate) fn new(
         agents: &Vec<Agent>,
         map: &Map,
@@ -90,17 +92,16 @@ impl HighLevelNode {
         }
 
         if solve {
-            let mut start = HighLevelNode {
+            let mut start = HighLevelOpenNode {
                 agents: agents.to_vec(),
                 constraints: vec![HashSet::new(); agents.len()],
                 conflicts: Vec::new(),
                 paths,
                 cost: total_cost,
-                focal: None,
-                conflicts_hash: None,
                 low_level_f_min_agents,
             };
             start.detect_conflicts();
+
             debug!("High level start node {start:?}");
             Some(start)
         } else {
@@ -144,16 +145,7 @@ impl HighLevelNode {
         }
 
         debug!("Detect conflicts: {conflicts:?}");
-        if conflicts.is_empty() {
-            self.focal = Some(0);
-        } else {
-            self.focal = Some(conflicts.len());
-            self.conflicts = conflicts.clone();
-
-            let mut hasher = DefaultHasher::new();
-            conflicts.hash(&mut hasher);
-            self.conflicts_hash = Some(hasher.finish() as usize);
-        }
+        self.conflicts = conflicts;
     }
 
     pub(crate) fn update_constraint(
@@ -163,7 +155,7 @@ impl HighLevelNode {
         map: &Map,
         low_level_subopt_factor: Option<f64>,
         stats: &mut Stats,
-    ) -> Option<HighLevelNode> {
+    ) -> Option<HighLevelOpenNode> {
         let mut new_constraints = self.constraints.clone();
         let mut new_paths = self.paths.clone();
         let mut new_low_level_f_min_agents = self.low_level_f_min_agents.clone();
@@ -210,20 +202,69 @@ impl HighLevelNode {
                 new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
             }
 
-            let mut new_node = HighLevelNode {
+            let mut new_node = HighLevelOpenNode {
                 agents: self.agents.clone(),
                 constraints: new_constraints,
                 conflicts: Vec::new(),
                 paths: new_paths,
                 cost: new_cost,
-                focal: None,
-                conflicts_hash: None,
                 low_level_f_min_agents: new_low_level_f_min_agents,
             };
             new_node.detect_conflicts();
+
             Some(new_node)
         } else {
             None
+        }
+    }
+
+    pub(crate) fn to_focal_node(&self) -> HighLevelFocalNode {
+        HighLevelFocalNode {
+            agents: self.agents.clone(),
+            constraints: self.constraints.clone(),
+            conflicts: self.conflicts.clone(),
+            paths: self.paths.clone(),
+            focal: self.conflicts.len(),
+            cost: self.cost,
+            low_level_f_min_agents: self.low_level_f_min_agents.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub(crate) struct HighLevelFocalNode {
+    pub(crate) agents: Vec<Agent>,
+    pub(crate) constraints: Vec<HashSet<Constraint>>,
+    pub(crate) conflicts: Vec<Conflict>,
+    pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
+    pub(crate) focal: usize, // Focal cost for all paths under current constraints
+    pub(crate) cost: usize,  // Open cost for all paths under current constraints
+    pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
+}
+
+impl Ord for HighLevelFocalNode {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.focal
+            .cmp(&other.focal)
+            .then_with(|| self.cost.cmp(&other.cost))
+    }
+}
+
+impl PartialOrd for HighLevelFocalNode {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl HighLevelFocalNode {
+    pub(crate) fn to_open_node(&self) -> HighLevelOpenNode {
+        HighLevelOpenNode {
+            agents: self.agents.clone(),
+            constraints: self.constraints.clone(),
+            conflicts: self.conflicts.clone(),
+            paths: self.paths.clone(),
+            cost: self.cost,
+            low_level_f_min_agents: self.low_level_f_min_agents.clone(),
         }
     }
 }
@@ -257,28 +298,24 @@ mod tests {
             time_step: 3,
         };
 
-        let mut node_1 = HighLevelNode {
+        let mut node_1 = HighLevelOpenNode {
             agents: Vec::new(),
             constraints: vec![HashSet::new(); 2],
             conflicts: Vec::new(),
             paths: Vec::new(),
             cost: 0,
-            focal: None,
-            conflicts_hash: None,
             low_level_f_min_agents: Vec::new(),
         };
         node_1.paths.insert(0, path_1.to_vec());
         node_1.constraints[0].insert(constraint_1.clone());
         node_1.constraints[0].insert(constraint_2.clone());
 
-        let mut node_2 = HighLevelNode {
+        let mut node_2 = HighLevelOpenNode {
             agents: Vec::new(),
             constraints: vec![HashSet::new(); 2],
             conflicts: Vec::new(),
             paths: Vec::new(),
             cost: 0,
-            focal: None,
-            conflicts_hash: None,
             low_level_f_min_agents: Vec::new(),
         };
         node_2.paths.insert(0, path_1.to_vec());
@@ -286,14 +323,12 @@ mod tests {
         node_2.constraints[0].insert(constraint_1.clone());
         node_2.constraints[0].insert(constraint_2);
 
-        let mut node_3 = HighLevelNode {
+        let mut node_3 = HighLevelOpenNode {
             agents: Vec::new(),
             constraints: vec![HashSet::new(); 2],
             conflicts: Vec::new(),
             paths: Vec::new(),
             cost: 0,
-            focal: None,
-            conflicts_hash: None,
             low_level_f_min_agents: Vec::new(),
         };
         node_3.paths.insert(0, path_1.to_vec());

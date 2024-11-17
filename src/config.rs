@@ -89,7 +89,23 @@ impl Config {
     }
 
     pub fn validate(&self) -> anyhow::Result<()> {
-        if let Some(low_level_sub_optimal) = self.sub_optimal.0 {
+        let mut check_low_level_sub_optimal = false;
+        let mut check_high_level_sub_optimal = false;
+
+        match self.solver.as_str() {
+            "cbs" => {}
+            "lbcbs" => check_low_level_sub_optimal = true,
+            "hbcbs" => check_high_level_sub_optimal = true,
+            "bcbs" => {
+                check_high_level_sub_optimal = true;
+                check_low_level_sub_optimal = true;
+            }
+            "ecbs" => check_low_level_sub_optimal = true,
+            _ => unreachable!(),
+        }
+
+        if check_low_level_sub_optimal {
+            let low_level_sub_optimal = self.sub_optimal.1.unwrap();
             if low_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "Low-level sub-optimal value must be greater than 1.0, got {}",
@@ -98,7 +114,8 @@ impl Config {
             }
         }
 
-        if let Some(high_level_sub_optimal) = self.sub_optimal.1 {
+        if check_high_level_sub_optimal {
+            let high_level_sub_optimal = self.sub_optimal.0.unwrap();
             if high_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "High-level sub-optimal value must be greater than 1.0, got {}",
