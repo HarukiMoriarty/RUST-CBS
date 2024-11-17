@@ -7,6 +7,7 @@ use crate::stat::Stats;
 
 use std::collections::{BinaryHeap, HashSet};
 use std::time::Instant;
+use tracing::debug;
 pub struct LBCBS {
     agents: Vec<Agent>,
     map: Map,
@@ -41,7 +42,8 @@ impl Solver for LBCBS {
             while let Some(current_node) = open.pop() {
                 closed.insert(current_node.clone());
                 if !current_node.conflicts.is_empty() {
-                    for conflict in &current_node.conflicts {
+                    if let Some(conflict) = current_node.conflicts.first() {
+                        debug!("conflict: {conflict:?}");
                         if let Some(child_1) = current_node.update_constraint(
                             conflict,
                             true,

@@ -1,4 +1,4 @@
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, trace};
 
 use super::{construct_path, heuristic_focal};
 use crate::common::Agent;
@@ -10,7 +10,7 @@ use std::{
     usize,
 };
 
-#[instrument(skip_all, name="low_level_a_focal_star", fields(agent = agent.id, subopt_factor = subopt_factor), level = "debug")]
+#[instrument(skip_all, name="low_level_a_focal_star", fields(agent = agent.id, subopt_factor = subopt_factor, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn focal_a_star_search(
     map: &Map,
     agent: &Agent,
@@ -19,6 +19,7 @@ pub(crate) fn focal_a_star_search(
     paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
+    debug!("constraints: {constraints:?}");
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // Open list is indexed based on (f_open_cost, time, position)
@@ -49,7 +50,7 @@ pub(crate) fn focal_a_star_search(
     f_focal_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop_first() {
-        debug!("expand node: {current:?}");
+        trace!("expand node: {current:?}");
 
         // Update stats.
         stats.low_level_expand_nodes += 1;
@@ -67,6 +68,7 @@ pub(crate) fn focal_a_star_search(
         });
 
         if current.position == agent.goal && current.time > max_time {
+            debug!("find solution");
             return Some((
                 construct_path(&trace, (current.position, current.time)),
                 Some(f_min),
@@ -169,6 +171,26 @@ pub(crate) fn focal_a_star_search(
                     });
                 }
             } else if tentative_g_cost == old_g_cost && f_focal_cost < old_f_focal_cost {
+                // We do not need to modify the open list, since g cost and h open cost is the same.
+                // We need to update the the node in the focal list, since f focal cost is smaller.
+                // We might not find such old node already in the focal list, conditionally delete and add a new one.
+                let f_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1] + old_g_cost;
+
+                if focal_list.remove(&LowLevelFocalNode {
+                    position: *neighbor,
+                    f_focal_cost: old_f_focal_cost,
+                    f_open_cost,
+                    g_cost: old_g_cost,
+                    time: next_time,
+                }) {
+                    focal_list.insert(LowLevelFocalNode {
+                        position: *neighbor,
+                        f_focal_cost,
+                        f_open_cost,
+                        g_cost: old_g_cost,
+                        time: next_time,
+                    });
+                }
             }
         }
 
@@ -193,6 +215,8 @@ pub(crate) fn focal_a_star_search(
                 });
             }
         }
+
+        trace!("focal list: {focal_list:?}");
     }
 
     None

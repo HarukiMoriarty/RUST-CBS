@@ -7,6 +7,7 @@ use crate::stat::Stats;
 
 use std::collections::{BinaryHeap, HashSet};
 use std::time::Instant;
+use tracing::debug;
 pub struct CBS {
     agents: Vec<Agent>,
     map: Map,
@@ -33,7 +34,8 @@ impl Solver for CBS {
             open.push(root);
             while let Some(current_node) = open.pop() {
                 closed.insert(current_node.clone());
-                if let Some(conflict) = &current_node.conflicts.first() {
+                if let Some(conflict) = current_node.conflicts.first() {
+                    debug!("conflict: {conflict:?}");
                     if let Some(child_1) = current_node.update_constraint(
                         conflict,
                         true,

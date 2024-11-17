@@ -9,7 +9,7 @@ use std::{
 };
 use tracing::{debug, instrument, trace};
 
-#[instrument(skip_all, name="low_level_a_star", fields(agent = agent.id), level = "debug")]
+#[instrument(skip_all, name="low_level_a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn a_star_search(
     map: &Map,
     agent: &Agent,
@@ -37,7 +37,7 @@ pub(crate) fn a_star_search(
     g_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = open_list.pop_first() {
-        debug!("expand node: {current:?}");
+        trace!("expand node: {current:?}");
 
         // Update stats.
         stats.low_level_expand_nodes += 1;
