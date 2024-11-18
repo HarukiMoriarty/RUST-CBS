@@ -2,8 +2,8 @@ import argparse
 import itertools
 import logging
 import subprocess
-import pandas as pd
 import yaml
+import math
 
 from pathlib import Path
 from typing import TypedDict, List
@@ -19,8 +19,7 @@ class ExperimentParameters(TypedDict):
     num_agents: List[str]
     agents_dist: List[str]
     seed_num: int
-    low_level_sub_optimal: List[str]
-    high_level_sub_optimal: List[int]
+    sub_optimal: List[float]
     solver: List[str]
     time_out: str
 
@@ -75,11 +74,13 @@ def run_experiment(params: ExperimentParameters):
     ]
 
     solver = params.get("solver", "")  
-    if solver in ["lbcbs", "bcbs", "ecbs"]: 
-        cmd_base.extend(["--low-level-sub-optimal", str(params.get("low_level_sub_optimal", "default_value"))])  
-    if solver in ["hbcbs", "bcbs"]:  
-        cmd_base.extend(["--high-level-sub-optimal", str(params.get("high_level_sub_optimal", "default_value"))])  
-
+    if solver in ["lbcbs", "ecbs"]: 
+        cmd_base.extend(["--low-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
+    if solver in ["hbcbs"]:  
+        cmd_base.extend(["--high-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
+    if solver in ["bcbs"]:
+        cmd_base.extend(["--low-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])
+        cmd_base.extend(["--high-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])  
 
     LOG.info(f"Executing: {' '.join(cmd_base)}")
     try:

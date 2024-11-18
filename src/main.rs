@@ -6,7 +6,7 @@ use mapf_rust::solver::{Solver, BCBS, CBS, ECBS, HBCBS, LBCBS};
 use clap::Parser;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 use tracing_subscriber::{fmt, EnvFilter};
 
 fn main() -> anyhow::Result<()> {
@@ -51,10 +51,10 @@ fn main() -> anyhow::Result<()> {
     };
 
     if let Some(solution) = solver.solve(&config) {
-        debug!("{:?} solution: {solution:?}", cli.solver);
+        solution.log_solution(&cli.solver);
         assert!(solution.verify(&map, &agents));
     } else {
-        error!("{:?} solve fails", cli.solver);
+        error!("{} solve fails", cli.solver);
     }
 
     Ok(())

@@ -13,6 +13,8 @@ impl Ord for LowLevelOpenNode {
         self.f_open_cost
             .cmp(&other.f_open_cost)
             .then_with(|| self.g_cost.cmp(&other.g_cost).reverse())
+            .then_with(|| self.position.cmp(&other.position))
+            .then_with(|| self.time.cmp(&other.time))
     }
 }
 
@@ -37,6 +39,8 @@ impl Ord for LowLevelFocalNode {
             .cmp(&other.f_focal_cost)
             .then_with(|| self.f_open_cost.cmp(&other.f_open_cost))
             .then_with(|| self.g_cost.cmp(&other.g_cost).reverse())
+            .then_with(|| self.position.cmp(&other.position))
+            .then_with(|| self.time.cmp(&other.time))
     }
 }
 

@@ -3,6 +3,7 @@ use std::cmp::{max, min};
 use std::collections::HashSet;
 
 use crate::map::Map;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Constraint {
@@ -36,7 +37,7 @@ impl Solution {
         }
 
         if self.paths.len() != agents.len() {
-            println!("incomplete solution");
+            error!("incomplete solution");
             return false;
         }
 
@@ -44,21 +45,20 @@ impl Solution {
             if path.first().map_or(true, |&s| s != agent.start)
                 || path.last().map_or(true, |&g| g != agent.goal)
             {
-                print!(
-                    "path start {:?} path end {:?} agent start {:?} agent end {:?}",
+                error!(
+                    "start and goal failed: path start {:?} path end {:?}, but agent start {:?} agent end {:?}",
                     path.first(),
                     path.last(),
                     agent.start,
                     agent.goal
                 );
-                println!("start and goal failed");
                 return false;
             }
 
             for window in path.windows(2) {
                 if let [first, second] = window {
                     if !Self::are_neighbors(*first, *second) {
-                        println!("move step failed");
+                        error!("move step failed");
                         return false;
                     }
                 }
@@ -71,11 +71,9 @@ impl Solution {
             let mut seen_positions = HashSet::new();
 
             for path in &self.paths {
-                // Check if the current path has a position at this time step
                 if let Some(pos) = path.get(time_step) {
-                    // Check for passability and if the position is already taken
                     if !map.is_passable(pos.0, pos.1) || !seen_positions.insert(pos) {
-                        println!("conflict or impossible move");
+                        error!("conflict or impossible move");
                         return false;
                     }
                 }
@@ -89,5 +87,17 @@ impl Solution {
         (pos1.0 == pos2.0 && (max(pos1.1, pos2.1) - min(pos1.1, pos2.1)) == 1)
             || (pos1.1 == pos2.1 && (max(pos1.0, pos2.0) - min(pos1.0, pos2.0)) == 1)
             || (pos1.0 == pos2.0 && pos1.1 == pos2.1)
+    }
+
+    pub fn log_solution(&self, solver: &str) {
+        let mut formatted_solution = String::new();
+        for (index, path) in self.paths.iter().enumerate() {
+            formatted_solution.push_str(&format!(" agent{}:\n", index));
+            for (t, &(x, y)) in path.iter().enumerate() {
+                formatted_solution
+                    .push_str(&format!("   - x: {}\n     y: {}\n     t: {}\n", x, y, t));
+            }
+        }
+        debug!("{} solution:\n{}", solver, formatted_solution);
     }
 }

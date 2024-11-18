@@ -10,47 +10,74 @@ def load_data(file_path):
     return pd.read_csv(file_path)
 
 def compute_stats(df, column):
-    return np.percentile(df[column].dropna(), [0, 50, 99])
+    return np.percentile(df[column].dropna(), [0, 50, 99], method="nearest")
 
-def analyze_experiments(file_path):
+def analyze_experiments(file_path, output_file_path):
     data = load_data(file_path)
-    
-    solvers = data['solver'].unique()
-    for solver in solvers:
-        solver_data = data[data['solver'] == solver]
+    results = []
 
-        timeouts = solver_data['low_level_suboptimal'].astype(str).str.contains('timeout', na=False)
-        timeout_count = timeouts.sum()
-        success_data = solver_data[~timeouts]
-        total_count = len(solver_data)
-        timeout_rate = timeout_count / total_count if total_count > 0 else 0
+    for num_agents in data['num_agents'].unique():
+        for seed in data['seed'].unique():
+            group_data = data[(data['num_agents'] == num_agents) & (data['seed'] == seed)]
+            cbs_data = group_data[group_data['solver'] == 'cbs']
+            cbs_costs = cbs_data['costs'].dropna()
 
-        print(f"Stats for solver: {solver}")
-        print(f"Total entries for {solver}: {total_count}")
-        print(f"Timeout entries for {solver}: {timeout_count}")
-        print(f"Timeout rate for {solver}: {timeout_rate:.2%}")
+            if not cbs_costs.empty:
+                cbs_cost_min = cbs_costs.min()  # Get the minimum cost for CBS to compare with others
+                for solver in group_data['solver'].unique():
+                    solver_data = group_data[group_data['solver'] == solver]
+                    solver_costs = solver_data['costs'].dropna()
 
-        if not success_data.empty:
-            # Time statistics
-            time_stats = compute_stats(success_data, 'time(us)')
-            print(f"Time P0: {time_stats[0]} us, P50: {time_stats[1]} us, P99: {time_stats[2]} us")
-            
-            # High level expanded nodes statistics
-            high_level_stats = compute_stats(success_data, 'high_level_expanded')
-            print(f"High level expanded nodes P0: {high_level_stats[0]}, P50: {high_level_stats[1]}, P99: {high_level_stats[2]}")
-            
-            # Low level expanded nodes statistics
-            low_level_stats = compute_stats(success_data, 'low_level_expanded')
-            print(f"Low level expanded nodes P0: {low_level_stats[0]}, P50: {low_level_stats[1]}, P99: {low_level_stats[2]}")
-        else:
-            print("No successful runs for this solver to analyze.")
+                    if not solver_costs.empty:
+                        if (solver_costs < cbs_cost_min).any():
+                            print(f"Discrepancy found for num_agents={num_agents}, seed={seed}, solver={solver}")
+
+    for solver in data['solver'].unique():
+        for num_agents in data['num_agents'].unique():
+            solver_agent_data = data[(data['solver'] == solver) & (data['num_agents'] == num_agents)]
+
+            timeouts = solver_agent_data['low_level_suboptimal'].astype(str).str.contains('timeout', na=False)
+            timeout_count = timeouts.sum()
+            success_data = solver_agent_data[~timeouts]
+            total_count = len(solver_agent_data)
+            timeout_rate = timeout_count / total_count if total_count > 0 else 0
+
+            if not success_data.empty:
+                # Time statistics
+                time_stats = compute_stats(success_data, 'time(us)')
+                # High level expanded nodes statistics
+                high_level_stats = compute_stats(success_data, 'high_level_expanded')
+                # Low level expanded nodes statistics
+                low_level_stats = compute_stats(success_data, 'low_level_expanded')
+            else:
+                time_stats = high_level_stats = low_level_stats = [np.nan, np.nan, np.nan]
+
+            result = {
+                "solver": solver,
+                "fail_rate": timeout_rate,
+                "num_agents": num_agents,
+                "P0time": time_stats[0],
+                "P50time": time_stats[1],
+                "P99time": time_stats[2],
+                "P0high": high_level_stats[0],
+                "P50high": high_level_stats[1],
+                "P99high": high_level_stats[2],
+                "P0low": low_level_stats[0],
+                "P50low": low_level_stats[1],
+                "P99low": low_level_stats[2]
+            }
+            results.append(result)
+
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(output_file_path, index=False)
 
 def main():
-    parser = argparse.ArgumentParser(description="Analyze experiment data from a CSV file.")
+    parser = argparse.ArgumentParser(description="Analyze experiment data from a CSV file and output results.")
     parser.add_argument("file_path", help="Path to the CSV file containing the experiment data.")
+    parser.add_argument("output_file_path", help="Path to the CSV file to save the analysis results.")
     
     args = parser.parse_args()
-    analyze_experiments(args.file_path)
+    analyze_experiments(args.file_path, args.output_file_path)
 
 if __name__ == "__main__":
     main()

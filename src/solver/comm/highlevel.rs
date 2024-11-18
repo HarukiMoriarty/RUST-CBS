@@ -8,7 +8,7 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use tracing::debug;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) struct Conflict {
     pub(crate) agent_1: usize,
     pub(crate) agent_2: usize,
@@ -49,7 +49,10 @@ impl Hash for HighLevelOpenNode {
 
 impl Ord for HighLevelOpenNode {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cost.cmp(&other.cost)
+        self.cost
+            .cmp(&other.cost)
+            .then_with(|| self.conflicts.cmp(&other.conflicts))
+            .then_with(|| self.paths.cmp(&other.paths))
     }
 }
 
@@ -247,6 +250,8 @@ impl Ord for HighLevelFocalNode {
         self.focal
             .cmp(&other.focal)
             .then_with(|| self.cost.cmp(&other.cost))
+            .then_with(|| self.conflicts.cmp(&other.conflicts))
+            .then_with(|| self.paths.cmp(&other.paths))
     }
 }
 
