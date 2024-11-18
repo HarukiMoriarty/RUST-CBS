@@ -21,7 +21,7 @@ class ExperimentParameters(TypedDict):
     seed_num: int
     low_level_sub_optimal: List[str]
     high_level_sub_optimal: List[int]
-    solver: str
+    solver: List[str]
     time_out: str
 
 def load_experiment(exp_name: str):
@@ -73,8 +73,12 @@ def run_experiment(params: ExperimentParameters):
         "--seed", str(params["seed_num"]),
         "--solver", str(params["solver"]),
     ]
-    if params.get("low_level_sub_optimal"):
-        cmd_base.extend(["--low-level-sub-optimal", str(params["low_level_sub_optimal"])])
+
+    solver = params.get("solver", "")  
+    if solver in ["lbcbs", "bcbs", "ecbs"]: 
+        cmd_base.extend(["--low-level-sub-optimal", str(params.get("low_level_sub_optimal", "default_value"))])  
+    if solver in ["hbcbs", "bcbs"]:  
+        cmd_base.extend(["--high-level-sub-optimal", str(params.get("high_level_sub_optimal", "default_value"))])  
 
 
     LOG.info(f"Executing: {' '.join(cmd_base)}")
