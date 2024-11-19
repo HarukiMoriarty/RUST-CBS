@@ -52,6 +52,8 @@ impl Ord for HighLevelOpenNode {
         self.cost
             .cmp(&other.cost)
             .then_with(|| self.conflicts.cmp(&other.conflicts))
+            // We still need to compare the actual paths, since it will indeed
+            // influence the optimal solution
             .then_with(|| self.paths.cmp(&other.paths))
     }
 }

@@ -1,6 +1,6 @@
 use std::fs::OpenOptions;
 use std::io::Write;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::config::Config;
 
@@ -34,6 +34,11 @@ impl Stats {
             self.time_ms,
             self.high_level_expand_nodes,
             self.low_level_expand_nodes
+        );
+
+        debug!(
+            "{:?} Cost {:?} Time {:?}(microseconds) High level expand nodes number: {:?} Low level expand nodes number {:?}", config.solver,
+            self.costs, self.time_ms, self.high_level_expand_nodes, self.low_level_expand_nodes
         );
 
         if let Err(e) = file.write_all(file_content.as_bytes()) {

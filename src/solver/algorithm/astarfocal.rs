@@ -28,7 +28,6 @@ pub(crate) fn focal_a_star_search(
     let mut closed_list = HashSet::new();
     let mut trace = HashMap::new();
 
-    let mut g_cost_map = HashMap::new();
     let mut f_focal_cost_map = HashMap::new();
 
     let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
@@ -37,16 +36,14 @@ pub(crate) fn focal_a_star_search(
         position: agent.start,
         f_open_cost: start_h_open_cost,
         g_cost: 0,
-        time: 0,
     });
     focal_list.insert(LowLevelFocalNode {
         position: agent.start,
         f_focal_cost: 0,
         f_open_cost: start_h_open_cost,
         g_cost: 0,
-        time: 0,
     });
-    g_cost_map.insert((agent.start, 0), 0);
+
     f_focal_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop_first() {
@@ -55,7 +52,7 @@ pub(crate) fn focal_a_star_search(
         // Update stats.
         stats.low_level_expand_nodes += 1;
 
-        closed_list.insert((current.position, current.time));
+        closed_list.insert((current.position, current.g_cost));
 
         let f_min = current.f_open_cost;
 
@@ -64,19 +61,15 @@ pub(crate) fn focal_a_star_search(
             position: current.position,
             f_open_cost: f_min,
             g_cost: current.g_cost,
-            time: current.time,
         });
 
-        if current.position == agent.goal && current.time > max_time {
+        if current.position == agent.goal && current.g_cost > max_time {
             debug!("find solution");
             return Some((
-                construct_path(&trace, (current.position, current.time)),
+                construct_path(&trace, (current.position, current.g_cost)),
                 Some(f_min),
             ));
         }
-
-        // Time step increases as we move to the next node.
-        let next_time = current.time + 1;
 
         // Assuming uniform cost.
         let tentative_g_cost = current.g_cost + 1;
@@ -84,112 +77,76 @@ pub(crate) fn focal_a_star_search(
         // Expanding nodes from the current position
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
             // If node (position at current time) has closed, ignore.
-            if closed_list.contains(&(*neighbor, next_time)) {
+            if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                 continue;
             }
 
             // Check for constraints before exploring the neighbor.
             if constraints.contains(&Constraint {
                 position: *neighbor,
-                time_step: next_time,
+                time_step: tentative_g_cost,
             }) {
                 continue; // This move is prohibited due to a constraint.
             }
 
-            let old_g_cost = *g_cost_map
-                .get(&(*neighbor, next_time))
-                .unwrap_or(&usize::MAX);
-            let old_f_focal_cost = *f_focal_cost_map
-                .get(&(*neighbor, next_time))
-                .unwrap_or(&usize::MAX);
-            let f_focal_cost =
-                current.f_focal_cost + heuristic_focal(agent.id, *neighbor, next_time, paths);
-            // Our update policy:
-            // 1. To keep suboptimal bound, we should not keep any larger new g-cost value in list
-            // 2. To keep insistency, we should keep node (position, time) in open list and focal list (if exist) always the same node
-            // Our update algorithm:
-            // 1) If we see a larger new g-cost, we do nothing
-            // 2) If we see an equal g-cost, we update only if see a smaller focal value, both update in open and focal
-            // 3) If we see a smaller new g-cost, directly update in open and focal
-            if tentative_g_cost < old_g_cost {
-                trace.insert((*neighbor, next_time), (current.position, current.time));
-                // small g cost observed, update corresponding hash map
-                g_cost_map.insert((*neighbor, next_time), tentative_g_cost);
-                // update f cost (even if it might be higher)
-                f_focal_cost_map.insert((*neighbor, next_time), f_focal_cost);
+            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
+            let f_open_cost = tentative_g_cost + h_open_cost;
+            let f_focal_cost = current.f_focal_cost
+                + heuristic_focal(agent.id, *neighbor, tentative_g_cost, paths);
 
-                let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
-                let f_open_cost = tentative_g_cost + h_open_cost;
-
-                // Update old node in open list if it is already appear in open list
-                // Samely, update the corresponding node in focal list
-                // Question: is this really needed?
-                if old_g_cost != usize::MAX {
-                    debug!(
-                        "find a small g cost {:?} for node {:?} at time {next_time:?}",
-                        tentative_g_cost + h_open_cost,
-                        *neighbor
-                    );
-                    // We should find such old node already in open list and remove it.
-                    assert!(open_list.remove(&LowLevelOpenNode {
-                        position: *neighbor,
-                        f_open_cost: old_g_cost + h_open_cost,
-                        g_cost: old_g_cost,
-                        time: next_time,
-                    }));
-
-                    if old_f_focal_cost != usize::MAX {
-                        // We might not find such old node already in focal list, blind remove it.
-                        focal_list.remove(&LowLevelFocalNode {
-                            position: *neighbor,
-                            f_focal_cost: old_f_focal_cost,
-                            f_open_cost: old_g_cost + h_open_cost,
-                            g_cost: old_g_cost,
-                            time: next_time,
-                        });
-                    }
-                }
-
-                open_list.insert(LowLevelOpenNode {
-                    position: *neighbor,
-                    f_open_cost,
-                    g_cost: tentative_g_cost,
-                    time: next_time,
-                });
+            // If this node is never appeared before, update open list and trace
+            // Also means this node is new to focal history, update focal cost hashmap
+            if open_list.insert(LowLevelOpenNode {
+                position: *neighbor,
+                f_open_cost,
+                g_cost: tentative_g_cost,
+            }) {
+                trace.insert(
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
+                );
+                f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
 
                 // If the node is in the suboptimal bound, push it into focal list.
-                // If this is an update in focal list, we update only we see less g cost,
-                // which means the new f open cost must fall in suboptimal bound, we definitely
-                // will reinsert updated node into focal list.
                 if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
                     focal_list.insert(LowLevelFocalNode {
                         position: *neighbor,
                         f_focal_cost,
                         f_open_cost,
                         g_cost: tentative_g_cost,
-                        time: next_time,
                     });
                 }
-            } else if tentative_g_cost == old_g_cost && f_focal_cost < old_f_focal_cost {
-                // We do not need to modify the open list, since g cost and h open cost is the same.
-                // We need to update the the node in the focal list, since f focal cost is smaller.
-                // We might not find such old node already in the focal list, conditionally delete and add a new one.
-                let f_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1] + old_g_cost;
+            }
+            // If this node is appeared before, we check if we get a smaller focal cost.
+            else {
+                // If this node appeared before in open list, we must have its focal cost history
+                let old_f_focal_cost = *f_focal_cost_map
+                    .get(&(*neighbor, tentative_g_cost))
+                    .unwrap();
 
-                if focal_list.remove(&LowLevelFocalNode {
-                    position: *neighbor,
-                    f_focal_cost: old_f_focal_cost,
-                    f_open_cost,
-                    g_cost: old_g_cost,
-                    time: next_time,
-                }) {
-                    focal_list.insert(LowLevelFocalNode {
+                if f_focal_cost < old_f_focal_cost {
+                    // Update its corresponding focal cost,
+                    // update focal cost map and focal list if it is in there.
+                    f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
+                    if focal_list.contains(&LowLevelFocalNode {
                         position: *neighbor,
-                        f_focal_cost,
+                        f_focal_cost: old_f_focal_cost,
                         f_open_cost,
-                        g_cost: old_g_cost,
-                        time: next_time,
-                    });
+                        g_cost: tentative_g_cost,
+                    }) {
+                        focal_list.remove(&LowLevelFocalNode {
+                            position: *neighbor,
+                            f_focal_cost: old_f_focal_cost,
+                            f_open_cost,
+                            g_cost: tentative_g_cost,
+                        });
+                        focal_list.insert(LowLevelFocalNode {
+                            position: *neighbor,
+                            f_focal_cost,
+                            f_open_cost,
+                            g_cost: tentative_g_cost,
+                        });
+                    }
                 }
             }
         }
@@ -203,13 +160,12 @@ pub(crate) fn focal_a_star_search(
                         && node.f_open_cost as f64 <= new_f_min as f64 * subopt_factor
                     {
                         let f_focal_cost =
-                            *f_focal_cost_map.get(&(node.position, node.time)).unwrap();
+                            *f_focal_cost_map.get(&(node.position, node.g_cost)).unwrap();
                         focal_list.insert(LowLevelFocalNode {
                             position: node.position,
                             f_focal_cost,
                             f_open_cost: node.f_open_cost,
                             g_cost: node.g_cost,
-                            time: node.time,
                         });
                     }
                 });

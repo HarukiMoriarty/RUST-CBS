@@ -23,18 +23,14 @@ pub(crate) fn a_star_search(
     let mut closed_list = HashSet::new();
     let mut trace = HashMap::new();
 
-    let mut g_cost_map = HashMap::new();
-
     let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
     let start_node = LowLevelOpenNode {
         position: agent.start,
         f_open_cost: start_h_open_cost,
         g_cost: 0,
-        time: 0,
     };
 
     open_list.insert(start_node.clone());
-    g_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = open_list.pop_first() {
         trace!("expand node: {current:?}");
@@ -42,17 +38,14 @@ pub(crate) fn a_star_search(
         // Update stats.
         stats.low_level_expand_nodes += 1;
 
-        closed_list.insert((current.position, current.time));
+        closed_list.insert((current.position, current.g_cost));
 
-        if current.position == agent.goal && current.time > max_time {
+        if current.position == agent.goal && current.g_cost > max_time {
             return Some((
-                construct_path(&trace, (current.position, current.time)),
+                construct_path(&trace, (current.position, current.g_cost)),
                 None,
             ));
         }
-
-        // Time step increases as we move to the next node.
-        let next_time = current.time + 1;
 
         // Assuming uniform cost.
         let tentative_g_cost = current.g_cost + 1;
@@ -60,53 +53,32 @@ pub(crate) fn a_star_search(
         // Expand nodes from the current position.
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
             // If node (position at current time) has closed, ignore.
-            if closed_list.contains(&(*neighbor, next_time)) {
+            if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                 continue;
             }
 
             // Check for constraints before exploring the neighbor.
             if constraints.contains(&Constraint {
                 position: *neighbor,
-                time_step: next_time,
+                time_step: tentative_g_cost,
             }) {
                 continue; // This move is prohibited due to a constraint.
             }
 
-            let old_g_cost = *g_cost_map
-                .get(&(*neighbor, next_time))
-                .unwrap_or(&usize::MAX);
-            if tentative_g_cost < old_g_cost {
-                trace.insert((*neighbor, next_time), (current.position, current.time));
-                g_cost_map.insert((*neighbor, next_time), tentative_g_cost);
+            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
 
-                let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
-
-                // Update old node in open list if it is already appear in open list.
-                // Question: is this really needed?
-                if old_g_cost != usize::MAX {
-                    debug!(
-                        "find a small g cost {:?} for node {:?} at time {next_time:?}",
-                        tentative_g_cost + h_open_cost,
-                        *neighbor
-                    );
-                    // We should find such node already in open list.
-                    assert!(open_list.remove(&LowLevelOpenNode {
-                        position: *neighbor,
-                        f_open_cost: old_g_cost + h_open_cost,
-                        g_cost: old_g_cost,
-                        time: next_time,
-                    }));
-                }
-
-                open_list.insert(LowLevelOpenNode {
-                    position: *neighbor,
-                    f_open_cost: tentative_g_cost + h_open_cost,
-                    g_cost: tentative_g_cost,
-                    time: next_time,
-                });
+            if open_list.insert(LowLevelOpenNode {
+                position: *neighbor,
+                f_open_cost: tentative_g_cost + h_open_cost,
+                g_cost: tentative_g_cost,
+            }) {
+                trace.insert(
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
+                );
             }
         }
-        trace!("open list {open_list:#?}");
+        trace!("open list {open_list:?}");
     }
 
     None
