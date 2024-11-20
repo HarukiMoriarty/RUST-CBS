@@ -36,7 +36,7 @@ pub(crate) fn a_star_search(
         trace!("expand node: {current:?}");
 
         // Update stats.
-        stats.low_level_expand_nodes += 1;
+        stats.low_level_expand_open_nodes += 1;
 
         closed_list.insert((current.position, current.g_cost));
 

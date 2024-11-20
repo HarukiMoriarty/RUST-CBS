@@ -8,7 +8,8 @@ use crate::config::Config;
 pub(super) struct Stats {
     pub(super) costs: usize,
     pub(super) time_ms: usize,
-    pub(super) low_level_expand_nodes: usize,
+    pub(super) low_level_expand_open_nodes: usize,
+    pub(super) low_level_expand_focal_nodes: usize,
     pub(super) high_level_expand_nodes: usize,
 }
 
@@ -21,7 +22,7 @@ impl Stats {
             .unwrap();
 
         let file_content = format!(
-            "{},{},{},{:?},{},{},{:?},{:?},{},{},{},{}\n",
+            "{},{},{},{:?},{},{},{:?},{:?},{},{},{},{},{},{}\n",
             config.map_path,
             config.yaml_path,
             config.num_agents,
@@ -33,12 +34,14 @@ impl Stats {
             self.costs,
             self.time_ms,
             self.high_level_expand_nodes,
-            self.low_level_expand_nodes
+            self.low_level_expand_open_nodes,
+            self.low_level_expand_focal_nodes,
+            self.low_level_expand_focal_nodes + self.low_level_expand_open_nodes,
         );
 
         debug!(
             "{:?} Cost {:?} Time {:?}(microseconds) High level expand nodes number: {:?} Low level expand nodes number {:?}", config.solver,
-            self.costs, self.time_ms, self.high_level_expand_nodes, self.low_level_expand_nodes
+            self.costs, self.time_ms, self.high_level_expand_nodes, self.low_level_expand_focal_nodes + self.low_level_expand_open_nodes
         );
 
         if let Err(e) = file.write_all(file_content.as_bytes()) {

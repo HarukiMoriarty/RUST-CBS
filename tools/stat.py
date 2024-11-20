@@ -47,8 +47,12 @@ def analyze_experiments(file_path, output_file_path):
                 time_stats = compute_stats(success_data, 'time(us)')
                 # High level expanded nodes statistics
                 high_level_stats = compute_stats(success_data, 'high_level_expanded')
-                # Low level expanded nodes statistics
-                low_level_stats = compute_stats(success_data, 'low_level_expanded')
+                # Low level open expanded nodes statistics
+                open_low_level_stats = compute_stats(success_data, 'low_level_open_expanded')
+                # Low level focal expanded nodes statistics
+                focal_low_level_stats = compute_stats(success_data, 'low_level_focal_expanded')
+                # Total Low level expanded nodes statistics
+                total_low_level_stats = compute_stats(success_data, 'total_low_level_expanded')
             else:
                 time_stats = high_level_stats = low_level_stats = [np.nan, np.nan, np.nan]
 
@@ -62,9 +66,15 @@ def analyze_experiments(file_path, output_file_path):
                 "P0high": high_level_stats[0],
                 "P50high": high_level_stats[1],
                 "P99high": high_level_stats[2],
-                "P0low": low_level_stats[0],
-                "P50low": low_level_stats[1],
-                "P99low": low_level_stats[2]
+                "P0lowOpen": open_low_level_stats[0],
+                "P50lowOpen": open_low_level_stats[1],
+                "P99lowOpen": open_low_level_stats[2],
+                "P0lowFocal": focal_low_level_stats[0],
+                "P50lowFocal": focal_low_level_stats[1],
+                "P99lowFocal": focal_low_level_stats[2],
+                "P0lowTotal": total_low_level_stats[0],
+                "P50lowTotal": total_low_level_stats[1],
+                "P99lowTotal": total_low_level_stats[2]
             }
             results.append(result)
 
