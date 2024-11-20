@@ -47,7 +47,7 @@ pub(crate) fn a_star_search(
             ));
         }
 
-        // Assuming uniform cost.
+        // Assuming uniform cost, which also indicate the current time.
         let tentative_g_cost = current.g_cost + 1;
 
         // Expand nodes from the current position.
@@ -67,6 +67,13 @@ pub(crate) fn a_star_search(
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
 
+            // If this node has already in the open list, we ignore this update
+            // since we have the same g cost (time) and h cost.
+            // Actually here we apply a symmetric optimization, we ingore the paths
+            // lead to current node that has the same cost.
+            // A potential problem here we might ignore paths that might lead to less conflicts,
+            // the optimal property should be kept since any conflicts will lead to a high level
+            // constraints later, but might lead to potential inefficiency.
             if open_list.insert(LowLevelOpenNode {
                 position: *neighbor,
                 f_open_cost: tentative_g_cost + h_open_cost,

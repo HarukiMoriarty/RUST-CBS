@@ -5,6 +5,7 @@ import subprocess
 import yaml
 import math
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import TypedDict, List
 
@@ -98,14 +99,21 @@ def run_experiment(params: ExperimentParameters):
 def main():
     parser = argparse.ArgumentParser(description="Run CBS experiments with different parameters.")
     parser.add_argument("experiment", help="Experiment name to run.")
+    parser.add_argument("--max-threads", type=int, default=4, help="Maximum number of parallel threads")
     args = parser.parse_args()
 
     exp_params = load_experiment(args.experiment)
     if exp_params is None:
         return
 
-    for combination in generate_combinations(exp_params):
-        run_experiment(combination)
+    with ThreadPoolExecutor(max_workers=args.max_threads) as executor:
+        futures = {executor.submit(run_experiment, combination): combination for combination in generate_combinations(exp_params)}
+        for future in as_completed(futures):
+            try:
+                future.result()  # This will raise any exceptions caught during the experiment run
+            except Exception as e:
+                combination = futures[future]
+                LOG.error(f"An error occurred with experiment settings {combination}: {str(e)}")
 
 if __name__ == "__main__":
     main()
