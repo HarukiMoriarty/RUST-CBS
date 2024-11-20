@@ -5,13 +5,6 @@ use std::collections::HashSet;
 use crate::map::Map;
 use tracing::{debug, error};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Constraint {
-    agent_id: usize,
-    position: (usize, usize),
-    time_step: usize,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Agent {
     pub id: usize,

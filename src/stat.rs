@@ -16,7 +16,6 @@ pub(super) struct Stats {
 impl Stats {
     pub(crate) fn print(&self, config: &Config) {
         let mut file = OpenOptions::new()
-            .write(true)
             .append(true)
             .open(&config.output_path)
             .unwrap();
