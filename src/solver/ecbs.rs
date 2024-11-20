@@ -39,6 +39,7 @@ impl Solver for ECBS {
             &self.agents,
             &self.map,
             self.low_level_subopt_factor,
+            "ecbs",
             &mut self.stats,
         ) {
             open.insert(root.clone());
@@ -55,6 +56,7 @@ impl Solver for ECBS {
                         true,
                         &self.map,
                         self.low_level_subopt_factor,
+                        "ecbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_1) {
@@ -74,6 +76,7 @@ impl Solver for ECBS {
                         false,
                         &self.map,
                         self.low_level_subopt_factor,
+                        "ecbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_2) {

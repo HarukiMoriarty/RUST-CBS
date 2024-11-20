@@ -37,6 +37,7 @@ impl Solver for LBCBS {
             &self.agents,
             &self.map,
             self.low_level_subopt_factor,
+            "lbcbs",
             &mut self.stats,
         ) {
             open.insert(root);
@@ -49,6 +50,7 @@ impl Solver for LBCBS {
                         true,
                         &self.map,
                         self.low_level_subopt_factor,
+                        "lbcbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_1) {
@@ -62,6 +64,7 @@ impl Solver for LBCBS {
                         false,
                         &self.map,
                         self.low_level_subopt_factor,
+                        "lbcbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_2) {

@@ -1,7 +1,7 @@
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
 use mapf_rust::scenario::Scenario;
-use mapf_rust::solver::{Solver, BCBS, CBS, ECBS, HBCBS, LBCBS};
+use mapf_rust::solver::{Solver, BCBS, CBS, DECBS, ECBS, HBCBS, LBCBS};
 
 use clap::Parser;
 use rand::rngs::SmallRng;
@@ -47,6 +47,9 @@ fn main() -> anyhow::Result<()> {
         }
         "bcbs" => Box::new(BCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>,
         "ecbs" => Box::new(ECBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>,
+        "decbs" => {
+            Box::new(DECBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
+        }
         _ => unreachable!(),
     };
 

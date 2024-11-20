@@ -2,12 +2,14 @@ mod algorithm;
 mod bcbs;
 mod cbs;
 mod comm;
+mod decbs;
 mod ecbs;
 mod hbcbs;
 mod lbcbs;
 
 pub use bcbs::BCBS;
 pub use cbs::CBS;
+pub use decbs::DECBS;
 pub use ecbs::ECBS;
 pub use hbcbs::HBCBS;
 pub use lbcbs::LBCBS;

@@ -15,7 +15,7 @@ pub(crate) fn a_star_search(
     agent: &Agent,
     constraints: &HashSet<Constraint>,
     stats: &mut Stats,
-) -> Option<(Vec<(usize, usize)>, Option<usize>)> {
+) -> Option<(Vec<(usize, usize)>, usize)> {
     debug!("constraints: {constraints:?}");
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
@@ -43,7 +43,7 @@ pub(crate) fn a_star_search(
         if current.position == agent.goal && current.g_cost > max_time {
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
-                None,
+                current.f_open_cost,
             ));
         }
 

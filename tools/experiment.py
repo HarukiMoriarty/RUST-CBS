@@ -75,7 +75,7 @@ def run_experiment(params: ExperimentParameters):
     ]
 
     solver = params.get("solver", "")  
-    if solver in ["lbcbs", "ecbs"]: 
+    if solver in ["lbcbs", "ecbs", "decbs"]: 
         cmd_base.extend(["--low-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
     if solver in ["hbcbs"]:  
         cmd_base.extend(["--high-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  

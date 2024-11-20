@@ -35,7 +35,9 @@ impl Solver for HBCBS {
         let mut focal = BTreeSet::new();
         let mut closed = HashSet::new();
 
-        if let Some(root) = HighLevelOpenNode::new(&self.agents, &self.map, None, &mut self.stats) {
+        if let Some(root) =
+            HighLevelOpenNode::new(&self.agents, &self.map, None, "hbcbs", &mut self.stats)
+        {
             open.insert(root.clone());
             focal.insert(root.to_focal_node());
 
@@ -52,6 +54,7 @@ impl Solver for HBCBS {
                         true,
                         &self.map,
                         None,
+                        "hbcbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_1) {
@@ -71,6 +74,7 @@ impl Solver for HBCBS {
                         false,
                         &self.map,
                         None,
+                        "hbcbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_2) {

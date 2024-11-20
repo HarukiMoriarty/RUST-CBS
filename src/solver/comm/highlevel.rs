@@ -1,6 +1,6 @@
 use crate::common::Agent;
 use crate::map::Map;
-use crate::solver::algorithm::{a_star_search, focal_a_star_search};
+use crate::solver::algorithm::{a_star_search, focal_a_star_double_search, focal_a_star_search};
 use crate::stat::Stats;
 
 use std::cmp::Ordering;
@@ -69,6 +69,7 @@ impl HighLevelOpenNode {
         agents: &Vec<Agent>,
         map: &Map,
         low_level_subopt_factor: Option<f64>,
+        solver: &str,
         stats: &mut Stats,
     ) -> Option<Self> {
         let mut paths: Vec<Vec<(usize, usize)>> = Vec::new();
@@ -77,20 +78,31 @@ impl HighLevelOpenNode {
         let mut solve = true;
 
         for agent in agents {
-            let path_f = if let Some(factor) = low_level_subopt_factor {
-                // If a suboptimal factor is provided, use the focal A* search
-                focal_a_star_search(map, agent, factor, &HashSet::new(), &paths, stats)
-            } else {
-                // Otherwise, use the standard A* search
-                a_star_search(map, agent, &HashSet::new(), stats)
+            let path_f = match solver {
+                "cbs" | "hbcbs" => a_star_search(map, agent, &HashSet::new(), stats),
+                "lbcbs" | "bcbs" | "ecbs" => focal_a_star_search(
+                    map,
+                    agent,
+                    low_level_subopt_factor.unwrap(),
+                    &HashSet::new(),
+                    &paths,
+                    stats,
+                ),
+                "decbs" => focal_a_star_double_search(
+                    map,
+                    agent,
+                    low_level_subopt_factor.unwrap(),
+                    &HashSet::new(),
+                    &paths,
+                    stats,
+                ),
+                _ => unreachable!(),
             };
 
             if let Some((path, low_level_f_min)) = path_f {
                 total_cost += path.len();
                 paths.insert(agent.id, path);
-                if let Some(low_level_f_min) = low_level_f_min {
-                    low_level_f_min_agents.push(low_level_f_min);
-                }
+                low_level_f_min_agents.push(low_level_f_min);
             } else {
                 solve = false;
             }
@@ -159,6 +171,7 @@ impl HighLevelOpenNode {
         resolve_first: bool,
         map: &Map,
         low_level_subopt_factor: Option<f64>,
+        solver: &str,
         stats: &mut Stats,
     ) -> Option<HighLevelOpenNode> {
         let mut new_constraints = self.constraints.clone();
@@ -177,22 +190,30 @@ impl HighLevelOpenNode {
             time_step: conflict.time_step,
         });
 
-        let new_path = if let Some(factor) = low_level_subopt_factor {
-            focal_a_star_search(
+        let new_path = match solver {
+            "cbs" | "hbcbs" => a_star_search(
                 map,
                 &self.agents[agent_to_update],
-                factor,
+                constraints_for_agent,
+                stats,
+            ),
+            "lbcbs" | "bcbs" | "ecbs" => focal_a_star_search(
+                map,
+                &self.agents[agent_to_update],
+                low_level_subopt_factor.unwrap(),
                 constraints_for_agent,
                 &self.paths,
                 stats,
-            )
-        } else {
-            a_star_search(
+            ),
+            "decbs" => focal_a_star_double_search(
                 map,
                 &self.agents[agent_to_update],
+                low_level_subopt_factor.unwrap(),
                 constraints_for_agent,
+                &self.paths,
                 stats,
-            )
+            ),
+            _ => unreachable!(),
         };
 
         if let Some((new_path, new_low_level_f_min)) = new_path {
@@ -203,9 +224,7 @@ impl HighLevelOpenNode {
             let new_path_length = new_path.len();
             new_paths[agent_to_update] = new_path;
             let new_cost = self.cost - old_path_length + new_path_length;
-            if let Some(new_low_level_f_min) = new_low_level_f_min {
-                new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
-            }
+            new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
 
             let mut new_node = HighLevelOpenNode {
                 agents: self.agents.clone(),

@@ -9,25 +9,25 @@ use std::collections::{BTreeSet, HashSet};
 use std::time::Instant;
 use tracing::debug;
 
-pub struct BCBS {
+pub struct DECBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    subopt_factor: (Option<f64>, Option<f64>), // The lattar one should be always none for HBCBS
+    low_level_subopt_factor: Option<f64>, // The lattar one should be always none for HBCBS
 }
 
-impl BCBS {
+impl DECBS {
     pub fn new(agents: Vec<Agent>, map: &Map, subopt_factor: (Option<f64>, Option<f64>)) -> Self {
-        BCBS {
+        DECBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
-            subopt_factor,
+            low_level_subopt_factor: subopt_factor.1,
         }
     }
 }
 
-impl Solver for BCBS {
+impl Solver for DECBS {
     fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
 
@@ -38,15 +38,15 @@ impl Solver for BCBS {
         if let Some(root) = HighLevelOpenNode::new(
             &self.agents,
             &self.map,
-            self.subopt_factor.1,
-            "bcbs",
+            self.low_level_subopt_factor,
+            "decbs",
             &mut self.stats,
         ) {
             open.insert(root.clone());
             focal.insert(root.to_focal_node());
             while let Some(current_focal_node) = focal.pop_first() {
                 let current_open_node = current_focal_node.to_open_node();
-                let old_f_min = current_open_node.cost;
+                let old_f_min: usize = current_open_node.low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);
                 closed.insert(current_open_node.clone());
@@ -55,8 +55,8 @@ impl Solver for BCBS {
                         conflict,
                         true,
                         &self.map,
-                        self.subopt_factor.1,
-                        "bcbs",
+                        self.low_level_subopt_factor,
+                        "decbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_1) {
@@ -64,7 +64,7 @@ impl Solver for BCBS {
                             self.stats.high_level_expand_nodes += 1;
 
                             if child_1.cost as f64
-                                <= (old_f_min as f64 * self.subopt_factor.0.unwrap())
+                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
                             {
                                 focal.insert(child_1.to_focal_node());
                             }
@@ -75,8 +75,8 @@ impl Solver for BCBS {
                         conflict,
                         false,
                         &self.map,
-                        self.subopt_factor.1,
-                        "bcbs",
+                        self.low_level_subopt_factor,
+                        "decbs",
                         &mut self.stats,
                     ) {
                         if !closed.contains(&child_2) {
@@ -84,7 +84,7 @@ impl Solver for BCBS {
                             self.stats.high_level_expand_nodes += 1;
 
                             if child_2.cost as f64
-                                <= (old_f_min as f64 * self.subopt_factor.0.unwrap())
+                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
                             {
                                 focal.insert(child_2.to_focal_node());
                             }
@@ -95,22 +95,24 @@ impl Solver for BCBS {
                     debug!("Find solution");
                     let total_solve_time = total_solve_start_time.elapsed();
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
-                    self.stats.costs = current_focal_node.cost;
+                    self.stats.costs = current_open_node.cost;
 
                     self.stats.print(config);
                     return Some(Solution {
-                        paths: current_focal_node.paths,
+                        paths: current_open_node.paths,
                     });
                 }
 
                 // Maintain the focal list
                 if !open.is_empty() {
-                    let new_f_min = open.first().unwrap().cost;
+                    let new_f_min = open.first().unwrap().low_level_f_min_agents.iter().sum();
                     if old_f_min < new_f_min {
                         open.iter().for_each(|node| {
-                            if node.cost as f64 > self.subopt_factor.0.unwrap() * old_f_min as f64
-                                && node.cost as f64
-                                    <= self.subopt_factor.0.unwrap() * new_f_min as f64
+                            let node_cost: usize = node.low_level_f_min_agents.iter().sum();
+                            if node_cost as f64
+                                > self.low_level_subopt_factor.unwrap() * old_f_min as f64
+                                && node_cost as f64
+                                    <= self.low_level_subopt_factor.unwrap() * new_f_min as f64
                             {
                                 focal.insert(node.to_focal_node());
                             }
