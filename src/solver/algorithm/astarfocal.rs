@@ -1,9 +1,9 @@
+use std::cmp::max;
 use tracing::{debug, instrument, trace};
 
 use super::{construct_path, heuristic_focal};
 use crate::common::Agent;
 use crate::map::Map;
-use crate::solver::algorithm::a_star_search;
 use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode};
 use crate::stat::Stats;
 use std::{
@@ -192,7 +192,7 @@ pub(crate) fn focal_a_star_double_search(
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // We calculate f min by first perform an a star search.
-    let f_min = a_star_search(map, agent, constraints, stats).unwrap().1;
+    let global_f_min = (paths[agent.id].len() as f64 / subopt_factor).floor() as usize + 1;
 
     // Open list is indexed based on (f_open_cost, time, position)
     let mut open_list = BTreeSet::new();
@@ -225,6 +225,8 @@ pub(crate) fn focal_a_star_double_search(
         stats.low_level_expand_focal_nodes += 1;
 
         closed_list.insert((current.position, current.g_cost));
+
+        let f_min = max(current.f_open_cost, global_f_min);
 
         // Remove the same node from open list.
         open_list.remove(&LowLevelOpenNode {
@@ -319,10 +321,29 @@ pub(crate) fn focal_a_star_double_search(
                     }
                 }
             }
-
-            // No need for additional checking, since we already have the biggest f min
-            // by calculate a star at the beginning. The node out of bound can just ignore.
         }
+
+        if !open_list.is_empty() {
+            // Maintain the focal list, since we have changed the f min.
+            let new_f_min = open_list.first().unwrap().f_open_cost;
+            if f_min < new_f_min {
+                open_list.iter().for_each(|node| {
+                    if node.f_open_cost as f64 > f_min as f64 * subopt_factor
+                        && node.f_open_cost as f64 <= new_f_min as f64 * subopt_factor
+                    {
+                        let f_focal_cost =
+                            *f_focal_cost_map.get(&(node.position, node.g_cost)).unwrap();
+                        focal_list.insert(LowLevelFocalNode {
+                            position: node.position,
+                            f_focal_cost,
+                            f_open_cost: node.f_open_cost,
+                            g_cost: node.g_cost,
+                        });
+                    }
+                });
+            }
+        }
+
         trace!("focal list: {focal_list:?}");
     }
 

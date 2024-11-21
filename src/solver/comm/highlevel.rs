@@ -80,15 +80,7 @@ impl HighLevelOpenNode {
         for agent in agents {
             let path_f = match solver {
                 "cbs" | "hbcbs" => a_star_search(map, agent, &HashSet::new(), stats),
-                "lbcbs" | "bcbs" | "ecbs" => focal_a_star_search(
-                    map,
-                    agent,
-                    low_level_subopt_factor.unwrap(),
-                    &HashSet::new(),
-                    &paths,
-                    stats,
-                ),
-                "decbs" => focal_a_star_double_search(
+                "lbcbs" | "bcbs" | "ecbs" | "decbs" => focal_a_star_search(
                     map,
                     agent,
                     low_level_subopt_factor.unwrap(),
