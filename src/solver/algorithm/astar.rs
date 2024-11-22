@@ -41,6 +41,10 @@ pub(crate) fn a_star_search(
         closed_list.insert((current.position, current.g_cost));
 
         if current.position == agent.goal && current.g_cost > max_time {
+            debug!(
+                "open low level expanded node up to now: {:?}",
+                stats.low_level_expand_open_nodes
+            );
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
                 current.f_open_cost,

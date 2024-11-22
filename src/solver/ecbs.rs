@@ -51,42 +51,52 @@ impl Solver for ECBS {
                 open.remove(&current_open_node);
                 closed.insert(current_open_node.clone());
                 if let Some(conflict) = current_open_node.conflicts.first() {
-                    if let Some(child_1) = current_open_node.update_constraint(
-                        conflict,
-                        true,
-                        &self.map,
-                        self.low_level_subopt_factor,
-                        "ecbs",
-                        &mut self.stats,
-                    ) {
-                        if !closed.contains(&child_1) {
-                            open.insert(child_1.clone());
-                            self.stats.high_level_expand_nodes += 1;
+                    debug!("conflict: {conflict:?}");
 
-                            if child_1.cost as f64
-                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                            {
-                                focal.insert(child_1.to_focal_node());
+                    if !(config.op_not_cons_after_reach
+                        && conflict.time_step > current_focal_node.paths[conflict.agent_1].len())
+                    {
+                        if let Some(child_1) = current_open_node.update_constraint(
+                            conflict,
+                            true,
+                            &self.map,
+                            self.low_level_subopt_factor,
+                            "ecbs",
+                            &mut self.stats,
+                        ) {
+                            if !closed.contains(&child_1) {
+                                open.insert(child_1.clone());
+                                self.stats.high_level_expand_nodes += 1;
+
+                                if child_1.cost as f64
+                                    <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                                {
+                                    focal.insert(child_1.to_focal_node());
+                                }
                             }
                         }
                     }
 
-                    if let Some(child_2) = current_open_node.update_constraint(
-                        conflict,
-                        false,
-                        &self.map,
-                        self.low_level_subopt_factor,
-                        "ecbs",
-                        &mut self.stats,
-                    ) {
-                        if !closed.contains(&child_2) {
-                            open.insert(child_2.clone());
-                            self.stats.high_level_expand_nodes += 1;
+                    if !(config.op_not_cons_after_reach
+                        && conflict.time_step > current_focal_node.paths[conflict.agent_2].len())
+                    {
+                        if let Some(child_2) = current_open_node.update_constraint(
+                            conflict,
+                            false,
+                            &self.map,
+                            self.low_level_subopt_factor,
+                            "ecbs",
+                            &mut self.stats,
+                        ) {
+                            if !closed.contains(&child_2) {
+                                open.insert(child_2.clone());
+                                self.stats.high_level_expand_nodes += 1;
 
-                            if child_2.cost as f64
-                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                            {
-                                focal.insert(child_2.to_focal_node());
+                                if child_2.cost as f64
+                                    <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                                {
+                                    focal.insert(child_2.to_focal_node());
+                                }
                             }
                         }
                     }
