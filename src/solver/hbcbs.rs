@@ -43,7 +43,7 @@ impl Solver for HBCBS {
 
             while let Some(current_focal_node) = focal.pop_first() {
                 let current_open_node = current_focal_node.to_open_node();
-                let old_f_min = current_open_node.cost;
+                let old_f_min = open.first().unwrap().cost;
 
                 open.remove(&current_open_node);
                 closed.insert(current_open_node.clone());

@@ -55,7 +55,7 @@ pub(crate) fn focal_a_star_search(
 
         closed_list.insert((current.position, current.g_cost));
 
-        let f_min = current.f_open_cost;
+        let f_min = open_list.first().unwrap().f_open_cost;
 
         // Remove the same node from open list.
         open_list.remove(&LowLevelOpenNode {
@@ -226,7 +226,7 @@ pub(crate) fn focal_a_star_double_search(
 
         closed_list.insert((current.position, current.g_cost));
 
-        let f_min = max(current.f_open_cost, global_f_min);
+        let f_min = max(open_list.first().unwrap().f_open_cost, global_f_min);
 
         // Remove the same node from open list.
         open_list.remove(&LowLevelOpenNode {
