@@ -23,7 +23,6 @@ class ExperimentParameters(TypedDict):
     sub_optimal: List[float]
     solver: List[str]
     time_out: str
-    op_not_cons_after_reach: bool
 
 def load_experiment(exp_name: str):
     exp_path = BASE_PATH / "experiment" / f"{exp_name}.yaml"
@@ -82,10 +81,7 @@ def run_experiment(params: ExperimentParameters):
         cmd_base.extend(["--high-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
     if solver in ["bcbs"]:
         cmd_base.extend(["--low-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])
-        cmd_base.extend(["--high-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])
-
-    if params.get("op_not_cons_after_reach", False):
-        cmd_base.append("--op-not-cons-after-reach")  
+        cmd_base.extend(["--high-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])  
 
     LOG.info(f"Executing: {' '.join(cmd_base)}")
     try:
