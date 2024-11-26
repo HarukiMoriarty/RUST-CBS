@@ -58,13 +58,6 @@ pub struct Cli {
         default_value_t = false
     )]
     pub debug_yaml: bool,
-
-    #[arg(
-        long,
-        help = "Enable optimization: do not apply constraint after reached goal",
-        default_value_t = false
-    )]
-    pub op_not_cons_after_reach: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -78,7 +71,6 @@ pub struct Config {
     pub sub_optimal: (Option<f64>, Option<f64>),
     pub solver: String,
     pub debug_yaml: bool,
-    pub op_not_cons_after_reach: bool,
 }
 
 impl Config {
@@ -93,7 +85,6 @@ impl Config {
             sub_optimal: (cli.high_level_sub_optimal, cli.low_level_sub_optimal),
             solver: cli.solver.clone(),
             debug_yaml: cli.debug_yaml,
-            op_not_cons_after_reach: cli.op_not_cons_after_reach,
         }
     }
 

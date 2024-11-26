@@ -53,50 +53,42 @@ impl Solver for DECBS {
                 if let Some(conflict) = current_open_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
-                    if !(config.op_not_cons_after_reach
-                        && conflict.time_step > current_focal_node.paths[conflict.agent_1].len())
-                    {
-                        if let Some(child_1) = current_open_node.update_constraint(
-                            conflict,
-                            true,
-                            &self.map,
-                            self.low_level_subopt_factor,
-                            "decbs",
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_1) {
-                                open.insert(child_1.clone());
-                                self.stats.high_level_expand_nodes += 1;
+                    if let Some(child_1) = current_open_node.update_constraint(
+                        conflict,
+                        true,
+                        &self.map,
+                        self.low_level_subopt_factor,
+                        "decbs",
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_1) {
+                            open.insert(child_1.clone());
+                            self.stats.high_level_expand_nodes += 1;
 
-                                if child_1.cost as f64
-                                    <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                                {
-                                    focal.insert(child_1.to_focal_node());
-                                }
+                            if child_1.cost as f64
+                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                            {
+                                focal.insert(child_1.to_focal_node());
                             }
                         }
                     }
 
-                    if !(config.op_not_cons_after_reach
-                        && conflict.time_step > current_focal_node.paths[conflict.agent_2].len())
-                    {
-                        if let Some(child_2) = current_open_node.update_constraint(
-                            conflict,
-                            false,
-                            &self.map,
-                            self.low_level_subopt_factor,
-                            "decbs",
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_2) {
-                                open.insert(child_2.clone());
-                                self.stats.high_level_expand_nodes += 1;
+                    if let Some(child_2) = current_open_node.update_constraint(
+                        conflict,
+                        false,
+                        &self.map,
+                        self.low_level_subopt_factor,
+                        "decbs",
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_2) {
+                            open.insert(child_2.clone());
+                            self.stats.high_level_expand_nodes += 1;
 
-                                if child_2.cost as f64
-                                    <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                                {
-                                    focal.insert(child_2.to_focal_node());
-                                }
+                            if child_2.cost as f64
+                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                            {
+                                focal.insert(child_2.to_focal_node());
                             }
                         }
                     }

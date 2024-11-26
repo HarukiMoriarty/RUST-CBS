@@ -46,39 +46,31 @@ impl Solver for LBCBS {
                 if let Some(conflict) = current_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
-                    if !(config.op_not_cons_after_reach
-                        && conflict.time_step > current_node.paths[conflict.agent_1].len())
-                    {
-                        if let Some(child_1) = current_node.update_constraint(
-                            conflict,
-                            true,
-                            &self.map,
-                            self.low_level_subopt_factor,
-                            "lbcbs",
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_1) {
-                                open.insert(child_1);
-                                self.stats.high_level_expand_nodes += 1;
-                            }
+                    if let Some(child_1) = current_node.update_constraint(
+                        conflict,
+                        true,
+                        &self.map,
+                        self.low_level_subopt_factor,
+                        "lbcbs",
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_1) {
+                            open.insert(child_1);
+                            self.stats.high_level_expand_nodes += 1;
                         }
                     }
 
-                    if !(config.op_not_cons_after_reach
-                        && conflict.time_step > current_node.paths[conflict.agent_2].len())
-                    {
-                        if let Some(child_2) = current_node.update_constraint(
-                            conflict,
-                            false,
-                            &self.map,
-                            self.low_level_subopt_factor,
-                            "lbcbs",
-                            &mut self.stats,
-                        ) {
-                            if !closed.contains(&child_2) {
-                                open.insert(child_2);
-                                self.stats.high_level_expand_nodes += 1;
-                            }
+                    if let Some(child_2) = current_node.update_constraint(
+                        conflict,
+                        false,
+                        &self.map,
+                        self.low_level_subopt_factor,
+                        "lbcbs",
+                        &mut self.stats,
+                    ) {
+                        if !closed.contains(&child_2) {
+                            open.insert(child_2);
+                            self.stats.high_level_expand_nodes += 1;
                         }
                     }
                 } else {
