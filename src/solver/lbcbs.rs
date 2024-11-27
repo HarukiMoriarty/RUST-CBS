@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 use std::time::Instant;
 use tracing::debug;
 
@@ -31,7 +31,6 @@ impl Solver for LBCBS {
     fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
         let mut open = BTreeSet::new();
-        let mut closed = HashSet::new();
 
         if let Some(root) = HighLevelOpenNode::new(
             &self.agents,
@@ -42,7 +41,6 @@ impl Solver for LBCBS {
         ) {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
-                closed.insert(current_node.clone());
                 if let Some(conflict) = current_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
@@ -54,10 +52,8 @@ impl Solver for LBCBS {
                         "lbcbs",
                         &mut self.stats,
                     ) {
-                        if !closed.contains(&child_1) {
-                            open.insert(child_1);
-                            self.stats.high_level_expand_nodes += 1;
-                        }
+                        open.insert(child_1);
+                        self.stats.high_level_expand_nodes += 1;
                     }
 
                     if let Some(child_2) = current_node.update_constraint(
@@ -68,10 +64,8 @@ impl Solver for LBCBS {
                         "lbcbs",
                         &mut self.stats,
                     ) {
-                        if !closed.contains(&child_2) {
-                            open.insert(child_2);
-                            self.stats.high_level_expand_nodes += 1;
-                        }
+                        open.insert(child_2);
+                        self.stats.high_level_expand_nodes += 1;
                     }
                 } else {
                     // No conflicts, return solution.

@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 use std::time::Instant;
 use tracing::debug;
 
@@ -33,7 +33,6 @@ impl Solver for DECBS {
 
         let mut open = BTreeSet::new();
         let mut focal = BTreeSet::new();
-        let mut closed = HashSet::new();
 
         if let Some(root) = HighLevelOpenNode::new(
             &self.agents,
@@ -49,7 +48,6 @@ impl Solver for DECBS {
                 let old_f_min: usize = current_open_node.low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);
-                closed.insert(current_open_node.clone());
                 if let Some(conflict) = current_open_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
@@ -61,15 +59,13 @@ impl Solver for DECBS {
                         "decbs",
                         &mut self.stats,
                     ) {
-                        if !closed.contains(&child_1) {
-                            open.insert(child_1.clone());
-                            self.stats.high_level_expand_nodes += 1;
+                        open.insert(child_1.clone());
+                        self.stats.high_level_expand_nodes += 1;
 
-                            if child_1.cost as f64
-                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                            {
-                                focal.insert(child_1.to_focal_node());
-                            }
+                        if child_1.cost as f64
+                            <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                        {
+                            focal.insert(child_1.to_focal_node());
                         }
                     }
 
@@ -81,15 +77,13 @@ impl Solver for DECBS {
                         "decbs",
                         &mut self.stats,
                     ) {
-                        if !closed.contains(&child_2) {
-                            open.insert(child_2.clone());
-                            self.stats.high_level_expand_nodes += 1;
+                        open.insert(child_2.clone());
+                        self.stats.high_level_expand_nodes += 1;
 
-                            if child_2.cost as f64
-                                <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
-                            {
-                                focal.insert(child_2.to_focal_node());
-                            }
+                        if child_2.cost as f64
+                            <= (old_f_min as f64 * self.low_level_subopt_factor.unwrap())
+                        {
+                            focal.insert(child_2.to_focal_node());
                         }
                     }
                 } else {

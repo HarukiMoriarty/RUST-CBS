@@ -5,7 +5,7 @@ use crate::stat::Stats;
 
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 use tracing::debug;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -30,21 +30,6 @@ pub(crate) struct HighLevelOpenNode {
     pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
     pub(crate) cost: usize, // Total cost for all paths under current constraints
     pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
-}
-
-impl Hash for HighLevelOpenNode {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        // Agents should be always equal during the experiment.
-        // Check paths.
-        // If paths are equal, then cost and conflicts should be equal too.
-        self.paths.hash(state);
-        // Check constraints.
-        for constraint in &self.constraints {
-            let mut sorted_constraints: Vec<_> = constraint.iter().collect();
-            sorted_constraints.sort_unstable();
-            sorted_constraints.hash(state);
-        }
-    }
 }
 
 impl Ord for HighLevelOpenNode {
@@ -284,82 +269,5 @@ impl HighLevelFocalNode {
             cost: self.cost,
             low_level_f_min_agents: self.low_level_f_min_agents.clone(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::vec;
-
-    use super::*;
-
-    // Ideal Path
-    // [(25, 14), (24, 14), (23, 14), (22, 14), (21, 14),
-    //  (20, 14), (19, 14), (18, 14), (17, 14), (17, 15),
-    //  (17, 16), (17, 17), (16, 17), (15, 17), (14, 17),
-    //  (14, 18), (14, 19), (15, 19), (16, 19), (17, 19)]
-    #[test]
-    fn test_high_level_hash() {
-        let path_1 = [(25, 14)];
-        let path_2 = [(25, 14), (24, 14)];
-
-        let constraint_1 = Constraint {
-            position: (25, 14),
-            time_step: 0,
-        };
-        let constraint_2 = Constraint {
-            position: (25, 14),
-            time_step: 1,
-        };
-        let constraint_3 = Constraint {
-            position: (25, 14),
-            time_step: 3,
-        };
-
-        let mut node_1 = HighLevelOpenNode {
-            agents: Vec::new(),
-            constraints: vec![HashSet::new(); 2],
-            conflicts: Vec::new(),
-            paths: Vec::new(),
-            cost: 0,
-            low_level_f_min_agents: Vec::new(),
-        };
-        node_1.paths.insert(0, path_1.to_vec());
-        node_1.constraints[0].insert(constraint_1.clone());
-        node_1.constraints[0].insert(constraint_2.clone());
-
-        let mut node_2 = HighLevelOpenNode {
-            agents: Vec::new(),
-            constraints: vec![HashSet::new(); 2],
-            conflicts: Vec::new(),
-            paths: Vec::new(),
-            cost: 0,
-            low_level_f_min_agents: Vec::new(),
-        };
-        node_2.paths.insert(0, path_1.to_vec());
-        node_2.paths.insert(1, path_2.to_vec());
-        node_2.constraints[0].insert(constraint_1.clone());
-        node_2.constraints[0].insert(constraint_2);
-
-        let mut node_3 = HighLevelOpenNode {
-            agents: Vec::new(),
-            constraints: vec![HashSet::new(); 2],
-            conflicts: Vec::new(),
-            paths: Vec::new(),
-            cost: 0,
-            low_level_f_min_agents: Vec::new(),
-        };
-        node_3.paths.insert(0, path_1.to_vec());
-        node_3.paths.insert(1, path_2.to_vec());
-        node_3.constraints[0].insert(constraint_1);
-        node_3.constraints[0].insert(constraint_3);
-
-        let mut closed = HashSet::new();
-        closed.insert(node_1);
-
-        assert!(!closed.contains(&node_2));
-        closed.insert(node_2);
-
-        assert!(!closed.contains(&node_3));
     }
 }
