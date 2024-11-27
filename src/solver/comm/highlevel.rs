@@ -68,6 +68,7 @@ impl HighLevelOpenNode {
                 "lbcbs" | "bcbs" | "ecbs" | "decbs" => focal_a_star_search(
                     map,
                     agent,
+                    0,
                     low_level_subopt_factor.unwrap(),
                     &HashSet::new(),
                     &paths,
@@ -177,6 +178,7 @@ impl HighLevelOpenNode {
             "lbcbs" | "bcbs" | "ecbs" => focal_a_star_search(
                 map,
                 &self.agents[agent_to_update],
+                self.low_level_f_min_agents[agent_to_update],
                 low_level_subopt_factor.unwrap(),
                 constraints_for_agent,
                 &self.paths,

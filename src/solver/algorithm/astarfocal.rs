@@ -4,6 +4,7 @@ use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode};
 use crate::stat::Stats;
 
+use std::cmp::max;
 use std::{
     collections::{BTreeSet, HashMap, HashSet},
     usize,
@@ -14,6 +15,7 @@ use tracing::{debug, instrument, trace};
 pub(crate) fn focal_a_star_search(
     map: &Map,
     agent: &Agent,
+    last_search_f_min: usize,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     paths: &[Vec<(usize, usize)>],
@@ -54,7 +56,7 @@ pub(crate) fn focal_a_star_search(
 
         closed_list.insert((current.position, current.g_cost));
 
-        let f_min = open_list.first().unwrap().f_open_cost;
+        let f_min = max(open_list.first().unwrap().f_open_cost, last_search_f_min);
 
         // Remove the same node from open list.
         open_list.remove(&LowLevelOpenNode {
