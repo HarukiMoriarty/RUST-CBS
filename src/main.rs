@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use mapf_rust::config::{Cli, Config};
 use mapf_rust::map::Map;
 use mapf_rust::scenario::Scenario;
@@ -58,6 +60,7 @@ fn main() -> anyhow::Result<()> {
         assert!(solution.verify(&map, &agents));
     } else {
         error!("{} solve fails", cli.solver);
+        exit(1);
     }
 
     Ok(())

@@ -78,7 +78,8 @@ impl HighLevelOpenNode {
             };
 
             if let Some((path, low_level_f_min)) = path_f {
-                total_cost += path.len();
+                // Notice: the cost is 1 less than the solution length
+                total_cost += path.len() - 1;
                 paths.insert(agent.id, path);
                 low_level_f_min_agents.push(low_level_f_min);
             } else {
@@ -168,7 +169,7 @@ impl HighLevelOpenNode {
             time_step: conflict.time_step,
         });
 
-        let new_path = match solver {
+        let new_solution = match solver {
             "cbs" | "hbcbs" => a_star_search(
                 map,
                 &self.agents[agent_to_update],
@@ -195,14 +196,14 @@ impl HighLevelOpenNode {
             _ => unreachable!(),
         };
 
-        if let Some((new_path, new_low_level_f_min)) = new_path {
+        if let Some((new_path, new_low_level_f_min)) = new_solution {
             debug!(
-                "Update agent {agent_to_update:?} with path {new_path:?} for conflict {conflict:?}"
+                "Update agent {agent_to_update:?} with path {new_path:?} for conflict {conflict:?}, new f min {new_low_level_f_min:?}"
             );
-            let old_path_length = new_paths[agent_to_update].len();
-            let new_path_length = new_path.len();
+            let old_agent_cost = new_paths[agent_to_update].len() - 1;
+            let new_agent_cost = new_path.len() - 1;
             new_paths[agent_to_update] = new_path;
-            let new_cost = self.cost - old_path_length + new_path_length;
+            let new_cost = self.cost - old_agent_cost + new_agent_cost;
             new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
 
             let mut new_node = HighLevelOpenNode {

@@ -45,7 +45,7 @@ impl Solver for ECBS {
             focal.insert(root.to_focal_node());
             while let Some(current_focal_node) = focal.pop_first() {
                 let current_open_node = current_focal_node.to_open_node();
-                let old_f_min: usize = current_open_node.low_level_f_min_agents.iter().sum();
+                let old_f_min: usize = open.first().unwrap().low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);
                 if let Some(conflict) = current_open_node.conflicts.first() {
@@ -104,10 +104,9 @@ impl Solver for ECBS {
                     let new_f_min = open.first().unwrap().low_level_f_min_agents.iter().sum();
                     if old_f_min < new_f_min {
                         open.iter().for_each(|node| {
-                            let node_cost: usize = node.low_level_f_min_agents.iter().sum();
-                            if node_cost as f64
+                            if node.cost as f64
                                 > self.low_level_subopt_factor.unwrap() * old_f_min as f64
-                                && node_cost as f64
+                                && node.cost as f64
                                     <= self.low_level_subopt_factor.unwrap() * new_f_min as f64
                             {
                                 focal.insert(node.to_focal_node());

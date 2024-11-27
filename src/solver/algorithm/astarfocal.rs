@@ -21,7 +21,7 @@ pub(crate) fn focal_a_star_search(
     paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
-    debug!("constraints: {constraints:?}");
+    debug!("constraints: {constraints:?} last search f min: {last_search_f_min:?}");
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // Open list is indexed based on (f_open_cost, time, position)
@@ -66,7 +66,7 @@ pub(crate) fn focal_a_star_search(
         });
 
         if current.position == agent.goal && current.g_cost > max_time {
-            debug!("find solution");
+            debug!("find solution with f min {f_min:?}");
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
                 f_min,
