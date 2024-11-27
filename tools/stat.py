@@ -7,7 +7,11 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
 def load_data(file_path):
-    return pd.read_csv(file_path)
+    data = pd.read_csv(file_path)
+    # Marking all relevant columns as infinite where timeouts are recorded
+    timeout_condition = data['low_level_suboptimal'].astype(str).str.contains('timeout', na=False)
+    data.loc[timeout_condition, ['time(us)', 'costs', 'high_level_expanded', 'low_level_open_expanded', 'low_level_focal_expanded', 'total_low_level_expanded']] = np.inf
+    return data
 
 def compute_stats(df, column):
     return np.percentile(df[column].dropna(), [0, 50, 99], method="nearest")
@@ -23,20 +27,21 @@ def analyze_experiments(file_path, output_file_path):
             cbs_costs = cbs_data['costs'].dropna()
 
             if not cbs_costs.empty:
-                cbs_cost_min = cbs_costs.min()  # Get the minimum cost for CBS to compare with others
-                for solver in group_data['solver'].unique():
-                    solver_data = group_data[group_data['solver'] == solver]
-                    solver_costs = solver_data['costs'].dropna()
+                cbs_cost_min = cbs_costs.min()
+                if cbs_cost_min != np.inf:
+                    for solver in group_data['solver'].unique():
+                        solver_data = group_data[group_data['solver'] == solver]
+                        solver_costs = solver_data['costs'].dropna()
 
-                    if not solver_costs.empty:
-                        if (solver_costs < cbs_cost_min).any():
-                            print(f"Discrepancy found for num_agents={num_agents}, seed={seed}, solver={solver}")
+                        if not solver_costs.empty:
+                            if (solver_costs < cbs_cost_min).any():
+                                print(f"Discrepancy found for num_agents={num_agents}, seed={seed}, solver={solver}")
 
     for solver in data['solver'].unique():
         for num_agents in data['num_agents'].unique():
             solver_agent_data = data[(data['solver'] == solver) & (data['num_agents'] == num_agents)]
 
-            timeouts = solver_agent_data['low_level_suboptimal'].astype(str).str.contains('timeout', na=False)
+            timeouts = solver_agent_data['time(us)'] == np.inf
             timeout_count = timeouts.sum()
             success_data = solver_agent_data[~timeouts]
             total_count = len(solver_agent_data)

@@ -1,15 +1,14 @@
-use std::cmp::max;
-use tracing::{debug, instrument, trace};
-
-use super::{construct_path, heuristic_focal};
+use super::{a_star_search, construct_path, heuristic_focal};
 use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode};
 use crate::stat::Stats;
+
 use std::{
     collections::{BTreeSet, HashMap, HashSet},
     usize,
 };
+use tracing::{debug, instrument, trace};
 
 #[instrument(skip_all, name="low_level_a_focal_star", fields(agent = agent.id, subopt_factor = subopt_factor, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn focal_a_star_search(
@@ -192,7 +191,7 @@ pub(crate) fn focal_a_star_double_search(
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // We calculate f min by first perform an a star search.
-    let global_f_min = (paths[agent.id].len() as f64 / subopt_factor).floor() as usize + 1;
+    let f_min = a_star_search(map, agent, constraints, stats).unwrap().1;
 
     // Open list is indexed based on (f_open_cost, time, position)
     let mut open_list = BTreeSet::new();
@@ -225,8 +224,6 @@ pub(crate) fn focal_a_star_double_search(
         stats.low_level_expand_focal_nodes += 1;
 
         closed_list.insert((current.position, current.g_cost));
-
-        let f_min = max(open_list.first().unwrap().f_open_cost, global_f_min);
 
         // Remove the same node from open list.
         open_list.remove(&LowLevelOpenNode {
