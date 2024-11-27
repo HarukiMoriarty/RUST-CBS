@@ -9,11 +9,23 @@ use std::hash::Hash;
 use tracing::debug;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(crate) enum ConflictType {
+    Vertex {
+        position: (usize, usize),
+        time_step: usize,
+    },
+    Edge {
+        u: (usize, usize),
+        v: (usize, usize),
+        time_step: usize,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) struct Conflict {
     pub(crate) agent_1: usize,
     pub(crate) agent_2: usize,
-    pub(crate) position: (usize, usize),
-    pub(crate) time_step: usize,
+    pub(crate) conflict_type: ConflictType,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
@@ -127,20 +139,48 @@ impl HighLevelOpenNode {
                         *path2.last().unwrap()
                     };
 
+                    // Check for Vertex Conflict
                     if pos1 == pos2 {
-                        // Found a conflict at the same position and time step
                         conflicts.push(Conflict {
                             agent_1: i,
                             agent_2: j,
-                            position: pos1,
-                            time_step: step,
+                            conflict_type: ConflictType::Vertex {
+                                position: pos1,
+                                time_step: step,
+                            },
                         });
+                    }
+
+                    // Check for Edge Conflict
+                    if step > 0 {
+                        let prev_pos1 = if step - 1 < path1.len() {
+                            path1[step - 1]
+                        } else {
+                            *path1.last().unwrap()
+                        };
+                        let prev_pos2 = if step - 1 < path2.len() {
+                            path2[step - 1]
+                        } else {
+                            *path2.last().unwrap()
+                        };
+
+                        if prev_pos1 == pos2 && prev_pos2 == pos1 {
+                            conflicts.push(Conflict {
+                                agent_1: i,
+                                agent_2: j,
+                                conflict_type: ConflictType::Edge {
+                                    u: prev_pos1,
+                                    v: pos1,
+                                    time_step: step,
+                                },
+                            });
+                        }
                     }
                 }
             }
         }
 
-        debug!("Detect conflicts: {conflicts:?}");
+        debug!("Detect conflicts: {:?}", conflicts);
         self.conflicts = conflicts;
     }
 
@@ -164,10 +204,24 @@ impl HighLevelOpenNode {
         };
 
         let constraints_for_agent = &mut new_constraints[agent_to_update];
-        constraints_for_agent.insert(Constraint {
-            position: conflict.position,
-            time_step: conflict.time_step,
-        });
+        match conflict.conflict_type {
+            ConflictType::Vertex {
+                position,
+                time_step,
+            } => {
+                constraints_for_agent.insert(Constraint {
+                    position,
+                    time_step,
+                });
+            }
+            ConflictType::Edge { u, v, time_step } => {
+                let position = if resolve_first { u } else { v };
+                constraints_for_agent.insert(Constraint {
+                    position,
+                    time_step,
+                });
+            }
+        }
 
         let new_solution = match solver {
             "cbs" | "hbcbs" => a_star_search(
