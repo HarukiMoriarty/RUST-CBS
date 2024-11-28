@@ -169,8 +169,8 @@ impl HighLevelOpenNode {
                                 agent_1: i,
                                 agent_2: j,
                                 conflict_type: ConflictType::Edge {
-                                    u: prev_pos1,
-                                    v: pos1,
+                                    u: pos1,
+                                    v: prev_pos1,
                                     time_step: step,
                                 },
                             });

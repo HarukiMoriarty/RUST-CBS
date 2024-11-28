@@ -11,7 +11,7 @@ use std::{
 };
 use tracing::{debug, instrument, trace};
 
-#[instrument(skip_all, name="low_level_a_focal_star", fields(agent = agent.id, subopt_factor = subopt_factor, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+#[instrument(skip_all, name="low_level_a_focal_star", fields(agent = agent.id, subopt_factor = subopt_factor, last_search_f_min = last_search_f_min, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn focal_a_star_search(
     map: &Map,
     agent: &Agent,
@@ -21,7 +21,7 @@ pub(crate) fn focal_a_star_search(
     paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
-    debug!("constraints: {constraints:?} last search f min: {last_search_f_min:?}");
+    debug!("constraints: {constraints:?}");
     let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // Open list is indexed based on (f_open_cost, time, position)
@@ -45,7 +45,6 @@ pub(crate) fn focal_a_star_search(
         f_open_cost: start_h_open_cost,
         g_cost: 0,
     });
-
     f_focal_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop_first() {
@@ -56,14 +55,15 @@ pub(crate) fn focal_a_star_search(
 
         closed_list.insert((current.position, current.g_cost));
 
+        // Use last search f min to speed search.
         let f_min = max(open_list.first().unwrap().f_open_cost, last_search_f_min);
 
         // Remove the same node from open list.
-        open_list.remove(&LowLevelOpenNode {
+        assert!(open_list.remove(&LowLevelOpenNode {
             position: current.position,
-            f_open_cost: f_min,
+            f_open_cost: current.f_open_cost,
             g_cost: current.g_cost,
-        });
+        }));
 
         if current.position == agent.goal && current.g_cost > max_time {
             debug!("find solution with f min {f_min:?}");
@@ -173,10 +173,8 @@ pub(crate) fn focal_a_star_search(
                 });
             }
         }
-
-        trace!("focal list: {focal_list:?}");
     }
-
+    debug!("cannot find solution");
     None
 }
 
@@ -228,11 +226,11 @@ pub(crate) fn focal_a_star_double_search(
         closed_list.insert((current.position, current.g_cost));
 
         // Remove the same node from open list.
-        open_list.remove(&LowLevelOpenNode {
+        assert!(open_list.remove(&LowLevelOpenNode {
             position: current.position,
             f_open_cost: current.f_open_cost,
             g_cost: current.g_cost,
-        });
+        }));
 
         if current.position == agent.goal && current.g_cost > max_time {
             debug!("find solution");
@@ -345,6 +343,6 @@ pub(crate) fn focal_a_star_double_search(
 
         trace!("focal list: {focal_list:?}");
     }
-
+    debug!("cannot find solution");
     None
 }
