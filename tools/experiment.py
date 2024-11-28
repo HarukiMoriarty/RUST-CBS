@@ -59,7 +59,17 @@ def check_and_create_csv(output_csv_path: str):
 
 def write_error_csv(params: ExperimentParameters, error_msg: str):
     with open(params.get("output_csv_result", "./result/result.csv"), 'a+') as file:
-        file.write(params["map_path"] + "," + params["yaml_path"] + "," + str(params["num_agents"]) + ",[]," + str(params["seed_num"]) + "," + str(params["solver"]) + "," + error_msg + "\n")
+        file.write(params["map_path"] + "," + params["yaml_path"] + "," + str(params["num_agents"]) + ",[]," + str(params["seed_num"]) + "," + str(params["solver"]) + ",")
+        if params["solver"] == "cbs":
+            file.write("NaN,NaN,")
+        elif params["solver"] == "lbcbs" or params["solver"] == "ecbs" or params["solver"] == "decbs":
+            file.write(str(params["sub_optimal"]) + ",NaN,")
+        elif params["solver"] == "hbcbs":
+            file.write("NaN," + str(params["sub_optimal"]) + ",")
+        elif params["solver"] == "bcbs":
+            file.write(str(math.sqrt(params["sub_optimal"])) + "," + str(math.sqrt(params["sub_optimal"])) + ",")
+        file.write(error_msg + "\n")
+        
 
 def run_experiment(params: ExperimentParameters):
     check_and_create_csv(params.get("output_csv_result", "./result/result.csv"))
@@ -74,14 +84,14 @@ def run_experiment(params: ExperimentParameters):
         "--solver", str(params["solver"]),
     ]
 
-    solver = params.get("solver", "")  
+    solver = params["solver"]  
     if solver in ["lbcbs", "ecbs", "decbs"]: 
-        cmd_base.extend(["--low-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
+        cmd_base.extend(["--low-level-sub-optimal", str(params["sub_optimal"])])  
     if solver in ["hbcbs"]:  
-        cmd_base.extend(["--high-level-sub-optimal", str(params.get("sub_optimal", 1.0))])  
+        cmd_base.extend(["--high-level-sub-optimal", str(params["sub_optimal"])])  
     if solver in ["bcbs"]:
-        cmd_base.extend(["--low-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])
-        cmd_base.extend(["--high-level-sub-optimal", str(math.sqrt(params.get("sub_optimal", 1.0)))])  
+        cmd_base.extend(["--low-level-sub-optimal", str(math.sqrt(params["sub_optimal"]))])
+        cmd_base.extend(["--high-level-sub-optimal", str(math.sqrt(params["sub_optimal"]))])  
 
     LOG.info(f"Executing: {' '.join(cmd_base)}")
     try:
