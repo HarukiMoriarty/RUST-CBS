@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 def load_data(file_path):
     data = pd.read_csv(file_path)
     # Marking all relevant columns as infinite where timeouts are recorded
-    timeout_condition = data['low_level_suboptimal'].astype(str).str.contains('timeout', na=False)
+    timeout_condition = data['costs'].astype(str).str.contains('timeout', na=False)
     data.loc[timeout_condition, ['time(us)', 'costs', 'high_level_expanded', 'low_level_open_expanded', 'low_level_focal_expanded', 'total_low_level_expanded']] = np.inf
     return data
 

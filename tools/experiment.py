@@ -39,7 +39,7 @@ def generate_combinations(params: ExperimentParameters):
 
     for key in keys:
         if key == "seed_num":
-            values.append(list(range(params[key])))  # Creates a list [0, 1, ..., seed_num - 1]
+            values.append(list(range(params[key]))) 
         elif isinstance(params[key], list):
             values.append(params[key])
         else:

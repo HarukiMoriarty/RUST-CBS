@@ -1,7 +1,7 @@
 yaml_path: ["map_file/random-32-32-20-even/random-32-32-20-even-1.scen"]
 map_path: ["map_file/random-32-32-20-even/random-32-32-20.map"]
-num_agents: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+num_agents: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]
 seed_num: 1000
-sub_optimal: [1.01, 1.05, 1.1, 1.2]
+sub_optimal: [1.1]
 solver: ["cbs", "lbcbs", "hbcbs", "bcbs", "ecbs", "decbs"]
 time_out: 30
