@@ -62,12 +62,32 @@ impl Solution {
 
         for time_step in 0..max_path_length {
             let mut seen_positions = HashSet::new();
+            let mut seen_edges = HashSet::new();
 
             for path in &self.paths {
-                if let Some(pos) = path.get(time_step) {
-                    if !map.is_passable(pos.0, pos.1) || !seen_positions.insert(pos) {
-                        error!("conflict or impossible move");
-                        return false;
+                let pos = path.get(time_step).unwrap_or_else(|| path.last().unwrap());
+                if !map.is_passable(pos.0, pos.1) {
+                    error!("impossible move");
+                    return false;
+                }
+
+                if !seen_positions.insert(pos) {
+                    error!("vertex conlict at {pos:?}");
+                    return false;
+                }
+
+                if time_step >= 1 {
+                    let prev_pos = path
+                        .get(time_step - 1)
+                        .unwrap_or_else(|| path.last().unwrap());
+                    if prev_pos != pos {
+                        let edge = (prev_pos, pos);
+                        let reverse_edge = (pos, prev_pos);
+
+                        if !seen_edges.insert(edge) || seen_edges.contains(&reverse_edge) {
+                            error!("edge conflict between {edge:?} and {reverse_edge:?}");
+                            return false;
+                        }
                     }
                 }
             }

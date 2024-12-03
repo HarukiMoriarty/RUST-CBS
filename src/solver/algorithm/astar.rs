@@ -41,10 +41,6 @@ pub(crate) fn a_star_search(
         closed_list.insert((current.position, current.g_cost));
 
         if current.position == agent.goal && current.g_cost > max_time {
-            debug!(
-                "open low level expanded node up to now: {:?}",
-                stats.low_level_expand_open_nodes
-            );
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
                 current.f_open_cost,
@@ -56,7 +52,7 @@ pub(crate) fn a_star_search(
 
         // Expand nodes from the current position.
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
-            // If node (position at current time) has closed, ignore.
+            // Checck node (position at current time) has closed.
             if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                 continue;
             }
@@ -71,13 +67,7 @@ pub(crate) fn a_star_search(
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
 
-            // If this node has already in the open list, we ignore this update
-            // since we have the same g cost (time) and h cost.
-            // Actually here we apply a symmetric optimization, we ingore the paths
-            // lead to current node that has the same cost.
-            // A potential problem here we might ignore paths that might lead to less conflicts,
-            // the optimal property should be kept since any conflicts will lead to a high level
-            // constraints later, but might lead to potential inefficiency.
+            // If this node has already in the open list, we ignore this update.
             if open_list.insert(LowLevelOpenNode {
                 position: *neighbor,
                 f_open_cost: tentative_g_cost + h_open_cost,

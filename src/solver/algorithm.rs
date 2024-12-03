@@ -11,6 +11,7 @@ type Trace = HashMap<((usize, usize), usize), ((usize, usize), usize)>;
 fn heuristic_focal(
     agent: usize,
     position: (usize, usize),
+    prev_position: (usize, usize),
     time: usize,
     paths: &[Vec<(usize, usize)>],
 ) -> usize {
@@ -23,8 +24,14 @@ fn heuristic_focal(
 
         let other_position = path.get(time).unwrap_or_else(|| path.last().unwrap());
 
-        // Check if the current agent's position conflicts with the other agent's position.
+        // Check for vertex conflict.
         if *other_position == position {
+            conflict_count += 1;
+        }
+
+        // Check for edge conflict.
+        let other_prev_position = path.get(time - 1).unwrap_or_else(|| path.last().unwrap());
+        if (*other_position == prev_position) && (*other_prev_position == position) {
             conflict_count += 1;
         }
     }

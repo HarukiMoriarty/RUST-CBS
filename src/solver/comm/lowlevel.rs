@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 #[derive(Clone, Eq, Debug, PartialEq, Hash)]
 pub(crate) struct LowLevelOpenNode {
-    pub(crate) position: (usize, usize),
+    pub(crate) position: (usize, usize), // once we can determine a position, we can also determine the h_cost
     pub(crate) f_open_cost: usize,
     pub(crate) g_cost: usize, // (time) we assume uniform cost
 }
@@ -11,6 +11,7 @@ impl Ord for LowLevelOpenNode {
     fn cmp(&self, other: &Self) -> Ordering {
         self.f_open_cost
             .cmp(&other.f_open_cost)
+            // higher g cost (time) has higher priority
             .then_with(|| self.g_cost.cmp(&other.g_cost).reverse())
             .then_with(|| self.position.cmp(&other.position))
     }

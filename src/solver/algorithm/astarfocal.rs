@@ -94,7 +94,13 @@ pub(crate) fn focal_a_star_search(
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
             let f_open_cost = tentative_g_cost + h_open_cost;
             let f_focal_cost = current.f_focal_cost
-                + heuristic_focal(agent.id, *neighbor, tentative_g_cost, paths);
+                + heuristic_focal(
+                    agent.id,
+                    *neighbor,
+                    current.position,
+                    tentative_g_cost,
+                    paths,
+                );
 
             // If this node is never appeared before, update open list and trace
             // Also means this node is new to focal history, update focal cost hashmap
@@ -261,7 +267,13 @@ pub(crate) fn focal_a_star_double_search(
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
             let f_open_cost = tentative_g_cost + h_open_cost;
             let f_focal_cost = current.f_focal_cost
-                + heuristic_focal(agent.id, *neighbor, tentative_g_cost, paths);
+                + heuristic_focal(
+                    agent.id,
+                    *neighbor,
+                    current.position,
+                    tentative_g_cost,
+                    paths,
+                );
 
             // If this node is never appeared before, update open list and trace
             // Also means this node is new to focal history, update focal cost hashmap
