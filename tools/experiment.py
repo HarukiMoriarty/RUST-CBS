@@ -55,7 +55,7 @@ def check_and_create_csv(output_csv_path: str):
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         # Create the file and write the header
         with open(csv_path, 'w') as csv_file:
-            csv_file.write("map_path,yaml_path,num_agents,agents_dist,seed,solver,low_level_suboptimal,high_level_suboptimal,costs,time(us),high_level_expanded,low_level_open_expanded,low_level_focal_expanded,total_low_level_expanded\n")
+            csv_file.write("map_path,yaml_path,num_agents,agents_dist,seed,solver,high_level_suboptimal,low_level_suboptimal,costs,time(us),high_level_expanded,low_level_open_expanded,low_level_focal_expanded,total_low_level_expanded\n")
 
 def write_error_csv(params: ExperimentParameters, error_msg: str):
     with open(params.get("output_csv_result", "./result/result.csv"), 'a+') as file:
@@ -63,9 +63,9 @@ def write_error_csv(params: ExperimentParameters, error_msg: str):
         if params["solver"] == "cbs":
             file.write("NaN,NaN,")
         elif params["solver"] == "lbcbs" or params["solver"] == "ecbs" or params["solver"] == "decbs":
-            file.write(str(params["sub_optimal"]) + ",NaN,")
-        elif params["solver"] == "hbcbs":
             file.write("NaN," + str(params["sub_optimal"]) + ",")
+        elif params["solver"] == "hbcbs":
+            file.write(str(params["sub_optimal"]) + ",NaN,")
         elif params["solver"] == "bcbs":
             file.write(str(math.sqrt(params["sub_optimal"])) + "," + str(math.sqrt(params["sub_optimal"])) + ",")
         file.write(error_msg + "\n")
