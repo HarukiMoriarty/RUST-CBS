@@ -5,3 +5,4 @@ seed_num: 1000
 sub_optimal: [1.1]
 solver: ["cbs", "lbcbs", "hbcbs", "bcbs", "ecbs", "decbs"]
 time_out: 30
+op_prioritize_conflicts: [true, false]
