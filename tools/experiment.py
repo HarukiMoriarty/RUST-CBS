@@ -24,6 +24,7 @@ class ExperimentParameters(TypedDict):
     solver: List[str]
     time_out: str
     op_prioritize_conflicts: List[bool]
+    op_bypass_conflicts: List[bool]
 
 def load_experiment(exp_name: str):
     exp_path = BASE_PATH / "experiment" / f"{exp_name}.yaml"
@@ -56,7 +57,7 @@ def check_and_create_csv(output_csv_path: str):
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         # Create the file and write the header
         with open(csv_path, 'w') as csv_file:
-            csv_file.write("map_path,yaml_path,num_agents,agents_dist,seed,solver,high_level_suboptimal,low_level_suboptimal,op_PC,costs,time(us),high_level_expanded,low_level_open_expanded,low_level_focal_expanded,total_low_level_expanded\n")
+            csv_file.write("map_path,yaml_path,num_agents,agents_dist,seed,solver,high_level_suboptimal,low_level_suboptimal,op_PC,op_BC,costs,time(us),high_level_expanded,low_level_open_expanded,low_level_focal_expanded,total_low_level_expanded\n")
 
 def write_error_csv(params: ExperimentParameters, error_msg: str):
     with open(params.get("output_csv_result", "./result/result.csv"), 'a+') as file:
@@ -69,7 +70,7 @@ def write_error_csv(params: ExperimentParameters, error_msg: str):
             file.write(str(params["sub_optimal"]) + ",NaN,")
         elif params["solver"] == "bcbs":
             file.write(str(math.sqrt(params["sub_optimal"])) + "," + str(math.sqrt(params["sub_optimal"])) + ",")
-        file.write(str(params["op_prioritize_conflicts"]) + "," + error_msg + "\n")
+        file.write(str(params["op_prioritize_conflicts"]) + "," + str(params["op_bypass_conflicts"]) + "," + error_msg + "\n")
         
 
 def run_experiment(params: ExperimentParameters):
@@ -96,6 +97,8 @@ def run_experiment(params: ExperimentParameters):
 
     if params.get("op_prioritize_conflicts", False):
         cmd_base.append("--op-prioritize-conflicts")
+    if params.get("op_bypass_conflicts", False):
+        cmd_base.append("--op-bypass-conflicts")
 
     LOG.info(f"Executing: {' '.join(cmd_base)}")
     try:

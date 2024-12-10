@@ -65,6 +65,9 @@ pub struct Cli {
         default_value_t = false
     )]
     pub op_prioritize_conflicts: bool,
+
+    #[arg(long, help = "Optimization: Bypass Conflicts", default_value_t = false)]
+    pub op_bypass_conflicts: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -79,6 +82,7 @@ pub struct Config {
     pub solver: String,
     pub debug_yaml: bool,
     pub op_prioritize_conflicts: bool,
+    pub op_bypass_conflicts: bool,
 }
 
 impl Config {
@@ -94,6 +98,7 @@ impl Config {
             solver: cli.solver.clone(),
             debug_yaml: cli.debug_yaml,
             op_prioritize_conflicts: cli.op_prioritize_conflicts,
+            op_bypass_conflicts: cli.op_bypass_conflicts,
         }
     }
 

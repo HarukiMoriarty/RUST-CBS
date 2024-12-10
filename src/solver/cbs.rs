@@ -36,114 +36,145 @@ impl Solver for CBS {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
                 if !current_node.conflicts.is_empty() {
-                    // 1: No Optimization.
-                    if !config.op_prioritize_conflicts {
-                        let conflict = current_node.conflicts.first().unwrap();
-                        debug!("conflict: {conflict:?}");
+                    let mut find_cardinal = false;
+                    let mut find_semi_cardinal = false;
+                    let mut find_adopting = false;
 
-                        if let Some(child_1) = current_node.update_constraint(
+                    let mut child_left = None;
+                    let mut child_right = None;
+                    let mut adopting_node = None;
+
+                    for conflict in &current_node.conflicts {
+                        // (false, false): non-cardinal, (true, false) | (false, true): semi-cardinal, (true, true): cardinal
+                        let mut cardinal = (true, true);
+
+                        let child_candidate_left = current_node.update_constraint(
                             conflict,
                             true,
                             &self.map,
                             None,
                             "cbs",
                             &mut self.stats,
-                        ) {
-                            open.insert(child_1);
+                        );
+                        if let Some(ref child) = child_candidate_left {
                             self.stats.high_level_expand_nodes += 1;
+                            if child.cost <= current_node.cost {
+                                cardinal.0 = false;
+                            }
+                        } else {
+                            // if solve failed, move on to next conflict.
+                            continue;
                         }
 
-                        if let Some(child_2) = current_node.update_constraint(
+                        let child_candidate_right = current_node.update_constraint(
                             conflict,
                             false,
                             &self.map,
                             None,
                             "cbs",
                             &mut self.stats,
-                        ) {
-                            open.insert(child_2);
+                        );
+                        if let Some(ref child) = child_candidate_right {
                             self.stats.high_level_expand_nodes += 1;
+                            if child.cost <= current_node.cost {
+                                cardinal.1 = false;
+                            }
+                        } else {
+                            // if solve failed, move on to next conflict.
+                            continue;
                         }
-                    }
-                    // 2: Prioritize Conflicts Optimization.
-                    else {
-                        let mut find_cardinal = false;
-                        let mut find_semi_cardinal = false;
-                        let mut child_candidate_1 = None;
-                        let mut child_candidate_2 = None;
 
-                        for conflict in &current_node.conflicts {
-                            // 0: non-cardinal, 1: semi-cardinal, 2: cardinal
-                            let mut cardinal = 2;
-
-                            let child_1 = current_node.update_constraint(
-                                conflict,
-                                true,
-                                &self.map,
-                                None,
-                                "cbs",
-                                &mut self.stats,
-                            );
-                            if let Some(ref child_1) = child_1 {
-                                self.stats.high_level_expand_nodes += 1;
-                                if child_1.cost <= current_node.cost {
-                                    cardinal -= 1;
-                                }
-                            } else {
-                                // if solve failed, move on to next conflict.
-                                continue;
+                        match cardinal {
+                            // Cardinal node: break the loop immediately.
+                            (true, true) => {
+                                find_cardinal = true;
+                                child_left = child_candidate_left;
+                                child_right = child_candidate_right;
+                                break;
                             }
+                            // Semi Cardinal node: always record it since cardinal will directly break the loop.
+                            (true, false) | (false, true) => {
+                                find_semi_cardinal = true;
 
-                            let child_2 = current_node.update_constraint(
-                                conflict,
-                                false,
-                                &self.map,
-                                None,
-                                "cbs",
-                                &mut self.stats,
-                            );
-                            if let Some(ref child_2) = child_2 {
-                                self.stats.high_level_expand_nodes += 1;
-                                if child_2.cost <= current_node.cost {
-                                    cardinal -= 1;
-                                }
-                            } else {
-                                // if solve failed, move on to next conflict.
-                                continue;
-                            }
+                                child_left = child_candidate_left;
+                                child_right = child_candidate_right;
 
-                            match cardinal {
-                                // Cardinal node: break the loop immediately.
-                                2 => {
-                                    find_cardinal = true;
-                                    child_candidate_1 = child_1;
-                                    child_candidate_2 = child_2;
+                                // If no optimization, we just pick the first solved conflict.
+                                if !config.op_prioritize_conflicts && !config.op_bypass_conflicts {
                                     break;
                                 }
-                                // Semi Cardinal node: always record it since cardinal will directly break the loop.
-                                1 => {
-                                    find_semi_cardinal = true;
-                                    child_candidate_1 = child_1;
-                                    child_candidate_2 = child_2;
-                                    continue;
-                                }
-                                // Non Cardinal node: record only if there is no cardinal and semi cardinal node.
-                                0 => {
-                                    if find_semi_cardinal {
-                                        continue;
-                                    } else {
-                                        child_candidate_1 = child_1;
-                                        child_candidate_2 = child_2;
-                                        continue;
+
+                                if config.op_bypass_conflicts && !find_adopting {
+                                    if cardinal.0
+                                        && child_right.as_ref().unwrap().conflicts.len()
+                                            < current_node.conflicts.len()
+                                    {
+                                        find_adopting = true;
+                                        adopting_node = child_right.clone();
+                                        if !config.op_prioritize_conflicts {
+                                            break;
+                                        }
+                                    } else if cardinal.1
+                                        && child_left.as_ref().unwrap().conflicts.len()
+                                            < current_node.conflicts.len()
+                                    {
+                                        find_adopting = true;
+                                        adopting_node = child_left.clone();
+                                        if !config.op_prioritize_conflicts {
+                                            break;
+                                        }
                                     }
                                 }
-                                _ => unreachable!(),
+                            }
+                            // Non Cardinal node: record only if there is no cardinal and semi cardinal node.
+                            (false, false) => {
+                                if find_semi_cardinal {
+                                    continue;
+                                } else {
+                                    child_left = child_candidate_left;
+                                    child_right = child_candidate_right;
+
+                                    // If no optimization, we just pick the first solved conflict.
+                                    if !config.op_prioritize_conflicts
+                                        && !config.op_bypass_conflicts
+                                    {
+                                        break;
+                                    }
+
+                                    if config.op_bypass_conflicts && !find_adopting {
+                                        if child_right.as_ref().unwrap().conflicts.len()
+                                            < current_node.conflicts.len()
+                                        {
+                                            find_adopting = true;
+                                            adopting_node = child_right.clone();
+                                            if !config.op_prioritize_conflicts {
+                                                break;
+                                            }
+                                        } else if child_left.as_ref().unwrap().conflicts.len()
+                                            < current_node.conflicts.len()
+                                        {
+                                            find_adopting = true;
+                                            adopting_node = child_left.clone();
+                                            if !config.op_prioritize_conflicts {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
+                    }
 
-                        debug!("expand: cardinal {find_cardinal:?}, semi-cardinal {find_semi_cardinal:?} CT node");
-                        open.insert(child_candidate_1.unwrap());
-                        open.insert(child_candidate_2.unwrap());
+                    debug!("expand: cardinal {find_cardinal:?}, semi-cardinal {find_semi_cardinal:?} CT node");
+
+                    if find_cardinal {
+                        open.insert(child_left.unwrap());
+                        open.insert(child_right.unwrap());
+                    } else if config.op_bypass_conflicts && find_adopting {
+                        open.insert(adopting_node.unwrap());
+                    } else {
+                        open.insert(child_left.unwrap());
+                        open.insert(child_right.unwrap());
                     }
                 } else {
                     // No conflicts, return solution.
