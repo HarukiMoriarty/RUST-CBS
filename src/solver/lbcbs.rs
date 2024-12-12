@@ -44,31 +44,68 @@ impl Solver for LBCBS {
                 if let Some(conflict) = current_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
-                    if let Some(child_1) = current_node.update_constraint(
+                    let child_1 = current_node.update_constraint(
                         conflict,
                         true,
                         &self.map,
                         self.low_level_subopt_factor,
                         "lbcbs",
                         &mut self.stats,
-                    ) {
-                        open.insert(child_1);
-                        self.stats.high_level_expand_nodes += 1;
+                    );
+
+                    if config.op_bypass_conflicts {
+                        if let Some(ref child) = child_1 {
+                            if child.cost == current_node.cost
+                                && child.conflicts.len() < current_node.conflicts.len()
+                            {
+                                open.insert(current_node.update_bypass_path(
+                                    child.paths[conflict.agent_1].clone(),
+                                    child.conflicts.clone(),
+                                    conflict.agent_1,
+                                ));
+                                self.stats.high_level_expand_nodes += 1;
+                                continue;
+                            }
+                        }
                     }
 
-                    if let Some(child_2) = current_node.update_constraint(
+                    let child_2 = current_node.update_constraint(
                         conflict,
                         false,
                         &self.map,
                         self.low_level_subopt_factor,
                         "lbcbs",
                         &mut self.stats,
-                    ) {
-                        open.insert(child_2);
+                    );
+
+                    if config.op_bypass_conflicts {
+                        if let Some(ref child) = child_2 {
+                            if child.cost == current_node.cost
+                                && child.conflicts.len() < current_node.conflicts.len()
+                            {
+                                open.insert(current_node.update_bypass_path(
+                                    child.paths[conflict.agent_2].clone(),
+                                    child.conflicts.clone(),
+                                    conflict.agent_2,
+                                ));
+                                self.stats.high_level_expand_nodes += 1;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if let Some(child) = child_1 {
+                        open.insert(child);
+                        self.stats.high_level_expand_nodes += 1;
+                    }
+
+                    if let Some(child) = child_2 {
+                        open.insert(child);
                         self.stats.high_level_expand_nodes += 1;
                     }
                 } else {
                     // No conflicts, return solution.
+                    debug!("Find solution");
                     let total_solve_time = total_solve_start_time.elapsed();
                     self.stats.time_ms = total_solve_time.as_micros() as usize;
                     self.stats.costs = current_node.cost;

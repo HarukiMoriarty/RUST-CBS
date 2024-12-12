@@ -3,7 +3,7 @@ map_path: ["map_file/random-32-32-20-even/random-32-32-20.map"]
 num_agents: [10]
 seed_num: 1000
 sub_optimal: [1.1]
-solver: ["cbs"]
+solver: ["cbs", "lbcbs", "hbcbs", "bcbs"]
 time_out: 30
-op_prioritize_conflicts: [true, false]
+op_prioritize_conflicts: [false]
 op_bypass_conflicts: [true, false]

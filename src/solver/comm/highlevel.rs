@@ -276,6 +276,18 @@ impl HighLevelOpenNode {
         }
     }
 
+    pub(crate) fn update_bypass_path(
+        &self,
+        new_path: Vec<(usize, usize)>,
+        new_conflicts: Vec<Conflict>,
+        agent_id: usize,
+    ) -> HighLevelOpenNode {
+        let mut bypass_node = self.clone();
+        bypass_node.paths[agent_id] = new_path;
+        bypass_node.conflicts = new_conflicts;
+        bypass_node
+    }
+
     pub(crate) fn to_focal_node(&self) -> HighLevelFocalNode {
         HighLevelFocalNode {
             agents: self.agents.clone(),

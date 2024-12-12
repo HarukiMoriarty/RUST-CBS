@@ -1,0 +1,992 @@
+[2m2024-12-08T02:30:19.831111Z[0m [32m INFO[0m [2mmapf_rust[0m[2m:[0m Config: Config {
+    yaml_path: "map_file/random-32-32-20-even/random-32-32-20-even-1.scen",
+    map_path: "map_file/random-32-32-20-even/random-32-32-20.map",
+    output_path: "result/result.csv",
+    num_agents: 10,
+    agents_dist: [],
+    seed: 8,
+    sub_optimal: (
+        None,
+        None,
+    ),
+    solver: "cbs",
+    debug_yaml: false,
+    op_prioritize_conflicts: true,
+    op_bypass_conflicts: false,
+}
+[2m2024-12-08T02:30:19.831456Z[0m [32m INFO[0m [2mmapf_rust::scenario[0m[2m:[0m Generate scen: [Agent { id: 0, start: (13, 15), goal: (25, 13) }, Agent { id: 1, start: (9, 21), goal: (1, 26) }, Agent { id: 2, start: (5, 7), goal: (29, 25) }, Agent { id: 3, start: (10, 18), goal: (0, 26) }, Agent { id: 4, start: (25, 8), goal: (0, 30) }, Agent { id: 5, start: (8, 21), goal: (25, 11) }, Agent { id: 6, start: (19, 31), goal: (8, 5) }, Agent { id: 7, start: (18, 26), goal: (26, 4) }, Agent { id: 8, start: (14, 12), goal: (19, 14) }, Agent { id: 9, start: (5, 20), goal: (3, 22) }]
+[2m2024-12-08T02:30:19.833976Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.834563Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m1 [3mstart[0m[2m=[0m"(9, 21)" [3mgoal[0m[2m=[0m"(1, 26)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.834723Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m2 [3mstart[0m[2m=[0m"(5, 7)" [3mgoal[0m[2m=[0m"(29, 25)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.834988Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m3 [3mstart[0m[2m=[0m"(10, 18)" [3mgoal[0m[2m=[0m"(0, 26)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.835113Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.835361Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.835536Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m6 [3mstart[0m[2m=[0m"(19, 31)" [3mgoal[0m[2m=[0m"(8, 5)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.835751Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.835950Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.836021Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m9 [3mstart[0m[2m=[0m"(5, 20)" [3mgoal[0m[2m=[0m"(3, 22)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {}
+[2m2024-12-08T02:30:19.836127Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.836176Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m High level start node HighLevelOpenNode { agents: [Agent { id: 0, start: (13, 15), goal: (25, 13) }, Agent { id: 1, start: (9, 21), goal: (1, 26) }, Agent { id: 2, start: (5, 7), goal: (29, 25) }, Agent { id: 3, start: (10, 18), goal: (0, 26) }, Agent { id: 4, start: (25, 8), goal: (0, 30) }, Agent { id: 5, start: (8, 21), goal: (25, 11) }, Agent { id: 6, start: (19, 31), goal: (8, 5) }, Agent { id: 7, start: (18, 26), goal: (26, 4) }, Agent { id: 8, start: (14, 12), goal: (19, 14) }, Agent { id: 9, start: (5, 20), goal: (3, 22) }], constraints: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }], paths: [[(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)], [(9, 21), (8, 21), (8, 22), (8, 23), (7, 23), (6, 23), (5, 23), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26)], [(5, 7), (5, 8), (6, 8), (7, 8), (7, 9), (7, 10), (7, 11), (7, 12), (7, 13), (7, 14), (7, 15), (8, 15), (9, 15), (9, 16), (10, 16), (11, 16), (12, 16), (13, 16), (14, 16), (15, 16), (16, 16), (16, 17), (17, 17), (18, 17), (19, 17), (20, 17), (20, 18), (20, 19), (20, 20), (21, 20), (22, 20), (23, 20), (24, 20), (25, 20), (25, 21), (25, 22), (25, 23), (25, 24), (26, 24), (26, 25), (27, 25), (28, 25), (29, 25)], [(10, 18), (9, 18), (8, 18), (7, 18), (6, 18), (5, 18), (4, 18), (4, 19), (3, 19), (2, 19), (2, 20), (2, 21), (2, 22), (1, 22), (1, 23), (1, 24), (0, 24), (0, 25), (0, 26)], [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (13, 11), (12, 11), (11, 11), (10, 11), (9, 11), (8, 11), (7, 11), (6, 11), (6, 12), (5, 12), (4, 12), (3, 12), (3, 13), (3, 14), (3, 15), (2, 15), (2, 16), (2, 17), (2, 18), (2, 19), (2, 20), (2, 21), (2, 22), (1, 22), (1, 23), (1, 24), (0, 24), (0, 25), (0, 26), (0, 27), (0, 28), (0, 29), (0, 30)], [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (13, 11), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)], [(19, 31), (19, 30), (19, 29), (19, 28), (18, 28), (17, 28), (16, 28), (15, 28), (14, 28), (14, 27), (14, 26), (14, 25), (13, 25), (12, 25), (12, 24), (12, 23), (12, 22), (12, 21), (11, 21), (10, 21), (10, 20), (10, 19), (10, 18), (10, 17), (10, 16), (9, 16), (9, 15), (9, 14), (9, 13), (9, 12), (9, 11), (9, 10), (9, 9), (9, 8), (9, 7), (9, 6), (9, 5), (8, 5)], [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (25, 15), (25, 14), (25, 13), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)], [(14, 12), (15, 12), (16, 12), (16, 13), (16, 14), (17, 14), (18, 14), (19, 14)], [(5, 20), (4, 20), (3, 20), (3, 21), (3, 22)]], cost: 241, low_level_f_min_agents: [14, 13, 42, 18, 47, 27, 37, 32, 7, 4] }
+[2m2024-12-08T02:30:19.836250Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.839049Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.839140Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.839201Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.839464Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.839553Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.839615Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.839768Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.839851Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.839906Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.840069Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 7
+[2m2024-12-08T02:30:19.840156Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.840220Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.840358Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.840428Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.840467Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.840549Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 7
+[2m2024-12-08T02:30:19.840618Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 7 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.840661Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.840782Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, new f min 15
+[2m2024-12-08T02:30:19.840851Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.840888Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.840973Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (16, 13), (16, 14), (17, 14), (17, 14), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 6 } }, new f min 8
+[2m2024-12-08T02:30:19.841042Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.841070Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal true, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.841110Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.843866Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.843952Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.844000Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.844230Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.844302Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.844341Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.844466Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.844536Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.844573Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.844653Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 7
+[2m2024-12-08T02:30:19.844729Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.844764Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.844887Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.844956Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.844992Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.845071Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 7
+[2m2024-12-08T02:30:19.845140Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.845177Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (19, 14), time_step: 8 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.845323Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (17, 14), (18, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, new f min 16
+[2m2024-12-08T02:30:19.845392Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 9 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.845430Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (19, 14), time_step: 8 }}
+[2m2024-12-08T02:30:19.845565Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (16, 13), (16, 14), (17, 14), (18, 14), (19, 14), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, new f min 9
+[2m2024-12-08T02:30:19.845633Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Edge { u: (19, 14), v: (18, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.845659Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal true, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.845697Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.848519Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.848601Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.848639Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.849104Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.849187Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.849235Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.849363Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.849434Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.849472Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.849555Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 8
+[2m2024-12-08T02:30:19.849632Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.849672Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.849795Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.849865Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.849906Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.849989Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 8
+[2m2024-12-08T02:30:19.850058Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.850096Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m3 [3mstart[0m[2m=[0m"(10, 18)" [3mgoal[0m[2m=[0m"(0, 26)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (0, 26), time_step: 43 }}
+[2m2024-12-08T02:30:19.874770Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 3 with path [(10, 18), (9, 18), (8, 18), (7, 18), (6, 18), (5, 18), (4, 18), (4, 19), (3, 19), (2, 19), (2, 20), (2, 21), (2, 22), (1, 22), (1, 23), (1, 24), (0, 24), (0, 25), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 26), (0, 25), (0, 26)] for conflict Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, new f min 44
+[2m2024-12-08T02:30:19.874924Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Edge { u: (0, 25), v: (0, 26), time_step: 43 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.875035Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (0, 26), time_step: 43 }}
+[2m2024-12-08T02:30:19.875524Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (13, 11), (12, 11), (11, 11), (10, 11), (9, 11), (8, 11), (7, 11), (6, 11), (6, 12), (6, 13), (6, 14), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (3, 19), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }, new f min 47
+[2m2024-12-08T02:30:19.875608Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.875679Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.876006Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (4, 16), (3, 16), (2, 16), (2, 17), (2, 18), (2, 19), (2, 20), (2, 21), (2, 22), (1, 22), (1, 23), (1, 24), (0, 24), (0, 25), (0, 26), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.876091Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }]
+[2m2024-12-08T02:30:19.876139Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.876369Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.876448Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 3, agent_2: 4, conflict_type: Vertex { position: (0, 26), time_step: 43 } }]
+[2m2024-12-08T02:30:19.876495Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.876573Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.879200Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.879285Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.879312Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.879543Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.879616Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.879648Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.879778Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.879850Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.879881Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.879969Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 8
+[2m2024-12-08T02:30:19.880034Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.880075Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.880202Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.880275Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.880314Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.880405Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 8
+[2m2024-12-08T02:30:19.880477Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.880516Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m1 [3mstart[0m[2m=[0m"(9, 21)" [3mgoal[0m[2m=[0m"(1, 26)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.904143Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 1 with path [(9, 21), (8, 21), (8, 22), (8, 23), (7, 23), (6, 23), (5, 23), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (0, 26), (1, 26)] for conflict Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, new f min 43
+[2m2024-12-08T02:30:19.904274Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 3, conflict_type: Vertex { position: (0, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.904336Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.904817Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (13, 11), (12, 11), (11, 11), (10, 11), (9, 11), (8, 11), (7, 11), (6, 11), (6, 12), (6, 13), (6, 14), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (3, 19), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (2, 27), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, new f min 47
+[2m2024-12-08T02:30:19.904896Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.904935Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }, Constraint { position: (0, 26), time_step: 43 }}
+[2m2024-12-08T02:30:19.905323Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (3, 19), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.905400Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.905444Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.905651Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.905724Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }]
+[2m2024-12-08T02:30:19.905756Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }}
+[2m2024-12-08T02:30:19.906197Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (13, 11), (12, 11), (11, 11), (10, 11), (9, 11), (8, 11), (7, 11), (6, 11), (6, 12), (6, 13), (6, 14), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }, new f min 47
+[2m2024-12-08T02:30:19.906280Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.906320Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m9 [3mstart[0m[2m=[0m"(5, 20)" [3mgoal[0m[2m=[0m"(3, 22)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (3, 22), time_step: 36 }}
+[2m2024-12-08T02:30:19.925124Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 9 with path [(5, 20), (4, 20), (3, 20), (3, 21), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (3, 22), (2, 22), (3, 22)] for conflict Conflict { agent_1: 4, agent_2: 9, conflict_type: Vertex { position: (3, 22), time_step: 36 } }, new f min 37
+[2m2024-12-08T02:30:19.925253Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.925288Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.925352Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.928088Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.928204Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.928233Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.928466Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.928539Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.928570Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.928704Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.928777Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.928808Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.928894Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 8
+[2m2024-12-08T02:30:19.928965Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.928997Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.929123Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.929196Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.929227Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.929318Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 8
+[2m2024-12-08T02:30:19.929391Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.929433Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m1 [3mstart[0m[2m=[0m"(9, 21)" [3mgoal[0m[2m=[0m"(1, 26)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.951916Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 1 with path [(9, 21), (8, 21), (8, 22), (8, 23), (7, 23), (6, 23), (5, 23), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (1, 26), (0, 26), (1, 26)] for conflict Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, new f min 43
+[2m2024-12-08T02:30:19.952045Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 3, conflict_type: Vertex { position: (0, 26), time_step: 42 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.952097Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (1, 26), time_step: 42 }, Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }}
+[2m2024-12-08T02:30:19.952619Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (13, 11), (12, 11), (11, 11), (10, 11), (9, 11), (8, 11), (7, 11), (6, 11), (6, 12), (6, 13), (6, 14), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (2, 27), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }, new f min 47
+[2m2024-12-08T02:30:19.952719Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.952773Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }, Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }}
+[2m2024-12-08T02:30:19.953189Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (1, 26), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.953267Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }]
+[2m2024-12-08T02:30:19.953309Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.953509Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.953583Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 1, agent_2: 4, conflict_type: Vertex { position: (1, 26), time_step: 42 } }]
+[2m2024-12-08T02:30:19.953612Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.953655Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.956536Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.956651Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.956713Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.956962Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.957037Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.957078Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }}
+[2m2024-12-08T02:30:19.957204Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 15
+[2m2024-12-08T02:30:19.957278Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.957318Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (16, 14), time_step: 4 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.957404Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, new f min 8
+[2m2024-12-08T02:30:19.957476Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.957517Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }}
+[2m2024-12-08T02:30:19.957645Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 15
+[2m2024-12-08T02:30:19.957724Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 6 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (18, 14), time_step: 7 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (19, 14), time_step: 8 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.957756Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m8 [3mstart[0m[2m=[0m"(14, 12)" [3mgoal[0m[2m=[0m"(19, 14)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (17, 14), time_step: 5 }, Constraint { position: (18, 14), time_step: 6 }}
+[2m2024-12-08T02:30:19.957839Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 8 with path [(14, 12), (15, 12), (16, 12), (17, 12), (18, 12), (18, 13), (18, 13), (18, 14), (19, 14)] for conflict Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }, new f min 8
+[2m2024-12-08T02:30:19.957905Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.957947Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }, Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }, Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.958342Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (2, 27), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.958424Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }]
+[2m2024-12-08T02:30:19.958462Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.958657Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.958732Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (16, 14), time_step: 4 } }, Conflict { agent_1: 0, agent_2: 8, conflict_type: Vertex { position: (17, 14), time_step: 5 } }]
+[2m2024-12-08T02:30:19.958759Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.958801Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m0 [3mstart[0m[2m=[0m"(13, 15)" [3mgoal[0m[2m=[0m"(25, 13)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.961471Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 0 with path [(13, 15), (13, 14), (14, 14), (15, 14), (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14), (22, 14), (23, 14), (24, 14), (24, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (25, 13), (24, 13), (25, 13)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 23
+[2m2024-12-08T02:30:19.961576Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.961679Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m7 [3mstart[0m[2m=[0m"(18, 26)" [3mgoal[0m[2m=[0m"(26, 4)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (25, 13), time_step: 22 }}
+[2m2024-12-08T02:30:19.961945Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 7 with path [(18, 26), (18, 25), (18, 24), (19, 24), (20, 24), (21, 24), (22, 24), (22, 23), (22, 22), (22, 21), (22, 20), (23, 20), (23, 19), (24, 19), (24, 18), (25, 18), (25, 17), (26, 17), (26, 16), (26, 15), (26, 14), (26, 13), (26, 12), (25, 12), (25, 11), (25, 10), (25, 9), (25, 8), (25, 7), (25, 6), (25, 5), (25, 4), (26, 4)] for conflict Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }, new f min 32
+[2m2024-12-08T02:30:19.962021Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }]
+[2m2024-12-08T02:30:19.962058Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }, Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }, Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.962480Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (2, 27), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.962564Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }]
+[2m2024-12-08T02:30:19.962605Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.962793Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.962867Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: [Conflict { agent_1: 0, agent_2: 7, conflict_type: Vertex { position: (25, 13), time_step: 22 } }]
+[2m2024-12-08T02:30:19.962878Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal true CT node
+[2m2024-12-08T02:30:19.962901Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m4 [3mstart[0m[2m=[0m"(25, 8)" [3mgoal[0m[2m=[0m"(0, 30)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }, Constraint { position: (0, 26), time_step: 43 }, Constraint { position: (3, 22), time_step: 36 }, Constraint { position: (1, 26), time_step: 42 }}
+[2m2024-12-08T02:30:19.963289Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 4 with path [(25, 8), (24, 8), (23, 8), (22, 8), (21, 8), (20, 8), (20, 9), (20, 10), (20, 11), (19, 11), (18, 11), (17, 11), (16, 11), (15, 11), (14, 11), (14, 12), (13, 12), (13, 13), (13, 14), (12, 14), (11, 14), (11, 15), (10, 15), (9, 15), (8, 15), (7, 15), (6, 15), (6, 16), (5, 16), (5, 17), (5, 18), (4, 18), (4, 19), (4, 20), (4, 21), (4, 22), (4, 23), (3, 23), (3, 24), (3, 25), (2, 25), (2, 26), (2, 27), (1, 27), (0, 27), (0, 28), (0, 29), (0, 30)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 47
+[2m2024-12-08T02:30:19.963366Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: []
+[2m2024-12-08T02:30:19.963399Z[0m [34mDEBUG[0m [1mlow_level_a_star[0m[1m{[0m[3magent[0m[2m=[0m5 [3mstart[0m[2m=[0m"(8, 21)" [3mgoal[0m[2m=[0m"(25, 11)"[1m}[0m[2m:[0m [2mmapf_rust::solver::algorithm::astar[0m[2m:[0m constraints: {Constraint { position: (13, 11), time_step: 15 }}
+[2m2024-12-08T02:30:19.963600Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Update agent 5 with path [(8, 21), (8, 20), (8, 19), (8, 18), (9, 18), (10, 18), (10, 17), (10, 16), (10, 15), (11, 15), (11, 14), (12, 14), (13, 14), (13, 13), (13, 12), (14, 12), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (21, 11), (22, 11), (23, 11), (24, 11), (25, 11)] for conflict Conflict { agent_1: 4, agent_2: 5, conflict_type: Vertex { position: (13, 11), time_step: 15 } }, new f min 27
+[2m2024-12-08T02:30:19.963674Z[0m [34mDEBUG[0m [2mmapf_rust::solver::comm::highlevel[0m[2m:[0m Detect conflicts: []
+[2m2024-12-08T02:30:19.963698Z[0m [34mDEBUG[0m [2mmapf_rust::solver::cbs[0m[2m:[0m expand: cardinal false, semi-cardinal false CT node
+[2m2024-12-08T02:30:19.963736Z[0m [34mDEBUG[0m [2mmapf_rust::stat[0m[2m:[0m "cbs" Cost 242 Time 129878(microseconds) High level expand nodes number: 62 Low level expand nodes number 28142
+[2m2024-12-08T02:30:19.963807Z[0m [34mDEBUG[0m [2mmapf_rust::common[0m[2m:[0m cbs solution:
+ agent0:
+   - x: 13
+     y: 15
+     t: 0
+   - x: 13
+     y: 14
+     t: 1
+   - x: 14
+     y: 14
+     t: 2
+   - x: 15
+     y: 14
+     t: 3
+   - x: 16
+     y: 14
+     t: 4
+   - x: 17
+     y: 14
+     t: 5
+   - x: 18
+     y: 14
+     t: 6
+   - x: 19
+     y: 14
+     t: 7
+   - x: 20
+     y: 14
+     t: 8
+   - x: 21
+     y: 14
+     t: 9
+   - x: 22
+     y: 14
+     t: 10
+   - x: 23
+     y: 14
+     t: 11
+   - x: 24
+     y: 14
+     t: 12
+   - x: 24
+     y: 13
+     t: 13
+   - x: 25
+     y: 13
+     t: 14
+ agent1:
+   - x: 9
+     y: 21
+     t: 0
+   - x: 8
+     y: 21
+     t: 1
+   - x: 8
+     y: 22
+     t: 2
+   - x: 8
+     y: 23
+     t: 3
+   - x: 7
+     y: 23
+     t: 4
+   - x: 6
+     y: 23
+     t: 5
+   - x: 5
+     y: 23
+     t: 6
+   - x: 4
+     y: 23
+     t: 7
+   - x: 3
+     y: 23
+     t: 8
+   - x: 3
+     y: 24
+     t: 9
+   - x: 3
+     y: 25
+     t: 10
+   - x: 2
+     y: 25
+     t: 11
+   - x: 2
+     y: 26
+     t: 12
+   - x: 1
+     y: 26
+     t: 13
+ agent2:
+   - x: 5
+     y: 7
+     t: 0
+   - x: 5
+     y: 8
+     t: 1
+   - x: 6
+     y: 8
+     t: 2
+   - x: 7
+     y: 8
+     t: 3
+   - x: 7
+     y: 9
+     t: 4
+   - x: 7
+     y: 10
+     t: 5
+   - x: 7
+     y: 11
+     t: 6
+   - x: 7
+     y: 12
+     t: 7
+   - x: 7
+     y: 13
+     t: 8
+   - x: 7
+     y: 14
+     t: 9
+   - x: 7
+     y: 15
+     t: 10
+   - x: 8
+     y: 15
+     t: 11
+   - x: 9
+     y: 15
+     t: 12
+   - x: 9
+     y: 16
+     t: 13
+   - x: 10
+     y: 16
+     t: 14
+   - x: 11
+     y: 16
+     t: 15
+   - x: 12
+     y: 16
+     t: 16
+   - x: 13
+     y: 16
+     t: 17
+   - x: 14
+     y: 16
+     t: 18
+   - x: 15
+     y: 16
+     t: 19
+   - x: 16
+     y: 16
+     t: 20
+   - x: 16
+     y: 17
+     t: 21
+   - x: 17
+     y: 17
+     t: 22
+   - x: 18
+     y: 17
+     t: 23
+   - x: 19
+     y: 17
+     t: 24
+   - x: 20
+     y: 17
+     t: 25
+   - x: 20
+     y: 18
+     t: 26
+   - x: 20
+     y: 19
+     t: 27
+   - x: 20
+     y: 20
+     t: 28
+   - x: 21
+     y: 20
+     t: 29
+   - x: 22
+     y: 20
+     t: 30
+   - x: 23
+     y: 20
+     t: 31
+   - x: 24
+     y: 20
+     t: 32
+   - x: 25
+     y: 20
+     t: 33
+   - x: 25
+     y: 21
+     t: 34
+   - x: 25
+     y: 22
+     t: 35
+   - x: 25
+     y: 23
+     t: 36
+   - x: 25
+     y: 24
+     t: 37
+   - x: 26
+     y: 24
+     t: 38
+   - x: 26
+     y: 25
+     t: 39
+   - x: 27
+     y: 25
+     t: 40
+   - x: 28
+     y: 25
+     t: 41
+   - x: 29
+     y: 25
+     t: 42
+ agent3:
+   - x: 10
+     y: 18
+     t: 0
+   - x: 9
+     y: 18
+     t: 1
+   - x: 8
+     y: 18
+     t: 2
+   - x: 7
+     y: 18
+     t: 3
+   - x: 6
+     y: 18
+     t: 4
+   - x: 5
+     y: 18
+     t: 5
+   - x: 4
+     y: 18
+     t: 6
+   - x: 4
+     y: 19
+     t: 7
+   - x: 3
+     y: 19
+     t: 8
+   - x: 2
+     y: 19
+     t: 9
+   - x: 2
+     y: 20
+     t: 10
+   - x: 2
+     y: 21
+     t: 11
+   - x: 2
+     y: 22
+     t: 12
+   - x: 1
+     y: 22
+     t: 13
+   - x: 1
+     y: 23
+     t: 14
+   - x: 1
+     y: 24
+     t: 15
+   - x: 0
+     y: 24
+     t: 16
+   - x: 0
+     y: 25
+     t: 17
+   - x: 0
+     y: 26
+     t: 18
+ agent4:
+   - x: 25
+     y: 8
+     t: 0
+   - x: 24
+     y: 8
+     t: 1
+   - x: 23
+     y: 8
+     t: 2
+   - x: 22
+     y: 8
+     t: 3
+   - x: 21
+     y: 8
+     t: 4
+   - x: 20
+     y: 8
+     t: 5
+   - x: 20
+     y: 9
+     t: 6
+   - x: 20
+     y: 10
+     t: 7
+   - x: 20
+     y: 11
+     t: 8
+   - x: 19
+     y: 11
+     t: 9
+   - x: 18
+     y: 11
+     t: 10
+   - x: 17
+     y: 11
+     t: 11
+   - x: 16
+     y: 11
+     t: 12
+   - x: 15
+     y: 11
+     t: 13
+   - x: 14
+     y: 11
+     t: 14
+   - x: 13
+     y: 11
+     t: 15
+   - x: 12
+     y: 11
+     t: 16
+   - x: 11
+     y: 11
+     t: 17
+   - x: 10
+     y: 11
+     t: 18
+   - x: 9
+     y: 11
+     t: 19
+   - x: 8
+     y: 11
+     t: 20
+   - x: 7
+     y: 11
+     t: 21
+   - x: 6
+     y: 11
+     t: 22
+   - x: 6
+     y: 12
+     t: 23
+   - x: 6
+     y: 13
+     t: 24
+   - x: 6
+     y: 14
+     t: 25
+   - x: 6
+     y: 15
+     t: 26
+   - x: 6
+     y: 16
+     t: 27
+   - x: 5
+     y: 16
+     t: 28
+   - x: 5
+     y: 17
+     t: 29
+   - x: 5
+     y: 18
+     t: 30
+   - x: 4
+     y: 18
+     t: 31
+   - x: 4
+     y: 19
+     t: 32
+   - x: 4
+     y: 20
+     t: 33
+   - x: 4
+     y: 21
+     t: 34
+   - x: 4
+     y: 22
+     t: 35
+   - x: 4
+     y: 23
+     t: 36
+   - x: 3
+     y: 23
+     t: 37
+   - x: 3
+     y: 24
+     t: 38
+   - x: 3
+     y: 25
+     t: 39
+   - x: 2
+     y: 25
+     t: 40
+   - x: 2
+     y: 26
+     t: 41
+   - x: 2
+     y: 27
+     t: 42
+   - x: 1
+     y: 27
+     t: 43
+   - x: 0
+     y: 27
+     t: 44
+   - x: 0
+     y: 28
+     t: 45
+   - x: 0
+     y: 29
+     t: 46
+   - x: 0
+     y: 30
+     t: 47
+ agent5:
+   - x: 8
+     y: 21
+     t: 0
+   - x: 8
+     y: 20
+     t: 1
+   - x: 8
+     y: 19
+     t: 2
+   - x: 8
+     y: 18
+     t: 3
+   - x: 9
+     y: 18
+     t: 4
+   - x: 10
+     y: 18
+     t: 5
+   - x: 10
+     y: 17
+     t: 6
+   - x: 10
+     y: 16
+     t: 7
+   - x: 10
+     y: 15
+     t: 8
+   - x: 11
+     y: 15
+     t: 9
+   - x: 11
+     y: 14
+     t: 10
+   - x: 12
+     y: 14
+     t: 11
+   - x: 13
+     y: 14
+     t: 12
+   - x: 13
+     y: 13
+     t: 13
+   - x: 13
+     y: 12
+     t: 14
+   - x: 14
+     y: 12
+     t: 15
+   - x: 14
+     y: 11
+     t: 16
+   - x: 15
+     y: 11
+     t: 17
+   - x: 16
+     y: 11
+     t: 18
+   - x: 17
+     y: 11
+     t: 19
+   - x: 18
+     y: 11
+     t: 20
+   - x: 19
+     y: 11
+     t: 21
+   - x: 20
+     y: 11
+     t: 22
+   - x: 21
+     y: 11
+     t: 23
+   - x: 22
+     y: 11
+     t: 24
+   - x: 23
+     y: 11
+     t: 25
+   - x: 24
+     y: 11
+     t: 26
+   - x: 25
+     y: 11
+     t: 27
+ agent6:
+   - x: 19
+     y: 31
+     t: 0
+   - x: 19
+     y: 30
+     t: 1
+   - x: 19
+     y: 29
+     t: 2
+   - x: 19
+     y: 28
+     t: 3
+   - x: 18
+     y: 28
+     t: 4
+   - x: 17
+     y: 28
+     t: 5
+   - x: 16
+     y: 28
+     t: 6
+   - x: 15
+     y: 28
+     t: 7
+   - x: 14
+     y: 28
+     t: 8
+   - x: 14
+     y: 27
+     t: 9
+   - x: 14
+     y: 26
+     t: 10
+   - x: 14
+     y: 25
+     t: 11
+   - x: 13
+     y: 25
+     t: 12
+   - x: 12
+     y: 25
+     t: 13
+   - x: 12
+     y: 24
+     t: 14
+   - x: 12
+     y: 23
+     t: 15
+   - x: 12
+     y: 22
+     t: 16
+   - x: 12
+     y: 21
+     t: 17
+   - x: 11
+     y: 21
+     t: 18
+   - x: 10
+     y: 21
+     t: 19
+   - x: 10
+     y: 20
+     t: 20
+   - x: 10
+     y: 19
+     t: 21
+   - x: 10
+     y: 18
+     t: 22
+   - x: 10
+     y: 17
+     t: 23
+   - x: 10
+     y: 16
+     t: 24
+   - x: 9
+     y: 16
+     t: 25
+   - x: 9
+     y: 15
+     t: 26
+   - x: 9
+     y: 14
+     t: 27
+   - x: 9
+     y: 13
+     t: 28
+   - x: 9
+     y: 12
+     t: 29
+   - x: 9
+     y: 11
+     t: 30
+   - x: 9
+     y: 10
+     t: 31
+   - x: 9
+     y: 9
+     t: 32
+   - x: 9
+     y: 8
+     t: 33
+   - x: 9
+     y: 7
+     t: 34
+   - x: 9
+     y: 6
+     t: 35
+   - x: 9
+     y: 5
+     t: 36
+   - x: 8
+     y: 5
+     t: 37
+ agent7:
+   - x: 18
+     y: 26
+     t: 0
+   - x: 18
+     y: 25
+     t: 1
+   - x: 18
+     y: 24
+     t: 2
+   - x: 19
+     y: 24
+     t: 3
+   - x: 20
+     y: 24
+     t: 4
+   - x: 21
+     y: 24
+     t: 5
+   - x: 22
+     y: 24
+     t: 6
+   - x: 22
+     y: 23
+     t: 7
+   - x: 22
+     y: 22
+     t: 8
+   - x: 22
+     y: 21
+     t: 9
+   - x: 22
+     y: 20
+     t: 10
+   - x: 23
+     y: 20
+     t: 11
+   - x: 23
+     y: 19
+     t: 12
+   - x: 24
+     y: 19
+     t: 13
+   - x: 24
+     y: 18
+     t: 14
+   - x: 25
+     y: 18
+     t: 15
+   - x: 25
+     y: 17
+     t: 16
+   - x: 26
+     y: 17
+     t: 17
+   - x: 26
+     y: 16
+     t: 18
+   - x: 26
+     y: 15
+     t: 19
+   - x: 26
+     y: 14
+     t: 20
+   - x: 26
+     y: 13
+     t: 21
+   - x: 26
+     y: 12
+     t: 22
+   - x: 25
+     y: 12
+     t: 23
+   - x: 25
+     y: 11
+     t: 24
+   - x: 25
+     y: 10
+     t: 25
+   - x: 25
+     y: 9
+     t: 26
+   - x: 25
+     y: 8
+     t: 27
+   - x: 25
+     y: 7
+     t: 28
+   - x: 25
+     y: 6
+     t: 29
+   - x: 25
+     y: 5
+     t: 30
+   - x: 25
+     y: 4
+     t: 31
+   - x: 26
+     y: 4
+     t: 32
+ agent8:
+   - x: 14
+     y: 12
+     t: 0
+   - x: 15
+     y: 12
+     t: 1
+   - x: 16
+     y: 12
+     t: 2
+   - x: 17
+     y: 12
+     t: 3
+   - x: 18
+     y: 12
+     t: 4
+   - x: 18
+     y: 13
+     t: 5
+   - x: 18
+     y: 13
+     t: 6
+   - x: 18
+     y: 14
+     t: 7
+   - x: 19
+     y: 14
+     t: 8
+ agent9:
+   - x: 5
+     y: 20
+     t: 0
+   - x: 4
+     y: 20
+     t: 1
+   - x: 3
+     y: 20
+     t: 2
+   - x: 3
+     y: 21
+     t: 3
+   - x: 3
+     y: 22
+     t: 4
+

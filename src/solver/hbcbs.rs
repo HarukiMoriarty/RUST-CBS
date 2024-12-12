@@ -49,40 +49,76 @@ impl Solver for HBCBS {
                 if let Some(conflict) = current_open_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
 
-                    if let Some(child_1) = current_open_node.update_constraint(
+                    let child_1 = current_open_node.update_constraint(
                         conflict,
                         true,
                         &self.map,
                         None,
                         "hbcbs",
                         &mut self.stats,
-                    ) {
-                        open.insert(child_1.clone());
-                        self.stats.high_level_expand_nodes += 1;
+                    );
 
-                        if child_1.cost as f64
-                            <= (old_f_min as f64 * self.high_level_subopt_factor.unwrap())
-                        {
-                            focal.insert(child_1.to_focal_node());
+                    if config.op_bypass_conflicts {
+                        if let Some(ref child) = child_1 {
+                            if child.cost == current_open_node.cost
+                                && child.conflicts.len() < current_open_node.conflicts.len()
+                            {
+                                open.insert(current_open_node.update_bypass_path(
+                                    child.paths[conflict.agent_1].clone(),
+                                    child.conflicts.clone(),
+                                    conflict.agent_1,
+                                ));
+                                focal.insert(child.to_focal_node());
+                                self.stats.high_level_expand_nodes += 1;
+                                continue;
+                            }
                         }
                     }
 
-                    if let Some(child_2) = current_open_node.update_constraint(
+                    let child_2 = current_open_node.update_constraint(
                         conflict,
                         false,
                         &self.map,
                         None,
                         "hbcbs",
                         &mut self.stats,
-                    ) {
-                        open.insert(child_2.clone());
-                        self.stats.high_level_expand_nodes += 1;
+                    );
 
-                        if child_2.cost as f64
+                    if config.op_bypass_conflicts {
+                        if let Some(ref child) = child_2 {
+                            if child.cost <= current_open_node.cost
+                                && child.conflicts.len() < current_open_node.conflicts.len()
+                            {
+                                open.insert(current_open_node.update_bypass_path(
+                                    child.paths[conflict.agent_2].clone(),
+                                    child.conflicts.clone(),
+                                    conflict.agent_2,
+                                ));
+                                focal.insert(child.to_focal_node());
+                                self.stats.high_level_expand_nodes += 1;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if let Some(child) = child_1 {
+                        if child.cost as f64
                             <= (old_f_min as f64 * self.high_level_subopt_factor.unwrap())
                         {
-                            focal.insert(child_2.to_focal_node());
+                            focal.insert(child.to_focal_node());
                         }
+                        open.insert(child);
+                        self.stats.high_level_expand_nodes += 1;
+                    }
+
+                    if let Some(child) = child_2 {
+                        if child.cost as f64
+                            <= (old_f_min as f64 * self.high_level_subopt_factor.unwrap())
+                        {
+                            focal.insert(child.to_focal_node());
+                        }
+                        open.insert(child);
+                        self.stats.high_level_expand_nodes += 1;
                     }
                 } else {
                     // No conflicts, return solution
