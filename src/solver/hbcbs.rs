@@ -55,6 +55,7 @@ impl Solver for HBCBS {
                         &self.map,
                         None,
                         "hbcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 
@@ -81,6 +82,7 @@ impl Solver for HBCBS {
                         &self.map,
                         None,
                         "hbcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 

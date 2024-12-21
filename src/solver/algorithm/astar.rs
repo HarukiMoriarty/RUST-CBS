@@ -14,10 +14,10 @@ pub(crate) fn a_star_search(
     map: &Map,
     agent: &Agent,
     constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
     debug!("constraints: {constraints:?}");
-    let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     let mut open_list = BTreeSet::new();
     let mut closed_list = HashSet::new();
@@ -40,7 +40,7 @@ pub(crate) fn a_star_search(
 
         closed_list.insert((current.position, current.g_cost));
 
-        if current.position == agent.goal && current.g_cost > max_time {
+        if current.position == agent.goal && current.g_cost > path_length_constraint {
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
                 current.f_open_cost,
@@ -58,11 +58,11 @@ pub(crate) fn a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if constraints.contains(&Constraint {
-                position: *neighbor,
-                time_step: tentative_g_cost,
-            }) {
-                continue; // This move is prohibited due to a constraint.
+            if constraints
+                .iter()
+                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
+            {
+                continue; // This move is prohibited due to a constraint
             }
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
@@ -111,7 +111,7 @@ mod tests {
         .unwrap();
         let constraints = HashSet::new();
         let stats = &mut Stats::default();
-        let (path, _) = a_star_search(&map, &agent, &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, &agent, &constraints, 0, stats).unwrap();
         assert_eq!(path.len(), 20);
     }
 
@@ -131,9 +131,10 @@ mod tests {
         constraints.insert(Constraint {
             position: (23, 14),
             time_step: 2,
+            is_permanent: false,
         });
         let stats = &mut Stats::default();
-        let (path, _) = a_star_search(&map, &agent, &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, &agent, &constraints, 0, stats).unwrap();
         assert_eq!(path.len(), 21);
     }
 
@@ -153,9 +154,10 @@ mod tests {
         constraints.insert(Constraint {
             position: (17, 19),
             time_step: 29,
+            is_permanent: false,
         });
         let stats = &mut Stats::default();
-        let (path, _) = a_star_search(&map, &agent, &constraints, stats).unwrap();
+        let (path, _) = a_star_search(&map, &agent, &constraints, 0, stats).unwrap();
         assert_eq!(path.len(), 31);
     }
 }

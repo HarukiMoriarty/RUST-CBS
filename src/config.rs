@@ -68,6 +68,9 @@ pub struct Cli {
 
     #[arg(long, help = "Optimization: Bypass Conflicts", default_value_t = false)]
     pub op_bypass_conflicts: bool,
+
+    #[arg(long, help = "Optimization: Target Reasoning", default_value_t = false)]
+    pub op_target_reasoning: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +86,7 @@ pub struct Config {
     pub debug_yaml: bool,
     pub op_prioritize_conflicts: bool,
     pub op_bypass_conflicts: bool,
+    pub op_target_reasoning: bool,
 }
 
 impl Config {
@@ -99,6 +103,7 @@ impl Config {
             debug_yaml: cli.debug_yaml,
             op_prioritize_conflicts: cli.op_prioritize_conflicts,
             op_bypass_conflicts: cli.op_bypass_conflicts,
+            op_target_reasoning: cli.op_target_reasoning,
         }
     }
 

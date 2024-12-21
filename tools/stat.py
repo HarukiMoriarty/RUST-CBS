@@ -1,101 +1,201 @@
+#!/usr/bin/env python3
+"""
+Analysis script for CBS (Conflict-Based Search) experiment results.
+Processes experiment data and generates statistical analysis.
+"""
+
 import pandas as pd
 import numpy as np
 import argparse
 import logging
+from typing import Tuple, List
 
-logging.basicConfig(level=logging.INFO)
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 LOG = logging.getLogger(__name__)
 
+# Constants
 MAX_INT = np.iinfo(np.int64).max
+TIMEOUT_VALUE = 'timeout'
+REQUIRED_COLUMNS = [
+    'num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR',
+    'solver', 'costs', 'time(us)', 'high_level_expanded',
+    'low_level_open_expanded', 'low_level_focal_expanded',
+    'total_low_level_expanded'
+]
 
-def load_data(file_path):
-    data = pd.read_csv(file_path)
-    timeout_condition = data['costs'].astype(str).str.contains('timeout', na=False)
-    data.loc[timeout_condition, ['time(us)', 'costs', 'high_level_expanded', 'low_level_open_expanded', 'low_level_focal_expanded', 'total_low_level_expanded']] = MAX_INT
-    return data
+def load_and_clean_data(file_path: str) -> pd.DataFrame:
+    """
+    Load CSV data and clean timeout entries.
+    
+    Args:
+        file_path: Path to the input CSV file
+    
+    Returns:
+        Cleaned DataFrame with proper timeout handling
+    """
+    try:
+        data = pd.read_csv(file_path)
+        
+        # Verify required columns exist
+        missing_cols = [col for col in REQUIRED_COLUMNS if col not in data.columns]
+        if missing_cols:
+            raise ValueError(f"Missing required columns: {missing_cols}")
+        
+        # Create a mask for timeout entries
+        timeout_mask = data['costs'].astype(str).str.contains(TIMEOUT_VALUE, na=False)
+        
+        # Convert costs column to numeric, forcing timeout entries to MAX_INT
+        data['costs'] = pd.to_numeric(data['costs'], errors='coerce')
+        data.loc[timeout_mask, 'costs'] = MAX_INT
+        
+        # Set other metrics to MAX_INT for timeout cases
+        timeout_columns = [
+            'time(us)', 'high_level_expanded', 'low_level_open_expanded',
+            'low_level_focal_expanded', 'total_low_level_expanded'
+        ]
+        data.loc[timeout_mask, timeout_columns] = MAX_INT
+        
+        return data
+        
+    except Exception as e:
+        LOG.error(f"Error loading data: {str(e)}")
+        raise
 
-def compute_stats(df, column):
-    return np.percentile(df[column].dropna(), [0, 50, 99], method="nearest")
+def compute_stats(data: pd.Series) -> Tuple[float, float, float]:
+    """
+    Compute percentile statistics for a series of data.
+    
+    Args:
+        data: Series of numerical data
+        
+    Returns:
+        Tuple of (0th, 50th, 99th) percentiles
+    """
+    if data.empty:
+        return np.nan, np.nan, np.nan
+    return tuple(np.percentile(data.dropna(), [0, 50, 99], method="nearest"))
 
-def analyze_experiments(file_path, output_file_path):
-    data = load_data(file_path)
+def check_solver_costs(data: pd.DataFrame) -> None:
+    """
+    Check if any solver produces lower costs than CBS for the same configuration.
+    
+    Args:
+        data: DataFrame containing experiment results
+    """
+    # Group by all parameters except solver
+    group_params = ['num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR']
+    
+    for _, group in data.groupby(group_params):
+        # Get CBS data for this configuration
+        cbs_data = group[group['solver'] == 'cbs']
+        
+        # Skip if no CBS data or CBS timed out
+        if cbs_data.empty or (cbs_data['costs'] == MAX_INT).all():
+            continue
+            
+        cbs_min_cost = cbs_data['costs'].min()
+        
+        # Check other solvers
+        for solver in group['solver'].unique():
+            if solver == 'cbs':
+                continue
+                
+            solver_data = group[group['solver'] == solver]
+            if solver_data.empty:
+                continue
+                
+            # Check if any solution has lower cost than CBS
+            if (solver_data['costs'] < cbs_min_cost).any():
+                config = dict(zip(group_params, group[group_params].iloc[0]))
+                LOG.warning(f"Cost discrepancy found - Solver: {solver}, Configuration: {config}")
+
+def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate statistics for each solver configuration.
+    
+    Args:
+        data: DataFrame containing experiment results
+        
+    Returns:
+        DataFrame containing computed statistics
+    """
     results = []
+    group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR']
+    
+    for group_key, group_data in data.groupby(group_cols):
+        # Calculate timeout rate
+        timeouts = group_data['time(us)'] == MAX_INT
+        timeout_rate = timeouts.sum() / len(group_data)
+        
+        # Get successful runs
+        success_data = group_data[~timeouts]
+        
+        # Calculate statistics for successful runs
+        metric_stats = {
+            'time': compute_stats(success_data['time(us)']),
+            'high': compute_stats(success_data['high_level_expanded']),
+            'lowOpen': compute_stats(success_data['low_level_open_expanded']),
+            'lowFocal': compute_stats(success_data['low_level_focal_expanded']),
+            'lowTotal': compute_stats(success_data['total_low_level_expanded'])
+        }
+        
+        # Create result dictionary
+        result = dict(zip(group_cols, group_key))
+        result['fail_rate'] = timeout_rate
+        
+        # Add statistics to result
+        for metric, (p0, p50, p99) in metric_stats.items():
+            result.update({
+                f'P0{metric}': p0,
+                f'P50{metric}': p50,
+                f'P99{metric}': p99
+            })
+            
+        results.append(result)
+    
+    return pd.DataFrame(results)
 
-    for num_agents in data['num_agents'].unique():
-        for seed in data['seed'].unique():
-            for op_PC in data['op_PC'].unique():
-                for op_BC in data['op_BC'].unique():
-                    group_data = data[(data['num_agents'] == num_agents) & (data['seed'] == seed) & (data['op_PC'] == op_PC) & (data['op_BC'] == op_BC)]
-                    cbs_data = group_data[group_data['solver'] == 'cbs']
-                    cbs_costs = cbs_data['costs']
-
-                    if not cbs_costs.empty:
-                        cbs_cost_min = cbs_costs.min()
-                        if cbs_cost_min != MAX_INT:
-                            for solver in group_data['solver'].unique():
-                                solver_data = group_data[group_data['solver'] == solver]
-                                solver_costs = solver_data['costs']
-                                if not solver_costs.empty:
-                                    if (solver_costs < cbs_cost_min).any():
-                                        print(f"Discrepancy found for num_agents={num_agents}, seed={seed}, solver={solver}")
-
-    for solver in data['solver'].unique():
-        for num_agents in data['num_agents'].unique():
-            for op_PC in data['op_PC'].unique():
-                for op_BC in data['op_BC'].unique():
-                    solver_agent_data = data[(data['solver'] == solver) & (data['num_agents'] == num_agents) & (data['op_PC'] == op_PC) & (data['op_BC'] == op_BC)]
-
-                    timeouts = solver_agent_data['time(us)'] == MAX_INT
-                    timeout_count = timeouts.sum()
-                    success_data = solver_agent_data[~timeouts]
-                    total_count = len(solver_agent_data)
-                    timeout_rate = timeout_count / total_count if total_count > 0 else 0
-
-                    if not success_data.empty:
-                        # Time statistics
-                        time_stats = compute_stats(success_data, 'time(us)')
-                        # High level expanded nodes statistics
-                        high_level_stats = compute_stats(success_data, 'high_level_expanded')
-                        # Low level open expanded nodes statistics
-                        open_low_level_stats = compute_stats(success_data, 'low_level_open_expanded')
-                        # Low level focal expanded nodes statistics
-                        focal_low_level_stats = compute_stats(success_data, 'low_level_focal_expanded')
-                        # Total Low level expanded nodes statistics
-                        total_low_level_stats = compute_stats(success_data, 'total_low_level_expanded')
-                    else:
-                        time_stats = high_level_stats = open_low_level_stats = focal_low_level_stats = total_low_level_stats = [np.nan, np.nan, np.nan]
-
-                    result = {
-                        "solver": solver,
-                        "op_PC": op_PC,
-                        "op_BC": op_BC,
-                        "fail_rate": timeout_rate,
-                        "num_agents": num_agents,
-                        "P0time": time_stats[0],
-                        "P50time": time_stats[1],
-                        "P99time": time_stats[2],
-                        "P0high": high_level_stats[0],
-                        "P50high": high_level_stats[1],
-                        "P99high": high_level_stats[2],
-                        "P0lowOpen": open_low_level_stats[0],
-                        "P50lowOpen": open_low_level_stats[1],
-                        "P99lowOpen": open_low_level_stats[2],
-                        "P0lowFocal": focal_low_level_stats[0],
-                        "P50lowFocal": focal_low_level_stats[1],
-                        "P99lowFocal": focal_low_level_stats[2],
-                        "P0lowTotal": total_low_level_stats[0],
-                        "P50lowTotal": total_low_level_stats[1],
-                        "P99lowTotal": total_low_level_stats[2]
-                    }
-                    results.append(result)
-
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(output_file_path, index=False)
+def analyze_experiments(input_path: str, output_path: str) -> None:
+    """
+    Main analysis function that processes experiment data and saves results.
+    
+    Args:
+        input_path: Path to input CSV file
+        output_path: Path to save output CSV file
+    """
+    try:
+        LOG.info(f"Loading data from {input_path}")
+        data = load_and_clean_data(input_path)
+        
+        LOG.info("Checking solver costs against CBS")
+        check_solver_costs(data)
+        
+        LOG.info("Calculating solver statistics")
+        results_df = calculate_solver_stats(data)
+        
+        LOG.info(f"Saving results to {output_path}")
+        results_df.to_csv(output_path, index=False)
+        
+        LOG.info("Analysis completed successfully")
+        
+    except Exception as e:
+        LOG.error(f"Analysis failed: {str(e)}")
+        raise
 
 def main():
-    parser = argparse.ArgumentParser(description="Analyze experiment data from a CSV file and output results.")
-    parser.add_argument("file_path", help="Path to the CSV file containing the experiment data.")
-    parser.add_argument("output_file_path", help="Path to the CSV file to save the analysis results.")
+    """Main entry point for the analysis script."""
+    parser = argparse.ArgumentParser(
+        description="Analyze CBS experiment results and generate statistics."
+    )
+    parser.add_argument(
+        "file_path",
+        help="Path to the input CSV file containing experiment data"
+    )
+    parser.add_argument(
+        "output_file_path",
+        help="Path to save the analysis results CSV file"
+    )
     
     args = parser.parse_args()
     analyze_experiments(args.file_path, args.output_file_path)

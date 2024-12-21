@@ -19,6 +19,11 @@ pub(crate) enum ConflictType {
         v: (usize, usize),
         time_step: usize,
     },
+    Target {
+        position: (usize, usize),
+        time_step: usize,
+        extended_agent: usize,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -32,12 +37,28 @@ pub(crate) struct Conflict {
 pub(crate) struct Constraint {
     pub(crate) position: (usize, usize),
     pub(crate) time_step: usize,
+    pub(crate) is_permanent: bool,
+}
+
+impl Constraint {
+    pub fn is_violated(&self, position: (usize, usize), time: usize) -> bool {
+        if position != self.position {
+            return false;
+        }
+
+        if self.is_permanent {
+            time >= self.time_step
+        } else {
+            time == self.time_step
+        }
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct HighLevelOpenNode {
     pub(crate) agents: Vec<Agent>,
     pub(crate) constraints: Vec<HashSet<Constraint>>,
+    pub(crate) path_length_constraints: Vec<usize>,
     pub(crate) conflicts: Vec<Conflict>,
     pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
     pub(crate) cost: usize, // Total cost for all paths under current constraints
@@ -76,13 +97,14 @@ impl HighLevelOpenNode {
 
         for agent in agents {
             let path_f = match solver {
-                "cbs" | "hbcbs" => a_star_search(map, agent, &HashSet::new(), stats),
+                "cbs" | "hbcbs" => a_star_search(map, agent, &HashSet::new(), 0, stats),
                 "lbcbs" | "bcbs" | "ecbs" | "decbs" => focal_a_star_search(
                     map,
                     agent,
                     0,
                     low_level_subopt_factor.unwrap(),
                     &HashSet::new(),
+                    0,
                     &paths,
                     stats,
                 ),
@@ -103,6 +125,7 @@ impl HighLevelOpenNode {
             let mut start = HighLevelOpenNode {
                 agents: agents.to_vec(),
                 constraints: vec![HashSet::new(); agents.len()],
+                path_length_constraints: vec![0; agents.len()],
                 conflicts: Vec::new(),
                 paths,
                 cost: total_cost,
@@ -141,14 +164,36 @@ impl HighLevelOpenNode {
 
                     // Check for Vertex Conflict
                     if pos1 == pos2 {
-                        conflicts.push(Conflict {
-                            agent_1: i,
-                            agent_2: j,
-                            conflict_type: ConflictType::Vertex {
-                                position: pos1,
-                                time_step: step,
-                            },
-                        });
+                        if step >= path1.len() {
+                            conflicts.push(Conflict {
+                                agent_1: i,
+                                agent_2: j,
+                                conflict_type: ConflictType::Target {
+                                    position: pos1,
+                                    time_step: step,
+                                    extended_agent: i,
+                                },
+                            });
+                        } else if step >= path2.len() {
+                            conflicts.push(Conflict {
+                                agent_1: i,
+                                agent_2: j,
+                                conflict_type: ConflictType::Target {
+                                    position: pos1,
+                                    time_step: step,
+                                    extended_agent: j,
+                                },
+                            });
+                        } else {
+                            conflicts.push(Conflict {
+                                agent_1: i,
+                                agent_2: j,
+                                conflict_type: ConflictType::Vertex {
+                                    position: pos1,
+                                    time_step: step,
+                                },
+                            });
+                        }
                     }
 
                     // Check for Edge Conflict
@@ -191,11 +236,13 @@ impl HighLevelOpenNode {
         map: &Map,
         low_level_subopt_factor: Option<f64>,
         solver: &str,
+        op_tr: bool,
         stats: &mut Stats,
     ) -> Option<HighLevelOpenNode> {
         let mut new_constraints = self.constraints.clone();
         let mut new_paths = self.paths.clone();
         let mut new_low_level_f_min_agents = self.low_level_f_min_agents.clone();
+        let mut new_path_length_constraints = self.path_length_constraints.clone();
 
         let agent_to_update = if resolve_first {
             conflict.agent_1
@@ -203,23 +250,53 @@ impl HighLevelOpenNode {
             conflict.agent_2
         };
 
-        let constraints_for_agent = &mut new_constraints[agent_to_update];
         match conflict.conflict_type {
             ConflictType::Vertex {
                 position,
                 time_step,
             } => {
-                constraints_for_agent.insert(Constraint {
+                new_constraints[agent_to_update].insert(Constraint {
                     position,
                     time_step,
+                    is_permanent: false,
                 });
             }
             ConflictType::Edge { u, v, time_step } => {
                 let position = if resolve_first { u } else { v };
-                constraints_for_agent.insert(Constraint {
+                new_constraints[agent_to_update].insert(Constraint {
                     position,
                     time_step,
+                    is_permanent: false,
                 });
+            }
+            ConflictType::Target {
+                position,
+                time_step,
+                extended_agent,
+            } => {
+                if op_tr && extended_agent != agent_to_update {
+                    new_constraints
+                        .iter_mut()
+                        .enumerate()
+                        .filter(|&(agent, _)| agent != extended_agent)
+                        .for_each(|(_, constraints)| {
+                            constraints.insert(Constraint {
+                                position,
+                                time_step,
+                                is_permanent: true,
+                            });
+                        });
+                } else {
+                    new_constraints[agent_to_update].insert(Constraint {
+                        position,
+                        time_step,
+                        is_permanent: false,
+                    });
+                }
+
+                if extended_agent == agent_to_update {
+                    new_path_length_constraints[agent_to_update] = time_step;
+                }
             }
         }
 
@@ -227,7 +304,8 @@ impl HighLevelOpenNode {
             "cbs" | "hbcbs" => a_star_search(
                 map,
                 &self.agents[agent_to_update],
-                constraints_for_agent,
+                &new_constraints[agent_to_update],
+                new_path_length_constraints[agent_to_update],
                 stats,
             ),
             "lbcbs" | "bcbs" | "ecbs" => focal_a_star_search(
@@ -235,7 +313,8 @@ impl HighLevelOpenNode {
                 &self.agents[agent_to_update],
                 self.low_level_f_min_agents[agent_to_update],
                 low_level_subopt_factor.unwrap(),
-                constraints_for_agent,
+                &new_constraints[agent_to_update],
+                new_path_length_constraints[agent_to_update],
                 &self.paths,
                 stats,
             ),
@@ -243,7 +322,8 @@ impl HighLevelOpenNode {
                 map,
                 &self.agents[agent_to_update],
                 low_level_subopt_factor.unwrap(),
-                constraints_for_agent,
+                &new_constraints[agent_to_update],
+                new_path_length_constraints[agent_to_update],
                 &self.paths,
                 stats,
             ),
@@ -263,6 +343,7 @@ impl HighLevelOpenNode {
             let mut new_node = HighLevelOpenNode {
                 agents: self.agents.clone(),
                 constraints: new_constraints,
+                path_length_constraints: new_path_length_constraints,
                 conflicts: Vec::new(),
                 paths: new_paths,
                 cost: new_cost,
@@ -292,6 +373,7 @@ impl HighLevelOpenNode {
         HighLevelFocalNode {
             agents: self.agents.clone(),
             constraints: self.constraints.clone(),
+            path_length_constraints: self.path_length_constraints.clone(),
             conflicts: self.conflicts.clone(),
             paths: self.paths.clone(),
             focal: self.conflicts.len(),
@@ -305,6 +387,7 @@ impl HighLevelOpenNode {
 pub(crate) struct HighLevelFocalNode {
     pub(crate) agents: Vec<Agent>,
     pub(crate) constraints: Vec<HashSet<Constraint>>,
+    pub(crate) path_length_constraints: Vec<usize>,
     pub(crate) conflicts: Vec<Conflict>,
     pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
     pub(crate) focal: usize, // Focal cost for all paths under current constraints
@@ -333,6 +416,7 @@ impl HighLevelFocalNode {
         HighLevelOpenNode {
             agents: self.agents.clone(),
             constraints: self.constraints.clone(),
+            path_length_constraints: self.path_length_constraints.clone(),
             conflicts: self.conflicts.clone(),
             paths: self.paths.clone(),
             cost: self.cost,

@@ -18,11 +18,11 @@ pub(crate) fn focal_a_star_search(
     last_search_f_min: usize,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
     paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
     debug!("constraints: {constraints:?}");
-    let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // Open list is indexed based on (f_open_cost, time, position)
     let mut open_list = BTreeSet::new();
@@ -65,7 +65,7 @@ pub(crate) fn focal_a_star_search(
             g_cost: current.g_cost,
         }));
 
-        if current.position == agent.goal && current.g_cost > max_time {
+        if current.position == agent.goal && current.g_cost > path_length_constraint {
             debug!("find solution with f min {f_min:?}");
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
@@ -84,11 +84,11 @@ pub(crate) fn focal_a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if constraints.contains(&Constraint {
-                position: *neighbor,
-                time_step: tentative_g_cost,
-            }) {
-                continue; // This move is prohibited due to a constraint.
+            if constraints
+                .iter()
+                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
+            {
+                continue; // This move is prohibited due to a constraint
             }
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
@@ -190,14 +190,16 @@ pub(crate) fn focal_a_star_double_search(
     agent: &Agent,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
     paths: &[Vec<(usize, usize)>],
     stats: &mut Stats,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
     debug!("constraints: {constraints:?}");
-    let max_time = constraints.iter().map(|c| c.time_step).max().unwrap_or(0);
 
     // We calculate f min by first perform an a star search.
-    let f_min = a_star_search(map, agent, constraints, stats).unwrap().1;
+    let f_min = a_star_search(map, agent, constraints, path_length_constraint, stats)
+        .unwrap()
+        .1;
 
     // Open list is indexed based on (f_open_cost, time, position)
     let mut open_list = BTreeSet::new();
@@ -238,7 +240,7 @@ pub(crate) fn focal_a_star_double_search(
             g_cost: current.g_cost,
         }));
 
-        if current.position == agent.goal && current.g_cost > max_time {
+        if current.position == agent.goal && current.g_cost > path_length_constraint {
             debug!("find solution");
             return Some((
                 construct_path(&trace, (current.position, current.g_cost)),
@@ -257,11 +259,11 @@ pub(crate) fn focal_a_star_double_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if constraints.contains(&Constraint {
-                position: *neighbor,
-                time_step: tentative_g_cost,
-            }) {
-                continue; // This move is prohibited due to a constraint.
+            if constraints
+                .iter()
+                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
+            {
+                continue; // This move is prohibited due to a constraint
             }
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];

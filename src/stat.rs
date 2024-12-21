@@ -21,7 +21,7 @@ impl Stats {
             .unwrap();
 
         let file_content = format!(
-            "{},{},{},{:?},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{:?},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             config.map_path,
             config.yaml_path,
             config.num_agents,
@@ -32,6 +32,7 @@ impl Stats {
             config.sub_optimal.1.unwrap_or(f64::NAN),
             config.op_prioritize_conflicts,
             config.op_bypass_conflicts,
+            config.op_target_reasoning,
             self.costs,
             self.time_ms,
             self.high_level_expand_nodes,

@@ -50,6 +50,7 @@ impl Solver for LBCBS {
                         &self.map,
                         self.low_level_subopt_factor,
                         "lbcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 
@@ -75,6 +76,7 @@ impl Solver for LBCBS {
                         &self.map,
                         self.low_level_subopt_factor,
                         "lbcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 

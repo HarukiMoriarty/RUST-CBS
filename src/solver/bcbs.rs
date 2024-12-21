@@ -57,6 +57,7 @@ impl Solver for BCBS {
                         &self.map,
                         self.subopt_factor.1,
                         "bcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 
@@ -83,6 +84,7 @@ impl Solver for BCBS {
                         &self.map,
                         self.subopt_factor.1,
                         "bcbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 

@@ -57,6 +57,7 @@ impl Solver for ECBS {
                         &self.map,
                         self.low_level_subopt_factor,
                         "ecbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     ) {
                         open.insert(child_1.clone());
@@ -75,6 +76,7 @@ impl Solver for ECBS {
                         &self.map,
                         self.low_level_subopt_factor,
                         "ecbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     ) {
                         open.insert(child_2.clone());

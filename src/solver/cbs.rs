@@ -44,6 +44,7 @@ impl Solver for CBS {
                         &self.map,
                         None,
                         "cbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 
@@ -69,6 +70,7 @@ impl Solver for CBS {
                         &self.map,
                         None,
                         "cbs",
+                        config.op_target_reasoning,
                         &mut self.stats,
                     );
 
