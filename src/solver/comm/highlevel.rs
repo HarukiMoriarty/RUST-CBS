@@ -150,7 +150,10 @@ impl HighLevelOpenNode {
                 let path2 = &self.paths[j];
                 let max_length = path1.len().max(path2.len());
 
-                for step in 0..max_length {
+                // Start from 1 since:
+                // 1. Initial positions (step 0) can't have vertex conflicts (agents start at different positions)
+                // 2. Edge conflicts need previous step, so can only start from step 1
+                for step in 1..max_length {
                     let pos1 = if step < path1.len() {
                         path1[step]
                     } else {
@@ -164,27 +167,31 @@ impl HighLevelOpenNode {
 
                     // Check for Vertex Conflict
                     if pos1 == pos2 {
-                        if step >= path1.len() {
+                        // Check for target conflicts first
+                        if step >= path1.len() - 1 && pos1 == self.agents[i].goal {
+                            // Agent i is at its target and agent j is interfering
                             conflicts.push(Conflict {
                                 agent_1: i,
                                 agent_2: j,
                                 conflict_type: ConflictType::Target {
                                     position: pos1,
-                                    time_step: step,
+                                    time_step: step, // When agent actually reached target
                                     extended_agent: i,
                                 },
                             });
-                        } else if step >= path2.len() {
+                        } else if step >= path2.len() - 1 && pos2 == self.agents[j].goal {
+                            // Agent j is at its target and agent i is interfering
                             conflicts.push(Conflict {
                                 agent_1: i,
                                 agent_2: j,
                                 conflict_type: ConflictType::Target {
-                                    position: pos1,
-                                    time_step: step,
+                                    position: pos2,
+                                    time_step: step, // When agent actually reached target
                                     extended_agent: j,
                                 },
                             });
                         } else {
+                            // Regular vertex conflict
                             conflicts.push(Conflict {
                                 agent_1: i,
                                 agent_2: j,
@@ -197,29 +204,23 @@ impl HighLevelOpenNode {
                     }
 
                     // Check for Edge Conflict
-                    if step > 0 {
-                        let prev_pos1 = if step - 1 < path1.len() {
-                            path1[step - 1]
-                        } else {
-                            *path1.last().unwrap()
-                        };
-                        let prev_pos2 = if step - 1 < path2.len() {
-                            path2[step - 1]
-                        } else {
-                            *path2.last().unwrap()
-                        };
+                    if step >= path1.len() || step >= path2.len() {
+                        continue;
+                    }
 
-                        if prev_pos1 == pos2 && prev_pos2 == pos1 {
-                            conflicts.push(Conflict {
-                                agent_1: i,
-                                agent_2: j,
-                                conflict_type: ConflictType::Edge {
-                                    u: pos1,
-                                    v: prev_pos1,
-                                    time_step: step,
-                                },
-                            });
-                        }
+                    let prev_pos1 = path1[step - 1];
+                    let prev_pos2 = path2[step - 1];
+
+                    if prev_pos1 == pos2 && prev_pos2 == pos1 {
+                        conflicts.push(Conflict {
+                            agent_1: i,
+                            agent_2: j,
+                            conflict_type: ConflictType::Edge {
+                                u: pos1,
+                                v: prev_pos1,
+                                time_step: step,
+                            },
+                        });
                     }
                 }
             }
