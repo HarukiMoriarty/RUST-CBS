@@ -13,16 +13,14 @@ pub struct HBCBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    high_level_subopt_factor: Option<f64>, // The lattar one should be always none for HBCBS
 }
 
 impl HBCBS {
-    pub fn new(agents: Vec<Agent>, map: &Map, subopt_factor: (Option<f64>, Option<f64>)) -> Self {
+    pub fn new(agents: Vec<Agent>, map: &Map) -> Self {
         HBCBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
-            high_level_subopt_factor: subopt_factor.0,
         }
     }
 }
@@ -30,12 +28,13 @@ impl HBCBS {
 impl Solver for HBCBS {
     fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
+        let high_level_subopt_factor = config.sub_optimal.0.unwrap();
 
         let mut open = BTreeSet::new();
         let mut focal = BTreeSet::new();
 
         if let Some(root) =
-            HighLevelOpenNode::new(&self.agents, &self.map, None, "hbcbs", &mut self.stats)
+            HighLevelOpenNode::new(&self.agents, &self.map, config, "hbcbs", &mut self.stats)
         {
             open.insert(root.clone());
             focal.insert(root.to_focal_node());
@@ -53,9 +52,7 @@ impl Solver for HBCBS {
                         conflict,
                         true,
                         &self.map,
-                        None,
-                        "hbcbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 
@@ -80,9 +77,7 @@ impl Solver for HBCBS {
                         conflict,
                         false,
                         &self.map,
-                        None,
-                        "hbcbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 
@@ -104,9 +99,7 @@ impl Solver for HBCBS {
                     }
 
                     if let Some(child) = child_1 {
-                        if child.cost as f64
-                            <= (old_f_min as f64 * self.high_level_subopt_factor.unwrap())
-                        {
+                        if child.cost as f64 <= (old_f_min as f64 * high_level_subopt_factor) {
                             focal.insert(child.to_focal_node());
                         }
                         open.insert(child);
@@ -114,9 +107,7 @@ impl Solver for HBCBS {
                     }
 
                     if let Some(child) = child_2 {
-                        if child.cost as f64
-                            <= (old_f_min as f64 * self.high_level_subopt_factor.unwrap())
-                        {
+                        if child.cost as f64 <= (old_f_min as f64 * high_level_subopt_factor) {
                             focal.insert(child.to_focal_node());
                         }
                         open.insert(child);
@@ -140,10 +131,8 @@ impl Solver for HBCBS {
                     let new_f_min = open.first().unwrap().cost;
                     if old_f_min < new_f_min {
                         open.iter().for_each(|node| {
-                            if node.cost as f64
-                                > self.high_level_subopt_factor.unwrap() * old_f_min as f64
-                                && node.cost as f64
-                                    <= self.high_level_subopt_factor.unwrap() * new_f_min as f64
+                            if node.cost as f64 > high_level_subopt_factor * old_f_min as f64
+                                && node.cost as f64 <= high_level_subopt_factor * new_f_min as f64
                             {
                                 focal.insert(node.to_focal_node());
                             }

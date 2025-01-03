@@ -13,16 +13,14 @@ pub struct LBCBS {
     agents: Vec<Agent>,
     map: Map,
     stats: Stats,
-    low_level_subopt_factor: Option<f64>,
 }
 
 impl LBCBS {
-    pub fn new(agents: Vec<Agent>, map: &Map, subopt_factor: (Option<f64>, Option<f64>)) -> Self {
+    pub fn new(agents: Vec<Agent>, map: &Map) -> Self {
         LBCBS {
             agents,
             map: map.clone(),
             stats: Stats::default(),
-            low_level_subopt_factor: subopt_factor.1,
         }
     }
 }
@@ -32,13 +30,9 @@ impl Solver for LBCBS {
         let total_solve_start_time = Instant::now();
         let mut open = BTreeSet::new();
 
-        if let Some(root) = HighLevelOpenNode::new(
-            &self.agents,
-            &self.map,
-            self.low_level_subopt_factor,
-            "lbcbs",
-            &mut self.stats,
-        ) {
+        if let Some(root) =
+            HighLevelOpenNode::new(&self.agents, &self.map, config, "lbcbs", &mut self.stats)
+        {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
                 if let Some(conflict) = current_node.conflicts.first() {
@@ -48,9 +42,7 @@ impl Solver for LBCBS {
                         conflict,
                         true,
                         &self.map,
-                        self.low_level_subopt_factor,
-                        "lbcbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 
@@ -74,9 +66,7 @@ impl Solver for LBCBS {
                         conflict,
                         false,
                         &self.map,
-                        self.low_level_subopt_factor,
-                        "lbcbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 

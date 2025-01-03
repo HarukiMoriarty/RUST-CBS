@@ -41,17 +41,11 @@ fn main() -> anyhow::Result<()> {
 
     let mut solver = match cli.solver.as_str() {
         "cbs" => Box::new(CBS::new(agents.clone(), &map)) as Box<dyn Solver>,
-        "lbcbs" => {
-            Box::new(LBCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
-        }
-        "hbcbs" => {
-            Box::new(HBCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
-        }
-        "bcbs" => Box::new(BCBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>,
-        "ecbs" => Box::new(ECBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>,
-        "decbs" => {
-            Box::new(DECBS::new(agents.clone(), &map, config.sub_optimal)) as Box<dyn Solver>
-        }
+        "lbcbs" => Box::new(LBCBS::new(agents.clone(), &map)) as Box<dyn Solver>,
+        "hbcbs" => Box::new(HBCBS::new(agents.clone(), &map)) as Box<dyn Solver>,
+        "bcbs" => Box::new(BCBS::new(agents.clone(), &map)) as Box<dyn Solver>,
+        "ecbs" => Box::new(ECBS::new(agents.clone(), &map)) as Box<dyn Solver>,
+        "decbs" => Box::new(DECBS::new(agents.clone(), &map)) as Box<dyn Solver>,
         _ => unreachable!(),
     };
 

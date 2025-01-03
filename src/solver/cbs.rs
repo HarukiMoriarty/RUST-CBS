@@ -31,7 +31,7 @@ impl Solver for CBS {
         let mut open = BTreeSet::new();
 
         if let Some(root) =
-            HighLevelOpenNode::new(&self.agents, &self.map, None, "cbs", &mut self.stats)
+            HighLevelOpenNode::new(&self.agents, &self.map, config, "cbs", &mut self.stats)
         {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
@@ -42,9 +42,7 @@ impl Solver for CBS {
                         conflict,
                         true,
                         &self.map,
-                        None,
-                        "cbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 
@@ -68,9 +66,7 @@ impl Solver for CBS {
                         conflict,
                         false,
                         &self.map,
-                        None,
-                        "cbs",
-                        config.op_target_reasoning,
+                        config,
                         &mut self.stats,
                     );
 

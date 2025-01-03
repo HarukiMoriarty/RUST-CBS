@@ -81,7 +81,7 @@ pub struct Config {
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
     pub seed: usize,
-    pub sub_optimal: (Option<f64>, Option<f64>),
+    pub sub_optimal: (Option<f64>, Option<f64>), // (high level sub optimal, low level sub optimal)
     pub solver: String,
     pub debug_yaml: bool,
     pub op_prioritize_conflicts: bool,
@@ -108,22 +108,53 @@ impl Config {
     }
 
     pub fn validate(&self) -> anyhow::Result<()> {
-        let mut check_low_level_sub_optimal = false;
-        let mut check_high_level_sub_optimal = false;
-
+        // Validate suboptimality values are present/absent correctly per solver
         match self.solver.as_str() {
-            "cbs" => {}
-            "lbcbs" | "ecbs" | "decbs" => check_low_level_sub_optimal = true,
-            "hbcbs" => check_high_level_sub_optimal = true,
+            "cbs" => {
+                // Both should be None for CBS
+                if self.sub_optimal.0.is_some() || self.sub_optimal.1.is_some() {
+                    return Err(anyhow!(
+                        "CBS should not have any suboptimality bounds, got high-level: {:?}, low-level: {:?}",
+                        self.sub_optimal.0,
+                        self.sub_optimal.1
+                    ));
+                }
+            }
+            "lbcbs" | "ecbs" | "decbs" => {
+                // Only low-level sub optimal should be Some
+                if self.sub_optimal.0.is_some() || self.sub_optimal.1.is_none() {
+                    return Err(anyhow!(
+                        "LBCBS/ECBS/DECBS should only have low-level suboptimality bound, got high-level: {:?}, low-level: {:?}",
+                        self.sub_optimal.0,
+                        self.sub_optimal.1
+                    ));
+                }
+            }
+            "hbcbs" => {
+                // Only high-level sub optimal should be Some
+                if self.sub_optimal.0.is_none() || self.sub_optimal.1.is_some() {
+                    return Err(anyhow!(
+                        "HBCBS should only have high-level suboptimality bound, got high-level: {:?}, low-level: {:?}",
+                        self.sub_optimal.0,
+                        self.sub_optimal.1
+                    ));
+                }
+            }
             "bcbs" => {
-                check_high_level_sub_optimal = true;
-                check_low_level_sub_optimal = true;
+                // Both should be Some for BCBS
+                if self.sub_optimal.0.is_none() || self.sub_optimal.1.is_none() {
+                    return Err(anyhow!(
+                        "BCBS should have both suboptimality bounds, got high-level: {:?}, low-level: {:?}",
+                        self.sub_optimal.0,
+                        self.sub_optimal.1
+                    ));
+                }
             }
             _ => unreachable!(),
         }
 
-        if check_low_level_sub_optimal {
-            let low_level_sub_optimal = self.sub_optimal.1.unwrap();
+        // Validate the values if they are present
+        if let Some(low_level_sub_optimal) = self.sub_optimal.1 {
             if low_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "Low-level sub-optimal value must be greater than 1.0, got {}",
@@ -132,8 +163,7 @@ impl Config {
             }
         }
 
-        if check_high_level_sub_optimal {
-            let high_level_sub_optimal = self.sub_optimal.0.unwrap();
+        if let Some(high_level_sub_optimal) = self.sub_optimal.0 {
             if high_level_sub_optimal < 1.0 {
                 return Err(anyhow!(
                     "High-level sub-optimal value must be greater than 1.0, got {}",
@@ -141,6 +171,7 @@ impl Config {
                 ));
             }
         }
+
         Ok(())
     }
 }
