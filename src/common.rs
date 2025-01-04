@@ -18,9 +18,11 @@ impl Agent {
     }
 }
 
+pub(crate) type Path = Vec<(usize, usize)>;
+
 #[derive(Debug, Clone)]
 pub struct Solution {
-    pub paths: Vec<Vec<(usize, usize)>>,
+    pub paths: Vec<Path>,
 }
 
 impl Solution {

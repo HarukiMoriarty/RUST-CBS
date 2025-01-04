@@ -1,4 +1,4 @@
-use super::construct_path;
+use super::{construct_path, Path};
 use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelOpenNode, Mdd, SearchResult};
@@ -16,7 +16,7 @@ pub(crate) fn standard_a_star_search(
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
     stats: &mut Stats,
-) -> Option<(Vec<(usize, usize)>, usize)> {
+) -> Option<(Path, usize)> {
     debug!("constraints: {constraints:?}");
 
     let mut open_list = BTreeSet::new();
@@ -186,7 +186,7 @@ mod tests {
     use crate::common::Agent;
 
     // Helper function to extract path from SearchResult
-    fn get_path_from_result(result: SearchResult) -> Option<(Vec<(usize, usize)>, usize)> {
+    fn get_path_from_result(result: SearchResult) -> Option<(Path, usize)> {
         match result {
             SearchResult::Standard(result) => result,
             SearchResult::WithMDD(result) => result.map(|(path, cost, _)| (path, cost)),

@@ -6,6 +6,8 @@ pub(super) use astarfocal::focal_a_star_search;
 
 use std::{collections::HashMap, usize};
 
+use crate::common::Path;
+
 type Trace = HashMap<((usize, usize), usize), ((usize, usize), usize)>;
 
 fn heuristic_focal(
@@ -13,7 +15,7 @@ fn heuristic_focal(
     position: (usize, usize),
     prev_position: (usize, usize),
     time: usize,
-    paths: &[Vec<(usize, usize)>],
+    paths: &[Path],
 ) -> usize {
     let mut conflict_count = 0;
 
@@ -39,7 +41,7 @@ fn heuristic_focal(
     conflict_count
 }
 
-fn construct_path(trace: &Trace, mut current: ((usize, usize), usize)) -> Vec<(usize, usize)> {
+fn construct_path(trace: &Trace, mut current: ((usize, usize), usize)) -> Path {
     let mut path = vec![current.0];
     while let Some(&(pos, time)) = trace.get(&current) {
         path.push(pos);

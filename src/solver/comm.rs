@@ -6,6 +6,8 @@ pub(crate) use lowlevel::{LowLevelFocalNode, LowLevelOpenNode};
 
 use std::collections::HashSet;
 
+use crate::common::Path;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Mdd {
     pub(crate) layers: Vec<HashSet<(usize, usize)>>,
@@ -26,6 +28,6 @@ impl Mdd {
 }
 
 pub(crate) enum SearchResult {
-    Standard(Option<(Vec<(usize, usize)>, usize)>),
-    WithMDD(Option<(Vec<(usize, usize)>, usize, Mdd)>),
+    Standard(Option<(Path, usize)>),
+    WithMDD(Option<(Path, usize, Mdd)>),
 }

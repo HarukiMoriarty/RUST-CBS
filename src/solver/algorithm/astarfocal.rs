@@ -1,4 +1,4 @@
-use super::{construct_path, heuristic_focal, standard_a_star_search};
+use super::{construct_path, heuristic_focal, standard_a_star_search, Path};
 use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode, SearchResult};
@@ -11,6 +11,7 @@ use std::{
 };
 use tracing::{debug, instrument, trace};
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn focal_a_star_search(
     map: &Map,
     agent: &Agent,
@@ -18,7 +19,7 @@ pub(crate) fn focal_a_star_search(
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
-    paths: &[Vec<(usize, usize)>],
+    paths: &[Path],
     stats: &mut Stats,
 ) -> SearchResult {
     // TODO: update Mdd
@@ -34,6 +35,7 @@ pub(crate) fn focal_a_star_search(
     ))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[instrument(skip_all, name="standard_focal_a_star_search", fields(agent = agent.id, subopt_factor = subopt_factor, last_search_f_min = last_search_f_min, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn standard_focal_a_star_search(
     map: &Map,
@@ -42,9 +44,9 @@ pub(crate) fn standard_focal_a_star_search(
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
-    paths: &[Vec<(usize, usize)>],
+    paths: &[Path],
     stats: &mut Stats,
-) -> Option<(Vec<(usize, usize)>, usize)> {
+) -> Option<(Path, usize)> {
     debug!("constraints: {constraints:?}");
 
     let mut f_min = if let Some(last_search_f_min) = last_search_f_min {

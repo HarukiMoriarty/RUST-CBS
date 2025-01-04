@@ -1,4 +1,4 @@
-use super::Mdd;
+use super::{Mdd, Path};
 use crate::common::Agent;
 use crate::config::Config;
 use crate::map::Map;
@@ -71,8 +71,8 @@ pub(crate) struct HighLevelOpenNode {
     pub(crate) constraints: Vec<HashSet<Constraint>>,
     pub(crate) path_length_constraints: Vec<usize>,
     pub(crate) conflicts: Vec<Conflict>,
-    pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
-    pub(crate) cost: usize, // Total cost for all paths under current constraints
+    pub(crate) paths: Vec<Path>, // Maps agent IDs to their paths
+    pub(crate) cost: usize,      // Total cost for all paths under current constraints
     pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
     pub(crate) mdds: Vec<Option<Mdd>>,
 }
@@ -445,7 +445,7 @@ impl HighLevelOpenNode {
 
     pub(crate) fn update_bypass_path(
         &self,
-        new_path: Vec<(usize, usize)>,
+        new_path: Path,
         new_conflicts: Vec<Conflict>,
         agent_id: usize,
     ) -> HighLevelOpenNode {
@@ -476,9 +476,9 @@ pub(crate) struct HighLevelFocalNode {
     pub(crate) constraints: Vec<HashSet<Constraint>>,
     pub(crate) path_length_constraints: Vec<usize>,
     pub(crate) conflicts: Vec<Conflict>,
-    pub(crate) paths: Vec<Vec<(usize, usize)>>, // Maps agent IDs to their paths
-    pub(crate) focal: usize, // Focal cost for all paths under current constraints
-    pub(crate) cost: usize,  // Open cost for all paths under current constraints
+    pub(crate) paths: Vec<Path>, // Maps agent IDs to their paths
+    pub(crate) focal: usize,     // Focal cost for all paths under current constraints
+    pub(crate) cost: usize,      // Open cost for all paths under current constraints
     pub(crate) low_level_f_min_agents: Vec<usize>, // Agent's f_min, used for ECBS
     pub(crate) mdds: Vec<Option<Mdd>>,
 }
