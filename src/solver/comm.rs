@@ -1,7 +1,7 @@
 mod highlevel;
 mod lowlevel;
 
-pub(crate) use highlevel::{Constraint, HighLevelOpenNode};
+pub(crate) use highlevel::{CardinalType, Constraint, HighLevelOpenNode};
 pub(crate) use lowlevel::{LowLevelFocalNode, LowLevelOpenNode};
 
 use std::collections::HashSet;

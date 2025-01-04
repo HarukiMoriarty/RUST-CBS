@@ -21,6 +21,7 @@ REQUIRED_COLUMNS = [
     'num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR',
     'solver', 'costs', 'time(us)', 'high_level_expanded',
     'low_level_open_expanded', 'low_level_focal_expanded',
+    'low_level_mdd_open_expanded', 'low_level_mdd_focal_expanded',
     'total_low_level_expanded'
 ]
 
@@ -52,7 +53,7 @@ def load_and_clean_data(file_path: str) -> pd.DataFrame:
         # Set other metrics to MAX_INT for timeout cases
         timeout_columns = [
             'time(us)', 'high_level_expanded', 'low_level_open_expanded',
-            'low_level_focal_expanded', 'total_low_level_expanded'
+            'low_level_focal_expanded', 'low_level_mdd_open_expanded', 'low_level_mdd_focal_expanded', 'total_low_level_expanded'
         ]
         data.loc[timeout_mask, timeout_columns] = MAX_INT
         
@@ -137,6 +138,8 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
             'high': compute_stats(success_data['high_level_expanded']),
             'lowOpen': compute_stats(success_data['low_level_open_expanded']),
             'lowFocal': compute_stats(success_data['low_level_focal_expanded']),
+            'lowOpenMdd': compute_stats(success_data['low_level_mdd_open_expanded']),
+            'lowFocalMdd': compute_stats(success_data['low_level_mdd_focal_expanded']),
             'lowTotal': compute_stats(success_data['total_low_level_expanded'])
         }
         

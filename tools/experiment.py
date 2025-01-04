@@ -112,7 +112,8 @@ def check_and_create_csv(output_csv_path: str):
                 "solver", "high_level_suboptimal", "low_level_suboptimal",
                 "op_PC", "op_BC", "op_TR", "costs", "time(us)",
                 "high_level_expanded", "low_level_open_expanded",
-                "low_level_focal_expanded", "total_low_level_expanded"
+                "low_level_focal_expanded", "low_level_mdd_open_expanded",
+                "low_level_mdd_focal_expanded", "total_low_level_expanded"
             ]
             csv_file.write(",".join(headers) + "\n")
 
@@ -148,9 +149,9 @@ def write_error_csv(params: ExperimentParameters, error_msg: str):
             
         # Add operation flags
         op_flags = [
-            str(params["op_prioritize_conflicts"]),
-            str(params["op_bypass_conflicts"]),
-            str(params["op_target_reasoning"])
+            str(params["op_prioritize_conflicts"]).lower(),
+            str(params["op_bypass_conflicts"]).lower(),
+            str(params["op_target_reasoning"]).lower()
         ]
         
         # Combine all components and write

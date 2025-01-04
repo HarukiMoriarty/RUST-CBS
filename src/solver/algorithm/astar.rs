@@ -84,6 +84,7 @@ pub(crate) fn standard_a_star_search(
     None
 }
 
+#[instrument(skip_all, name="a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn a_star_search(
     map: &Map,
     agent: &Agent,
@@ -111,27 +112,39 @@ pub(crate) fn a_star_search(
     // Build MDD using optimal cost
     let mut mdd_layers = vec![HashSet::new()];
     mdd_layers[0].insert(agent.start);
-    let mut open = BTreeSet::new();
+    let mut open_list = BTreeSet::new();
+    let mut closed_list = BTreeSet::new();
 
     let start_node = LowLevelOpenNode {
         position: agent.start,
         f_open_cost: map.heuristic[agent.id][agent.start.0][agent.start.1],
         g_cost: 0,
     };
-    open.insert(start_node);
+    open_list.insert(start_node);
 
-    while let Some(current) = open.pop_first() {
-        if current.f_open_cost > optimal_result.1 {
-            continue;
-        }
+    while let Some(current) = open_list.pop_first() {
+        trace!("expand node: {current:?}");
 
+        // Update stats.
+        stats.low_level_mdd_expand_open_nodes += 1;
+
+        closed_list.insert((current.position, current.g_cost));
+
+        // Assuming uniform cost, which also indicate the current time.
         let tentative_g_cost = current.g_cost + 1;
 
         while mdd_layers.len() <= tentative_g_cost && tentative_g_cost <= optimal_result.1 {
             mdd_layers.push(HashSet::new());
         }
 
+        // Expand nodes from the current position.
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+            // Checck node (position at current time) has closed.
+            if closed_list.contains(&(*neighbor, tentative_g_cost)) {
+                continue;
+            }
+
+            // Check for constraints before exploring the neighbor.
             if constraints
                 .iter()
                 .any(|c| c.is_violated(*neighbor, tentative_g_cost))
@@ -141,6 +154,7 @@ pub(crate) fn a_star_search(
 
             let f_cost = tentative_g_cost + map.heuristic[agent.id][neighbor.0][neighbor.1];
 
+            // Check for optimal solution
             if f_cost > optimal_result.1 {
                 continue;
             }
@@ -151,7 +165,7 @@ pub(crate) fn a_star_search(
                 g_cost: tentative_g_cost,
             };
 
-            if open.insert(new_node) {
+            if open_list.insert(new_node) {
                 mdd_layers[tentative_g_cost].insert(*neighbor);
             }
         }

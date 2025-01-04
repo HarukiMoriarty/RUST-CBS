@@ -1,4 +1,4 @@
-use super::comm::HighLevelOpenNode;
+use super::comm::{CardinalType, HighLevelOpenNode};
 use super::Solver;
 use crate::common::{Agent, Solution};
 use crate::config::Config;
@@ -35,7 +35,28 @@ impl Solver for CBS {
         {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
-                if let Some(conflict) = current_node.conflicts.first() {
+                let conflict = if config.op_prioritize_conflicts {
+                    current_node
+                        .conflicts
+                        .iter()
+                        .find(|c| c.cardinal_type == CardinalType::Cardinal)
+                        .or_else(|| {
+                            current_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::SemiCardinal)
+                        })
+                        .or_else(|| {
+                            current_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::NonCardinal)
+                        })
+                } else {
+                    current_node.conflicts.first()
+                };
+
+                if let Some(conflict) = conflict {
                     debug!("conflict: {conflict:?}");
 
                     let child_1 = current_node.update_constraint(
