@@ -21,6 +21,9 @@ seed                    | Seed for the random number generator
 low-level-sub-optimal   | Suboptimal limit for low-level operations
 high-level-sub-optimal  | Suboptimal limit for high-level operations
 solver                  | Solver to use
+op_prioritize_conflicts | Optimization: Prioritize Conflicts
+op_bypass_conflicts     | Optimization: Bypass Conflicts
+op_target_reasoning     | Optimization: Target Reasoning
 ```
 
 Run the solver
