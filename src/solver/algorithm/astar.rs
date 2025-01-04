@@ -3,10 +3,7 @@ use crate::common::Agent;
 use crate::map::Map;
 use crate::solver::comm::{Constraint, LowLevelOpenNode, Mdd, SearchResult};
 use crate::stat::Stats;
-use std::{
-    collections::{BTreeSet, HashMap, HashSet},
-    usize,
-};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use tracing::{debug, instrument, trace};
 
 #[instrument(skip_all, name="low_level_standard_a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]

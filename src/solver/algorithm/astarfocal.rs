@@ -5,10 +5,7 @@ use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode, Searc
 use crate::stat::Stats;
 
 use std::cmp::max;
-use std::{
-    collections::{BTreeSet, HashMap, HashSet},
-    usize,
-};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use tracing::{debug, instrument, trace};
 
 #[allow(clippy::too_many_arguments)]

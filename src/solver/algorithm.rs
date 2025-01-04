@@ -4,7 +4,7 @@ mod astarfocal;
 pub(super) use astar::{a_star_search, standard_a_star_search};
 pub(super) use astarfocal::focal_a_star_search;
 
-use std::{collections::HashMap, usize};
+use std::collections::HashMap;
 
 use crate::common::Path;
 
