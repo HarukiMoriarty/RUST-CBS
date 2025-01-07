@@ -37,13 +37,11 @@ class ExperimentParameters(TypedDict):
         map_path (List[str]): Paths to map files
         num_agents (List[str]): Number of agents to simulate
         agents_dist (List[str]): Agent distribution configurations
-        seed_num (int): Random seed number
+        seed_num: int: Random seed number
         sub_optimal (List[float]): Suboptimality bounds
         solver (List[str]): List of solvers to use
         time_out (str): Timeout duration
-        op_prioritize_conflicts (List[bool]): Conflict prioritization flags
-        op_bypass_conflicts (List[bool]): Conflict bypassing flags
-        op_target_reasoning (List[bool]): Target reasoning flags
+        optimization_level (List[str]): Optimization levels to test
     """
     yaml_path: List[str]
     map_path: List[str]
@@ -53,9 +51,24 @@ class ExperimentParameters(TypedDict):
     sub_optimal: List[float]
     solver: List[str]
     time_out: str
-    op_prioritize_conflicts: List[bool]
-    op_bypass_conflicts: List[bool]
-    op_target_reasoning: List[bool]
+    optimization_level: List[str]
+
+def get_optimization_flags(opt_level: str) -> tuple[bool, bool, bool]:
+    """Convert optimization level to specific flags.
+    
+    Args:
+        opt_level (str): Optimization level identifier
+        
+    Returns:
+        tuple[bool, bool, bool]: (prioritize_conflicts, bypass_conflicts, target_reasoning)
+    """
+    optimization_levels = {
+        "none": (False, False, False),    # No optimizations
+        "pc": (True, False, False),       # Only Prioritize Conflicts
+        "pc_bc": (True, True, False),     # PC + Bypass Conflicts
+        "all": (True, True, True)         # All optimizations
+    }
+    return optimization_levels.get(opt_level, (False, False, False))
 
 def load_experiment(exp_name: str) -> dict:
     """Load experiment configuration from a YAML file.
@@ -75,7 +88,7 @@ def load_experiment(exp_name: str) -> dict:
         return yaml.safe_load(f)
 
 def generate_combinations(params: ExperimentParameters):
-    """Generate all possible parameter combinations for the experiment.
+    """Generate parameter combinations for the experiment with specific optimization levels.
     
     Args:
         params (ExperimentParameters): Base parameters for the experiment
@@ -83,19 +96,30 @@ def generate_combinations(params: ExperimentParameters):
     Yields:
         dict: Parameter combination for a single experiment run
     """
-    keys = list(params.keys())
-    values = []
+    # Create base combinations without optimization flags
+    base_keys = [k for k in params.keys() if k != 'optimization_level']
+    base_values = []
 
-    for key in keys:
+    for key in base_keys:
         if key == "seed_num":
-            values.append(list(range(params[key])))
+            base_values.append(list(range(params[key])))
         elif isinstance(params[key], list):
-            values.append(params[key])
+            base_values.append(params[key])
         else:
-            values.append([params[key]])
+            base_values.append([params[key]])
             
-    for combination in itertools.product(*values):
-        yield dict(zip(keys, combination))
+    # Generate combinations
+    for base_combination in itertools.product(*base_values):
+        base_params = dict(zip(base_keys, base_combination))
+        
+        # Add each optimization combination
+        for opt_level in params['optimization_level']:
+            pc, bc, tr = get_optimization_flags(opt_level)
+            full_params = base_params.copy()
+            full_params['op_prioritize_conflicts'] = pc
+            full_params['op_bypass_conflicts'] = bc
+            full_params['op_target_reasoning'] = tr
+            yield full_params
 
 def check_and_create_csv(output_csv_path: str):
     """Initialize CSV file with headers if it doesn't exist.
