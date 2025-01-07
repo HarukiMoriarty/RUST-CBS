@@ -12,7 +12,7 @@ pub struct Tile {
 }
 
 impl Tile {
-    pub fn is_passable(&self) -> bool {
+    pub(crate) fn is_passable(&self) -> bool {
         self.passable
     }
 }

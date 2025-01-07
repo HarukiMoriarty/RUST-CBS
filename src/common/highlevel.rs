@@ -1,9 +1,9 @@
 use super::{Mdd, Path};
+use crate::algorithm::{a_star_search, focal_a_star_search};
 use crate::common::Agent;
+use crate::common::SearchResult;
 use crate::config::Config;
 use crate::map::Map;
-use crate::solver::algorithm::{a_star_search, focal_a_star_search};
-use crate::solver::comm::SearchResult;
 use crate::stat::Stats;
 
 use std::cmp::Ordering;

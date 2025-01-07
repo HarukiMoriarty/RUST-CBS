@@ -1,8 +1,8 @@
 mod astar;
 mod astarfocal;
 
-pub(super) use astar::{a_star_search, standard_a_star_search};
-pub(super) use astarfocal::focal_a_star_search;
+pub(crate) use astar::{a_star_search, standard_a_star_search};
+pub(crate) use astarfocal::focal_a_star_search;
 
 use std::collections::HashMap;
 

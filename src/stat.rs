@@ -5,14 +5,14 @@ use tracing::{debug, error};
 use crate::config::Config;
 
 #[derive(Debug, Clone, Default)]
-pub(super) struct Stats {
-    pub(super) costs: usize,
-    pub(super) time_ms: usize,
-    pub(super) low_level_expand_open_nodes: usize,
-    pub(super) low_level_expand_focal_nodes: usize,
-    pub(super) low_level_mdd_expand_open_nodes: usize,
-    pub(super) low_level_mdd_expand_focal_nodes: usize,
-    pub(super) high_level_expand_nodes: usize,
+pub(crate) struct Stats {
+    pub(crate) costs: usize,
+    pub(crate) time_ms: usize,
+    pub(crate) low_level_expand_open_nodes: usize,
+    pub(crate) low_level_expand_focal_nodes: usize,
+    pub(crate) low_level_mdd_expand_open_nodes: usize,
+    pub(crate) low_level_mdd_expand_focal_nodes: usize,
+    pub(crate) high_level_expand_nodes: usize,
 }
 
 impl Stats {

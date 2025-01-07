@@ -1,7 +1,7 @@
 use super::{construct_path, heuristic_focal, standard_a_star_search, Path};
 use crate::common::Agent;
+use crate::common::{Constraint, LowLevelFocalNode, LowLevelOpenNode, SearchResult};
 use crate::map::Map;
-use crate::solver::comm::{Constraint, LowLevelFocalNode, LowLevelOpenNode, SearchResult};
 use crate::stat::Stats;
 
 use std::cmp::max;

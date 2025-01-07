@@ -1,3 +1,4 @@
+pub mod algorithm;
 pub mod common;
 pub mod config;
 pub mod map;

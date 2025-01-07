@@ -1,7 +1,7 @@
 use super::{construct_path, Path};
 use crate::common::Agent;
+use crate::common::{Constraint, LowLevelOpenNode, Mdd, SearchResult};
 use crate::map::Map;
-use crate::solver::comm::{Constraint, LowLevelOpenNode, Mdd, SearchResult};
 use crate::stat::Stats;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use tracing::{debug, instrument, trace};
