@@ -1,7 +1,5 @@
-use super::{Mdd, Path};
+use super::{Agent, Mdd, Path, SearchResult};
 use crate::algorithm::{a_star_search, focal_a_star_search};
-use crate::common::Agent;
-use crate::common::SearchResult;
 use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;

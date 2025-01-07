@@ -1,6 +1,5 @@
-use super::{construct_path, heuristic_focal, standard_a_star_search, Path};
-use crate::common::Agent;
-use crate::common::{Constraint, LowLevelFocalNode, LowLevelOpenNode, SearchResult};
+use super::{construct_path, heuristic_focal, standard_a_star_search};
+use crate::common::{Agent, Constraint, LowLevelFocalNode, LowLevelOpenNode, Path, SearchResult};
 use crate::map::Map;
 use crate::stat::Stats;
 

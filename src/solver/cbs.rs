@@ -1,6 +1,5 @@
 use super::Solver;
-use crate::common::{Agent, Solution};
-use crate::common::{CardinalType, HighLevelOpenNode};
+use crate::common::{Agent, CardinalType, HighLevelOpenNode, Solution};
 use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;

@@ -3,8 +3,8 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "Rust MAPF",
-    about = "Kinds of MAPF algorithm implemented in Rust.",
+    name = "Rust CBS-MAPF",
+    about = "Kinds of Conflict-Based MAPF algorithm implemented in Rust.",
     author = "Moriarty Yu",
     version = "1.0"
 )]
