@@ -145,7 +145,7 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
         
         # Create result dictionary
         result = dict(zip(group_cols, group_key))
-        result['fail_rate'] = timeout_rate
+        result['success_rate'] = (1 - timeout_rate) * 100
         
         # Add statistics to result
         for metric, (p0, p50, p99) in metric_stats.items():
