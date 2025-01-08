@@ -48,7 +48,7 @@ pub(crate) fn standard_a_star_search(
 
         // Expand nodes from the current position.
         for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
-            // Checck node (position at current time) has closed.
+            // Check node (position at current time) has closed.
             if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                 continue;
             }
@@ -58,7 +58,7 @@ pub(crate) fn standard_a_star_search(
                 .iter()
                 .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
             {
-                continue; // This move is prohibited due to a constraint
+                continue; // This move is prohibited due to a constraint.
             }
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
@@ -106,9 +106,10 @@ pub(crate) fn a_star_search(
             None => return SearchResult::WithMDD(None),
         };
 
-    // Build MDD using optimal cost
+    // Build MDD using optimal cost.
     let mut mdd_layers = vec![HashSet::new()];
     mdd_layers[0].insert(agent.start);
+
     let mut open_list = BTreeSet::new();
     let mut closed_list = BTreeSet::new();
 
@@ -182,7 +183,7 @@ mod tests {
     use super::*;
     use crate::common::Agent;
 
-    // Helper function to extract path from SearchResult
+    // Helper function to extract path from SearchResult.
     fn get_path_from_result(result: SearchResult) -> Option<(Path, usize)> {
         match result {
             SearchResult::Standard(result) => result,
@@ -284,16 +285,16 @@ mod tests {
             assert_eq!(path.len(), 20);
             println!("{mdd:?}");
 
-            // Start position should be singleton
+            // Start position should be singleton.
             assert!(mdd.is_singleton_at_position(0, (25, 14)));
 
-            // Critical points where path has no alternatives should be singletons
+            // Critical points where path has no alternatives should be singletons.
             assert!(mdd.is_singleton_at_position(8, (17, 14)));
 
-            // Points with potential alternatives should not be singletons
+            // Points with potential alternatives should not be singletons.
             assert!(!mdd.is_singleton_at_position(15, (14, 19))); // Around (14, 19)
 
-            // Check some MDD layer sizes for bottleneck points
+            // Check some MDD layer sizes for bottleneck points.
             assert_eq!(mdd.layers[8].len(), 1); // Turning point
             assert!(mdd.layers[13].len() > 1); // Area with alternatives
 
@@ -330,16 +331,16 @@ mod tests {
             assert_eq!(path.len(), 21);
             println!("{mdd:?}");
 
-            // Start position should be singleton
+            // Start position should be singleton.
             assert!(mdd.is_singleton_at_position(0, (25, 14)));
 
-            // Critical points where path has no alternatives should be singletons
+            // Critical points where path has no alternatives should be singletons.
             assert!(mdd.is_singleton_at_position(9, (17, 14)));
 
-            // Points with potential alternatives should not be singletons
+            // Points with potential alternatives should not be singletons.
             assert!(!mdd.is_singleton_at_position(16, (14, 19))); // Around (14, 19)
 
-            // Check some MDD layer sizes for bottleneck points
+            // Check some MDD layer sizes for bottleneck points.
             assert_eq!(mdd.layers[9].len(), 1); // Turning point
             assert!(mdd.layers[14].len() > 1); // Area with alternatives
 
@@ -376,16 +377,16 @@ mod tests {
             assert_eq!(path.len(), 31);
             println!("{mdd:?}");
 
-            // Start position should be singleton
+            // Start position should be singleton.
             assert!(mdd.is_singleton_at_position(0, (25, 14)));
 
-            // Critical points where path has no alternatives should be singletons
+            // Critical points where path has no alternatives should be singletons.
             assert!(!mdd.is_singleton_at_position(9, (17, 14)));
 
-            // Points with potential alternatives should not be singletons
+            // Points with potential alternatives should not be singletons.
             assert!(!mdd.is_singleton_at_position(16, (14, 19))); // Around (14, 19)
 
-            // Check some MDD layer sizes for bottleneck points
+            // Check some MDD layer sizes for bottleneck points.
             assert!(mdd.layers[9].len() > 1); // Turning point
             assert!(mdd.layers[14].len() > 1); // Area with alternatives
 

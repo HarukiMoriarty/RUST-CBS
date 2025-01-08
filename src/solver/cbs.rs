@@ -71,11 +71,9 @@ impl Solver for CBS {
                             if child.cost == current_node.cost
                                 && child.conflicts.len() < current_node.conflicts.len()
                             {
-                                open.insert(current_node.update_bypass_path(
-                                    child.paths[conflict.agent_1].clone(),
-                                    child.conflicts.clone(),
-                                    conflict.agent_1,
-                                ));
+                                open.insert(
+                                    current_node.update_bypass_path(child, conflict.agent_1),
+                                );
                                 self.stats.high_level_expand_nodes += 1;
                                 continue;
                             }
@@ -95,11 +93,9 @@ impl Solver for CBS {
                             if child.cost == current_node.cost
                                 && child.conflicts.len() < current_node.conflicts.len()
                             {
-                                open.insert(current_node.update_bypass_path(
-                                    child.paths[conflict.agent_2].clone(),
-                                    child.conflicts.clone(),
-                                    conflict.agent_2,
-                                ));
+                                open.insert(
+                                    current_node.update_bypass_path(child, conflict.agent_2),
+                                );
                                 self.stats.high_level_expand_nodes += 1;
                                 continue;
                             }

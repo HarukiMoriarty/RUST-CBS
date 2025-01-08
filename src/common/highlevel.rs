@@ -443,13 +443,14 @@ impl HighLevelOpenNode {
 
     pub(crate) fn update_bypass_path(
         &self,
-        new_path: Path,
-        new_conflicts: Vec<Conflict>,
+        new_node: &HighLevelOpenNode,
         agent_id: usize,
     ) -> HighLevelOpenNode {
         let mut bypass_node = self.clone();
-        bypass_node.paths[agent_id] = new_path;
-        bypass_node.conflicts = new_conflicts;
+        bypass_node.paths[agent_id] = new_node.paths[agent_id].clone();
+        bypass_node.conflicts = new_node.conflicts.clone();
+        bypass_node.path_length_constraints[agent_id] = new_node.path_length_constraints[agent_id];
+        bypass_node.mdds[agent_id] = new_node.mdds[agent_id].clone();
         bypass_node
     }
 
