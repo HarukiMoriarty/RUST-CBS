@@ -59,7 +59,7 @@ impl Solver for BCBS {
                                 && child.conflicts.len() < current_open_node.conflicts.len()
                             {
                                 open.insert(
-                                    current_open_node.update_bypass_path(child, conflict.agent_1),
+                                    current_open_node.update_bypass_node(child, conflict.agent_1),
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;
@@ -82,7 +82,7 @@ impl Solver for BCBS {
                                 && child.conflicts.len() < current_open_node.conflicts.len()
                             {
                                 open.insert(
-                                    current_open_node.update_bypass_path(child, conflict.agent_2),
+                                    current_open_node.update_bypass_node(child, conflict.agent_2),
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;

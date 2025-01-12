@@ -34,7 +34,7 @@ impl Solver for CBS {
         {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
-                let conflict = if config.op_prioritize_conflicts {
+                let conflict = if config.op_prioritize_conflicts || config.op_bypass_conflicts {
                     current_node
                         .conflicts
                         .iter()
@@ -57,6 +57,7 @@ impl Solver for CBS {
 
                 if let Some(conflict) = conflict {
                     debug!("conflict: {conflict:?}");
+                    let mut bypass = false;
 
                     let child_1 = current_node.update_constraint(
                         conflict,
@@ -72,10 +73,10 @@ impl Solver for CBS {
                                 && child.conflicts.len() < current_node.conflicts.len()
                             {
                                 open.insert(
-                                    current_node.update_bypass_path(child, conflict.agent_1),
+                                    current_node.update_bypass_node(child, conflict.agent_1),
                                 );
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
                     }
@@ -94,12 +95,16 @@ impl Solver for CBS {
                                 && child.conflicts.len() < current_node.conflicts.len()
                             {
                                 open.insert(
-                                    current_node.update_bypass_path(child, conflict.agent_2),
+                                    current_node.update_bypass_node(child, conflict.agent_2),
                                 );
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
+                    }
+
+                    if bypass {
+                        continue;
                     }
 
                     if let Some(child) = child_1 {
