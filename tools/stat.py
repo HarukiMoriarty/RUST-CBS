@@ -95,13 +95,13 @@ def check_solver_costs(data: pd.DataFrame) -> None:
         if cbs_data.empty or (cbs_data['costs'] == MAX_INT).all():
             continue
 
-        # Skip timeouts
-        success_runs = cbs_data['costs'] != MAX_INT
-
+        # Filter successful runs
+        cbs_success_data = cbs_data[cbs_data['costs'] != MAX_INT]
+        
         # Check if CBS produces consistent costs across runs with same configuration
-        if not (success_runs['costs'] == success_runs['costs'].iloc[0]).all():
+        if not (cbs_success_data['costs'] == cbs_success_data['costs'].iloc[0]).all():
             config = dict(zip(group_params, group[group_params].iloc[0]))
-            costs = success_runs['costs'].unique()
+            costs = cbs_success_data['costs'].unique()
             LOG.warning(f"CBS cost inconsistency found - Configuration: {config}, Costs: {costs}")
             
         cbs_min_cost = cbs_data['costs'].min()

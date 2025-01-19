@@ -1,4 +1,4 @@
-use super::Solver;
+use super::{sub_optimal_bypass_comparation, Solver};
 use crate::common::{Agent, HighLevelOpenNode, Solution};
 use crate::config::Config;
 use crate::map::Map;
@@ -44,6 +44,7 @@ impl Solver for ECBS {
                 open.remove(&current_open_node);
                 if let Some(conflict) = current_open_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
+                    let mut bypass = false;
 
                     let child_1 = current_open_node.update_constraint(
                         conflict,
@@ -55,15 +56,17 @@ impl Solver for ECBS {
 
                     if config.op_bypass_conflicts {
                         if let Some(ref child) = child_1 {
-                            if child.cost <= current_open_node.cost
-                                && child.conflicts.len() < current_open_node.conflicts.len()
-                            {
+                            if sub_optimal_bypass_comparation(
+                                &current_open_node,
+                                child,
+                                subopt_factor,
+                            ) {
                                 open.insert(
                                     current_open_node.update_bypass_node(child, conflict.agent_1),
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
                     }
@@ -78,17 +81,23 @@ impl Solver for ECBS {
 
                     if config.op_bypass_conflicts {
                         if let Some(ref child) = child_2 {
-                            if child.cost <= current_open_node.cost
-                                && child.conflicts.len() < current_open_node.conflicts.len()
-                            {
+                            if sub_optimal_bypass_comparation(
+                                &current_open_node,
+                                child,
+                                subopt_factor,
+                            ) {
                                 open.insert(
                                     current_open_node.update_bypass_node(child, conflict.agent_2),
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
+                    }
+
+                    if bypass {
+                        continue;
                     }
 
                     if let Some(child) = child_1 {

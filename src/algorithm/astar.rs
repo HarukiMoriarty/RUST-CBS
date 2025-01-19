@@ -6,7 +6,7 @@ use crate::stat::Stats;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use tracing::{debug, instrument, trace};
 
-#[instrument(skip_all, name="low_level_standard_a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+#[instrument(skip_all, name="standard_a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn standard_a_star_search(
     map: &Map,
     agent: &Agent,

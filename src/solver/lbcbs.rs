@@ -1,4 +1,4 @@
-use super::Solver;
+use super::{sub_optimal_bypass_comparation, Solver};
 use crate::common::{Agent, HighLevelOpenNode, Solution};
 use crate::config::Config;
 use crate::map::Map;
@@ -36,6 +36,7 @@ impl Solver for LBCBS {
             while let Some(current_node) = open.pop_first() {
                 if let Some(conflict) = current_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
+                    let mut bypass = false;
 
                     let child_1 = current_node.update_constraint(
                         conflict,
@@ -47,14 +48,16 @@ impl Solver for LBCBS {
 
                     if config.op_bypass_conflicts {
                         if let Some(ref child) = child_1 {
-                            if child.cost == current_node.cost
-                                && child.conflicts.len() < current_node.conflicts.len()
-                            {
+                            if sub_optimal_bypass_comparation(
+                                &current_node,
+                                child,
+                                config.sub_optimal.1.unwrap(),
+                            ) {
                                 open.insert(
                                     current_node.update_bypass_node(child, conflict.agent_1),
                                 );
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
                     }
@@ -69,16 +72,22 @@ impl Solver for LBCBS {
 
                     if config.op_bypass_conflicts {
                         if let Some(ref child) = child_2 {
-                            if child.cost == current_node.cost
-                                && child.conflicts.len() < current_node.conflicts.len()
-                            {
+                            if sub_optimal_bypass_comparation(
+                                &current_node,
+                                child,
+                                config.sub_optimal.1.unwrap(),
+                            ) {
                                 open.insert(
                                     current_node.update_bypass_node(child, conflict.agent_2),
                                 );
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
+                    }
+
+                    if bypass {
+                        continue;
                     }
 
                     if let Some(child) = child_1 {

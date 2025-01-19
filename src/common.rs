@@ -84,10 +84,8 @@ impl Solution {
                     return false;
                 }
 
-                if time_step >= 1 {
-                    let prev_pos = path
-                        .get(time_step - 1)
-                        .unwrap_or_else(|| path.last().unwrap());
+                if time_step >= 1 && time_step < path.len() {
+                    let prev_pos = path.get(time_step - 1).unwrap();
                     if prev_pos != pos {
                         let edge = (prev_pos, pos);
                         let reverse_edge = (pos, prev_pos);

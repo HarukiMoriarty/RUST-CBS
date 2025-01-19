@@ -46,6 +46,7 @@ impl Solver for HBCBS {
 
                 if let Some(conflict) = current_open_node.conflicts.first() {
                     debug!("conflict: {conflict:?}");
+                    let mut bypass = false;
 
                     let child_1 = current_open_node.update_constraint(
                         conflict,
@@ -65,7 +66,7 @@ impl Solver for HBCBS {
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
                     }
@@ -88,9 +89,13 @@ impl Solver for HBCBS {
                                 );
                                 focal.insert(child.to_focal_node());
                                 self.stats.high_level_expand_nodes += 1;
-                                continue;
+                                bypass = true;
                             }
                         }
+                    }
+
+                    if bypass {
+                        continue;
                     }
 
                     if let Some(child) = child_1 {

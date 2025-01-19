@@ -10,6 +10,12 @@ use crate::common::Path;
 
 type Trace = HashMap<((usize, usize), usize), ((usize, usize), usize)>;
 
+// TODO: different kinds of hc
+// h1: Number of conflicts
+// h2: Number of conflicting agents
+// h3: Number of pairs
+// h4: Vertex Cover
+// h5: Alternating heuristic
 fn heuristic_focal(
     agent: usize,
     position: (usize, usize),
@@ -17,6 +23,9 @@ fn heuristic_focal(
     time: usize,
     paths: &[Path],
 ) -> usize {
+    // Tricky: we never call this function when time step is 0.
+    assert_ne!(time, 0);
+
     let mut conflict_count = 0;
 
     for (agent_id, path) in paths.iter().enumerate() {
@@ -32,7 +41,10 @@ fn heuristic_focal(
         }
 
         // Check for edge conflict.
-        let other_prev_position = path.get(time - 1).unwrap_or_else(|| path.last().unwrap());
+        if time >= path.len() {
+            continue;
+        }
+        let other_prev_position = path.get(time - 1).unwrap();
         if (*other_position == prev_position) && (*other_prev_position == position) {
             conflict_count += 1;
         }

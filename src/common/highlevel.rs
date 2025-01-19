@@ -450,6 +450,9 @@ impl HighLevelOpenNode {
         bypass_node.paths[agent_id] = new_node.paths[agent_id].clone();
         bypass_node.conflicts = new_node.conflicts.clone();
         bypass_node.mdds[agent_id] = new_node.mdds[agent_id].clone();
+        // Notice: for focal search, bypass node cost might not be equal.
+        bypass_node.cost = new_node.cost;
+        bypass_node.low_level_f_min_agents[agent_id] = new_node.low_level_f_min_agents[agent_id];
         bypass_node
     }
 
