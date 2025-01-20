@@ -107,7 +107,7 @@ impl HighLevelOpenNode {
         let mut total_cost = 0;
 
         for agent in agents {
-            let (path, cost, mdd) = match solver {
+            let (path, low_level_f_min, mdd) = match solver {
                 "cbs" | "hbcbs" => match a_star_search(
                     map,
                     agent,
@@ -116,8 +116,12 @@ impl HighLevelOpenNode {
                     config.op_prioritize_conflicts,
                     stats,
                 ) {
-                    SearchResult::Standard(Some((path, cost))) => (path, cost, None),
-                    SearchResult::WithMDD(Some((path, cost, mdd))) => (path, cost, Some(mdd)),
+                    SearchResult::Standard(Some((path, low_level_f_min))) => {
+                        (path, low_level_f_min, None)
+                    }
+                    SearchResult::WithMDD(Some((path, low_level_f_min, mdd))) => {
+                        (path, low_level_f_min, Some(mdd))
+                    }
                     _ => return None,
                 },
                 "lbcbs" | "bcbs" | "ecbs" | "decbs" => match focal_a_star_search(
@@ -131,16 +135,21 @@ impl HighLevelOpenNode {
                     config.op_prioritize_conflicts,
                     stats,
                 ) {
-                    SearchResult::Standard(Some((path, cost))) => (path, cost, None),
-                    SearchResult::WithMDD(Some((path, cost, mdd))) => (path, cost, Some(mdd)),
+                    SearchResult::Standard(Some((path, low_level_f_min))) => {
+                        (path, low_level_f_min, None)
+                    }
+                    SearchResult::WithMDD(Some((path, low_level_f_min, mdd))) => {
+                        (path, low_level_f_min, Some(mdd))
+                    }
                     _ => return None,
                 },
                 _ => unreachable!(),
             };
 
+            // Notice: path include start node.
             total_cost += path.len() - 1;
             paths.insert(agent.id, path);
-            low_level_f_min_agents.push(cost);
+            low_level_f_min_agents.push(low_level_f_min);
             mdds.push(mdd);
         }
 
@@ -172,8 +181,8 @@ impl HighLevelOpenNode {
                 let mdd2 = &self.mdds[j];
 
                 // Start from 1 since:
-                // 1. Initial positions (step 0) can't have vertex conflicts (agents start at different positions)
-                // 2. Edge conflicts need previous step, so can only start from step 1
+                // 1. Initial positions (step 0) can't have vertex conflicts (agents start at different positions).
+                // 2. Edge conflicts need previous step, so can only start from step 1.
                 for step in 1..max_length {
                     let pos1 = if step < path1.len() {
                         path1[step]
@@ -251,7 +260,7 @@ impl HighLevelOpenNode {
                         }
                     }
 
-                    // Check for Edge Conflict
+                    // Check for Edge Conflict.
                     if step >= path1.len() || step >= path2.len() {
                         continue;
                     }
@@ -262,7 +271,7 @@ impl HighLevelOpenNode {
                     if prev_pos1 == pos2 && prev_pos2 == pos1 {
                         let cardinal_type = match (&mdd1, &mdd2) {
                             (Some(mdd1), Some(mdd2)) => {
-                                // For edge conflicts, need singletons at both t-1 and t
+                                // For edge conflicts, need singletons at both t-1 and t.
                                 let agent1_singleton = mdd1
                                     .is_singleton_at_position(step - 1, prev_pos1)
                                     && mdd1.is_singleton_at_position(step, pos1);
@@ -399,7 +408,7 @@ impl HighLevelOpenNode {
             "lbcbs" | "bcbs" | "ecbs" => match focal_a_star_search(
                 map,
                 &self.agents[agent_to_update],
-                Some(self.low_level_f_min_agents[agent_to_update]),
+                Some(0),
                 config.sub_optimal.1.unwrap(),
                 &new_constraints[agent_to_update],
                 new_path_length_constraints[agent_to_update],
@@ -440,10 +449,10 @@ impl HighLevelOpenNode {
         debug!(
                 "Update agent {agent_to_update:?} with path {new_path:?} for conflict {conflict:?}, new f min {new_low_level_f_min:?}"
             );
-        let old_agent_cost = new_paths[agent_to_update].len() - 1;
-        let new_agent_cost = new_path.len() - 1;
+
+        // Notice: actually path include start point, calculation here counterbalance each other.
+        let new_cost = self.cost - new_paths[agent_to_update].len() + new_path.len();
         new_paths[agent_to_update] = new_path;
-        let new_cost = self.cost - old_agent_cost + new_agent_cost;
         new_low_level_f_min_agents[agent_to_update] = new_low_level_f_min;
         new_mdds[agent_to_update] = new_mdd;
 
