@@ -34,7 +34,7 @@ impl Solver for CBS {
         {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
-                let conflict = if config.op_prioritize_conflicts || config.op_bypass_conflicts {
+                let conflict = if config.op_prioritize_conflicts {
                     current_node
                         .conflicts
                         .iter()
@@ -50,6 +50,12 @@ impl Solver for CBS {
                                 .conflicts
                                 .iter()
                                 .find(|c| c.cardinal_type == CardinalType::NonCardinal)
+                        })
+                        .or_else(|| {
+                            current_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::Unknown)
                         })
                 } else {
                     current_node.conflicts.first()

@@ -1,5 +1,7 @@
 use super::{construct_path, heuristic_focal, standard_a_star_search};
-use crate::common::{Agent, Constraint, LowLevelFocalNode, LowLevelOpenNode, Path, SearchResult};
+use crate::common::{
+    Agent, Constraint, LowLevelFocalNode, LowLevelOpenNode, Mdd, Path, SearchResult,
+};
 use crate::map::Map;
 use crate::stat::Stats;
 
@@ -16,10 +18,23 @@ pub(crate) fn focal_a_star_search(
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
     paths: &[Path],
+    build_mdd: bool,
     stats: &mut Stats,
 ) -> SearchResult {
-    // TODO: update Mdd
-    SearchResult::Standard(standard_focal_a_star_search(
+    if !build_mdd {
+        return SearchResult::Standard(standard_focal_a_star_search(
+            map,
+            agent,
+            last_search_f_min,
+            subopt_factor,
+            constraints,
+            path_length_constraint,
+            paths,
+            stats,
+        ));
+    }
+
+    let (sub_optimal_result, f_min) = match standard_focal_a_star_search(
         map,
         agent,
         last_search_f_min,
@@ -28,7 +43,83 @@ pub(crate) fn focal_a_star_search(
         path_length_constraint,
         paths,
         stats,
-    ))
+    ) {
+        Some((sub_optimal_result, f_min)) => (sub_optimal_result, f_min),
+        None => return SearchResult::WithMDD(None),
+    };
+
+    // Build MDD using sub optimal f min.
+    if sub_optimal_result.len() - 1 == f_min {
+        let mut mdd_layers = vec![HashSet::new()];
+        mdd_layers[0].insert(agent.start);
+
+        let mut open_list = BTreeSet::new();
+        let mut closed_list = BTreeSet::new();
+
+        let start_node = LowLevelOpenNode {
+            position: agent.start,
+            f_open_cost: map.heuristic[agent.id][agent.start.0][agent.start.1],
+            g_cost: 0,
+        };
+        open_list.insert(start_node);
+
+        while let Some(current) = open_list.pop_first() {
+            trace!("expand node: {current:?}");
+
+            // Update stats.
+            stats.low_level_mdd_expand_open_nodes += 1;
+
+            closed_list.insert((current.position, current.g_cost));
+
+            // Assuming uniform cost, which also indicate the current time.
+            let tentative_g_cost = current.g_cost + 1;
+
+            while mdd_layers.len() <= tentative_g_cost && tentative_g_cost <= f_min {
+                mdd_layers.push(HashSet::new());
+            }
+
+            // Expand nodes from the current position.
+            for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+                // Checck node (position at current time) has closed.
+                if closed_list.contains(&(*neighbor, tentative_g_cost)) {
+                    continue;
+                }
+
+                // Check for constraints before exploring the neighbor.
+                if constraints
+                    .iter()
+                    .any(|c| c.is_violated(*neighbor, tentative_g_cost))
+                {
+                    continue;
+                }
+
+                let f_cost = tentative_g_cost + map.heuristic[agent.id][neighbor.0][neighbor.1];
+
+                // Check for optimal solution
+                if f_cost > f_min {
+                    continue;
+                }
+
+                let new_node = LowLevelOpenNode {
+                    position: *neighbor,
+                    f_open_cost: f_cost,
+                    g_cost: tentative_g_cost,
+                };
+
+                if open_list.insert(new_node) {
+                    mdd_layers[tentative_g_cost].insert(*neighbor);
+                }
+            }
+        }
+
+        SearchResult::WithMDD(Some((
+            sub_optimal_result,
+            f_min,
+            Mdd { layers: mdd_layers },
+        )))
+    } else {
+        SearchResult::Standard(Some((sub_optimal_result, f_min)))
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

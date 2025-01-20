@@ -1,5 +1,5 @@
 use super::{sub_optimal_bypass_comparation, Solver};
-use crate::common::{Agent, HighLevelOpenNode, Solution};
+use crate::common::{Agent, CardinalType, HighLevelOpenNode, Solution};
 use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
@@ -42,7 +42,35 @@ impl Solver for DECBS {
                 let old_f_min: usize = open.first().unwrap().low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);
-                if let Some(conflict) = current_open_node.conflicts.first() {
+
+                let conflict = if config.op_prioritize_conflicts {
+                    current_open_node
+                        .conflicts
+                        .iter()
+                        .find(|c| c.cardinal_type == CardinalType::Cardinal)
+                        .or_else(|| {
+                            current_open_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::SemiCardinal)
+                        })
+                        .or_else(|| {
+                            current_open_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::NonCardinal)
+                        })
+                        .or_else(|| {
+                            current_open_node
+                                .conflicts
+                                .iter()
+                                .find(|c| c.cardinal_type == CardinalType::Unknown)
+                        })
+                } else {
+                    current_open_node.conflicts.first()
+                };
+
+                if let Some(conflict) = conflict {
                     debug!("conflict: {conflict:?}");
                     let mut bypass = false;
 

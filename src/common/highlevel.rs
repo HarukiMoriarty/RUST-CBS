@@ -32,6 +32,7 @@ pub(crate) enum CardinalType {
     Cardinal,
     SemiCardinal,
     NonCardinal,
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -127,6 +128,7 @@ impl HighLevelOpenNode {
                     &HashSet::new(),
                     0,
                     &paths,
+                    config.op_prioritize_conflicts,
                     stats,
                 ) {
                     SearchResult::Standard(Some((path, cost))) => (path, cost, None),
@@ -199,7 +201,15 @@ impl HighLevelOpenNode {
                                     CardinalType::NonCardinal
                                 }
                             }
-                            _ => CardinalType::NonCardinal,
+                            (Some(mdd), None) | (None, Some(mdd)) => {
+                                let singlenton = mdd.is_singleton_at_position(step, pos1);
+                                if singlenton {
+                                    CardinalType::SemiCardinal
+                                } else {
+                                    CardinalType::NonCardinal
+                                }
+                            }
+                            _ => CardinalType::Unknown,
                         };
 
                         // Check for target conflicts first
@@ -268,7 +278,16 @@ impl HighLevelOpenNode {
                                     CardinalType::NonCardinal
                                 }
                             }
-                            _ => CardinalType::NonCardinal,
+                            (Some(mdd), None) | (None, Some(mdd)) => {
+                                let singlenton = mdd.is_singleton_at_position(step - 1, prev_pos1)
+                                    && mdd.is_singleton_at_position(step, pos1);
+                                if singlenton {
+                                    CardinalType::SemiCardinal
+                                } else {
+                                    CardinalType::NonCardinal
+                                }
+                            }
+                            _ => CardinalType::Unknown,
                         };
 
                         conflicts.push(Conflict {
@@ -385,6 +404,7 @@ impl HighLevelOpenNode {
                 &new_constraints[agent_to_update],
                 new_path_length_constraints[agent_to_update],
                 &self.paths,
+                config.op_prioritize_conflicts,
                 stats,
             ) {
                 SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {
@@ -403,6 +423,7 @@ impl HighLevelOpenNode {
                 &new_constraints[agent_to_update],
                 new_path_length_constraints[agent_to_update],
                 &self.paths,
+                config.op_prioritize_conflicts,
                 stats,
             ) {
                 SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {

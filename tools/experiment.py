@@ -66,7 +66,7 @@ def get_optimization_flags(opt_level: str) -> tuple[bool, bool, bool]:
         "none": (False, False, False),    # No optimizations
         "bc": (False, True, False),       # Only Bypass Conflicts
         "pc": (True, False, False),       # Only Prioritize Conflicts
-        "tr": (False, True, True),        # Only Target Reasoning
+        "tr": (False, False, True),        # Only Target Reasoning
         "pc_bc": (True, True, False),     # PC + Bypass Conflicts
         "all": (True, True, True)         # All optimizations
     }
