@@ -19,7 +19,8 @@ MAX_INT = np.iinfo(np.int64).max
 TIMEOUT_VALUE = 'timeout'
 REQUIRED_COLUMNS = [
     'num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR',
-    'solver', 'costs', 'time(us)', 'high_level_expanded',
+    'solver', 'high_level_suboptimal', 'low_level_suboptimal',
+    'costs', 'time(us)', 'high_level_expanded',
     'low_level_open_expanded', 'low_level_focal_expanded',
     'low_level_mdd_open_expanded', 'low_level_mdd_focal_expanded',
     'total_low_level_expanded'
@@ -36,7 +37,7 @@ def load_and_clean_data(file_path: str) -> pd.DataFrame:
         Cleaned DataFrame with proper timeout handling
     """
     try:
-        data = pd.read_csv(file_path)
+        data = pd.read_csv(file_path, keep_default_na=False)
         
         # Verify required columns exist
         missing_cols = [col for col in REQUIRED_COLUMNS if col not in data.columns]
@@ -53,7 +54,8 @@ def load_and_clean_data(file_path: str) -> pd.DataFrame:
         # Set other metrics to MAX_INT for timeout cases
         timeout_columns = [
             'time(us)', 'high_level_expanded', 'low_level_open_expanded',
-            'low_level_focal_expanded', 'low_level_mdd_open_expanded', 'low_level_mdd_focal_expanded', 'total_low_level_expanded'
+            'low_level_focal_expanded', 'low_level_mdd_open_expanded', 
+            'low_level_mdd_focal_expanded', 'total_low_level_expanded'
         ]
         data.loc[timeout_mask, timeout_columns] = MAX_INT
         
@@ -79,46 +81,49 @@ def compute_stats(data: pd.Series) -> Tuple[float, float, float]:
 
 def check_solver_costs(data: pd.DataFrame) -> None:
     """
-    Check if any solver produces lower costs than CBS for the same configuration.
+    Check if:
+    1. CBS produces consistent optimal costs across all configurations for same (num_agents, seed)
+    2. No other solver produces lower costs than CBS
     
     Args:
         data: DataFrame containing experiment results
     """
-    # Group by all parameters except solver
-    group_params = ['num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR']
-    
-    for _, group in data.groupby(group_params):
-        # Get CBS data for this configuration
+    # First check CBS consistency across all configurations
+    for _, group in data.groupby(['num_agents', 'seed']):
+        # Get all CBS results for this num_agents and seed
         cbs_data = group[group['solver'] == 'cbs']
         
-        # Skip if no CBS data or CBS timed out
+        # Skip if no CBS data or all CBS runs timed out
         if cbs_data.empty or (cbs_data['costs'] == MAX_INT).all():
             continue
-
-        # Filter successful runs
+            
+        # Filter successful CBS runs
         cbs_success_data = cbs_data[cbs_data['costs'] != MAX_INT]
         
-        # Check if CBS produces consistent costs across runs with same configuration
-        if not (cbs_success_data['costs'] == cbs_success_data['costs'].iloc[0]).all():
-            config = dict(zip(group_params, group[group_params].iloc[0]))
+        if len(cbs_success_data['costs'].unique()) > 1:
             costs = cbs_success_data['costs'].unique()
-            LOG.warning(f"CBS cost inconsistency found - Configuration: {config}, Costs: {costs}")
-            
-        cbs_min_cost = cbs_data['costs'].min()
+            configs = cbs_success_data[['op_PC', 'op_BC', 'op_TR']].to_dict('records')
+            LOG.warning(
+                f"CBS cost inconsistency found for num_agents={group['num_agents'].iloc[0]}, "
+                f"seed={group['seed'].iloc[0]}\n"
+                f"Costs: {costs}\n"
+                f"Configurations: {configs}"
+            )
         
-        # Check other solvers
-        for solver in group['solver'].unique():
-            if solver == 'cbs':
-                continue
-                
-            solver_data = group[group['solver'] == solver]
-            if solver_data.empty:
-                continue
-                
-            # Check if any solution has lower cost than CBS
-            if (solver_data['costs'] < cbs_min_cost).any():
-                config = dict(zip(group_params, group[group_params].iloc[0]))
-                LOG.warning(f"Cost discrepancy found - Solver: {solver}, Configuration: {config}")
+        # Get the true optimal cost for this problem instance
+        optimal_cost = cbs_success_data['costs'].min()
+        
+        # Check if any other solver produces lower costs
+        other_solvers = group[group['solver'] != 'cbs']
+        for _, solver_data in other_solvers.iterrows():
+            if solver_data['costs'] < optimal_cost:
+                LOG.warning(
+                    f"Cost discrepancy found:\n"
+                    f"Solver: {solver_data['solver']}\n"
+                    f"num_agents={solver_data['num_agents']}, seed={solver_data['seed']}\n"
+                    f"Solver cost: {solver_data['costs']}, CBS optimal cost: {optimal_cost}\n"
+                    f"Configuration: {solver_data[['op_PC', 'op_BC', 'op_TR', 'high_level_suboptimal', 'low_level_suboptimal']].to_dict()}"
+        )
 
 def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
     """
@@ -131,7 +136,8 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
         DataFrame containing computed statistics
     """
     results = []
-    group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR']
+    group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR',
+                  'high_level_suboptimal', 'low_level_suboptimal']
     
     for group_key, group_data in data.groupby(group_cols):
         # Calculate timeout rate

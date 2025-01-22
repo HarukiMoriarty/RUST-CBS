@@ -98,8 +98,8 @@ def generate_combinations(params: ExperimentParameters):
     Yields:
         dict: Parameter combination for a single experiment run
     """
-    # Create base combinations without optimization flags
-    base_keys = [k for k in params.keys() if k != 'optimization_level']
+    # Create base combinations without optimization flags and suboptimality
+    base_keys = [k for k in params.keys() if k not in ['optimization_level', 'sub_optimal']]
     base_values = []
 
     for key in base_keys:
@@ -114,14 +114,23 @@ def generate_combinations(params: ExperimentParameters):
     for base_combination in itertools.product(*base_values):
         base_params = dict(zip(base_keys, base_combination))
         
-        # Add each optimization combination
-        for opt_level in params['optimization_level']:
-            pc, bc, tr = get_optimization_flags(opt_level)
-            full_params = base_params.copy()
-            full_params['op_prioritize_conflicts'] = pc
-            full_params['op_bypass_conflicts'] = bc
-            full_params['op_target_reasoning'] = tr
-            yield full_params
+        # Handle suboptimality based on solver
+        solver = base_params['solver']
+        subopt_values = [1.0] if solver == 'cbs' else params['sub_optimal']
+        
+        for subopt in subopt_values:
+            base_params_with_subopt = base_params.copy()
+            if solver != 'cbs':  # Only add suboptimality for non-CBS solvers
+                base_params_with_subopt['sub_optimal'] = subopt
+            
+            # Add each optimization combination
+            for opt_level in params['optimization_level']:
+                pc, bc, tr = get_optimization_flags(opt_level)
+                full_params = base_params_with_subopt.copy()
+                full_params['op_prioritize_conflicts'] = pc
+                full_params['op_bypass_conflicts'] = bc
+                full_params['op_target_reasoning'] = tr
+                yield full_params
 
 def check_and_create_csv(output_csv_path: str):
     """Initialize CSV file with headers if it doesn't exist.
