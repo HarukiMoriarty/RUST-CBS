@@ -1,8 +1,8 @@
 yaml_path: ["map_file/random-32-32-20-even/random-32-32-20-random-1.scen"]
 map_path: ["map_file/random-32-32-20-even/random-32-32-20.map"]
 num_agents: [45, 60, 75, 90, 105, 120, 135, 150]
-seed_num: 1000
-sub_optimal: [1.02, 1.06, 1.10, 1.14, 1.18]
+seed_num: 200
+sub_optimal: [1.02, 1.04, 1.06, 1.08, 1.10, 1.12, 1.14, 1.16, 1.18, 1.20]
 solver: ["decbs"]
 time_out: 60
 optimization_level: ["none", "bc", "pc_bc", "all"]
