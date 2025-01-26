@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::map::Map;
 use crate::stat::Stats;
 
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::collections::HashSet;
 use std::hash::Hash;
 use tracing::debug;
@@ -23,7 +23,6 @@ pub(crate) enum ConflictType {
     Target {
         position: (usize, usize),
         time_step: usize,
-        extended_agent: usize,
     },
 }
 
@@ -39,8 +38,8 @@ pub(crate) enum CardinalType {
 pub(crate) struct Conflict {
     pub(crate) agent_1: usize,
     pub(crate) agent_2: usize,
-    pub(crate) conflict_type: ConflictType,
-    pub(crate) cardinal_type: CardinalType,
+    pub(crate) conflict_type: ConflictType, // Symmetry Reasoning
+    pub(crate) cardinal_type: CardinalType, // Prioritize Conflicts
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
@@ -229,20 +228,18 @@ impl HighLevelOpenNode {
                                 agent_2: j,
                                 conflict_type: ConflictType::Target {
                                     position: pos1,
-                                    time_step: step, // When agent actually reached target
-                                    extended_agent: i,
+                                    time_step: step,
                                 },
                                 cardinal_type,
                             });
                         } else if step >= path2.len() - 1 && pos2 == self.agents[j].goal {
                             // Agent j is at its target and agent i is interfering
                             conflicts.push(Conflict {
-                                agent_1: i,
-                                agent_2: j,
+                                agent_1: j,
+                                agent_2: i,
                                 conflict_type: ConflictType::Target {
                                     position: pos2,
-                                    time_step: step, // When agent actually reached target
-                                    extended_agent: j,
+                                    time_step: step,
                                 },
                                 cardinal_type,
                             });
@@ -360,13 +357,12 @@ impl HighLevelOpenNode {
             ConflictType::Target {
                 position,
                 time_step,
-                extended_agent,
             } => {
-                if config.op_target_reasoning && extended_agent != agent_to_update {
+                if config.op_target_reasoning && !resolve_first {
                     new_constraints
                         .iter_mut()
                         .enumerate()
-                        .filter(|&(agent, _)| agent != extended_agent)
+                        .filter(|&(agent, _)| agent != agent_to_update)
                         .for_each(|(_, constraints)| {
                             constraints.insert(Constraint {
                                 position,
@@ -382,8 +378,10 @@ impl HighLevelOpenNode {
                     });
                 }
 
-                if extended_agent == agent_to_update {
-                    new_path_length_constraints[agent_to_update] = time_step;
+                // Update path constaints
+                if resolve_first {
+                    new_path_length_constraints[agent_to_update] =
+                        max(new_path_length_constraints[agent_to_update], time_step);
                 }
             }
         }
