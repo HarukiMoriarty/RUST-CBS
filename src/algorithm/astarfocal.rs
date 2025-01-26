@@ -139,9 +139,10 @@ pub(crate) fn standard_focal_a_star_search(
     let mut f_min = if let Some(last_search_f_min) = last_search_f_min {
         last_search_f_min
     } else {
-        standard_a_star_search(map, agent, constraints, path_length_constraint, stats)
-            .unwrap()
-            .1
+        match standard_a_star_search(map, agent, constraints, path_length_constraint, stats) {
+            Some((_, f_min)) => f_min,
+            None => return None,
+        }
     };
 
     // Open list is indexed based on (f_open_cost, time, position)
@@ -300,6 +301,7 @@ pub(crate) fn standard_focal_a_star_search(
             }
         }
     }
+
     debug!("cannot find solution");
     None
 }

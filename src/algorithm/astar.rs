@@ -78,6 +78,7 @@ pub(crate) fn standard_a_star_search(
         trace!("open list {open_list:?}");
     }
 
+    debug!("cannot find solution");
     None
 }
 
