@@ -17,6 +17,7 @@ LOG = logging.getLogger(__name__)
 # Constants
 MAX_INT = np.iinfo(np.int64).max
 TIMEOUT_VALUE = 'timeout'
+SOLVE_FAILURE_VALUE= 'solvefailure'
 REQUIRED_COLUMNS = [
     'num_agents', 'seed', 'op_PC', 'op_BC', 'op_TR',
     'solver', 'high_level_suboptimal', 'low_level_suboptimal',
@@ -44,8 +45,20 @@ def load_and_clean_data(file_path: str) -> pd.DataFrame:
         if missing_cols:
             raise ValueError(f"Missing required columns: {missing_cols}")
         
-        # Create a mask for timeout entries
+        # Create a mask for timeout and solvefailure entries
         timeout_mask = data['costs'].astype(str).str.contains(TIMEOUT_VALUE, na=False)
+        failure_mask = data['costs'].astype(str).str.contains(SOLVE_FAILURE_VALUE, na=False)
+
+        # Log solver failures with details
+        if failure_mask.any():
+            failures = data[failure_mask]
+            for _, row in failures.iterrows():
+                LOG.warning(
+                    f"Solver failure detected:\n"
+                    f"Solver: {row['solver']}\n"
+                    f"num_agents={row['num_agents']}, seed={row['seed']}\n"
+                    f"Configuration: {row[['op_PC', 'op_BC', 'op_TR', 'high_level_suboptimal', 'low_level_suboptimal']].to_dict()}"
+                )
         
         # Convert costs column to numeric, forcing timeout entries to MAX_INT
         data['costs'] = pd.to_numeric(data['costs'], errors='coerce')
