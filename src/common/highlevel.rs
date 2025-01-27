@@ -362,7 +362,7 @@ impl HighLevelOpenNode {
                     new_constraints
                         .iter_mut()
                         .enumerate()
-                        .filter(|&(agent, _)| agent != agent_to_update)
+                        .filter(|&(agent, _)| agent != conflict.agent_1)
                         .for_each(|(_, constraints)| {
                             constraints.insert(Constraint {
                                 position,

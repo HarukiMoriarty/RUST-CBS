@@ -39,6 +39,7 @@ impl Solver for DECBS {
             focal.insert(root.to_focal_node());
             while let Some(current_focal_node) = focal.pop_first() {
                 let current_open_node = current_focal_node.to_open_node();
+                debug!("current node : {current_open_node:?}");
                 let old_f_min: usize = open.first().unwrap().low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);

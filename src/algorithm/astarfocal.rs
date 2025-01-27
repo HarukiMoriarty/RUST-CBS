@@ -49,6 +49,7 @@ pub(crate) fn focal_a_star_search(
     };
 
     // Build MDD using sub optimal f min.
+    debug!("building mdd.");
     if sub_optimal_result.len() - 1 == f_min {
         let mut mdd_layers = vec![HashSet::new()];
         mdd_layers[0].insert(agent.start);
@@ -139,6 +140,7 @@ pub(crate) fn standard_focal_a_star_search(
     let mut f_min = if let Some(last_search_f_min) = last_search_f_min {
         last_search_f_min
     } else {
+        debug!("double search.");
         match standard_a_star_search(map, agent, constraints, path_length_constraint, stats) {
             Some((_, f_min)) => f_min,
             None => return None,
