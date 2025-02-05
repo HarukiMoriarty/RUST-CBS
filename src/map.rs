@@ -81,14 +81,18 @@ impl Map {
         for x in 0..self.height {
             for y in 0..self.width {
                 if self.grid[x][y].passable {
-                    self.grid[x][y].neighbors = self.get_neighbors(x, y);
+                    self.grid[x][y].neighbors = self.get_neighbors(x, y, true);
                 }
             }
         }
     }
 
-    pub fn get_neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        let directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]; // Up, down, left, right, stay
+    pub fn get_neighbors(&self, x: usize, y: usize, allow_stay: bool) -> Vec<(usize, usize)> {
+        let directions: Vec<(i32, i32)> = if allow_stay {
+            vec![(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)] // Up, down, left, right, stay
+        } else {
+            vec![(-1, 0), (1, 0), (0, -1), (0, 1)] // Up, down, left, right
+        };
         let mut neighbors = Vec::new();
 
         for &(dx, dy) in &directions {
@@ -158,7 +162,7 @@ mod tests {
         assert!(!map.is_passable(0, 1));
         assert!(map.is_passable(1, 1));
 
-        let neighbors = map.get_neighbors(1, 1);
+        let neighbors = map.get_neighbors(1, 1, true);
         assert_eq!(neighbors.len(), 3);
         assert!(neighbors.contains(&(2, 1)));
         assert!(neighbors.contains(&(1, 2)));

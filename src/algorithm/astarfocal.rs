@@ -21,6 +21,12 @@ pub(crate) fn focal_a_star_search(
     build_mdd: bool,
     stats: &mut Stats,
 ) -> SearchResult {
+    let constraint_limit_time_step = constraints
+        .iter()
+        .map(|constraint| constraint.time_step)
+        .max()
+        .unwrap_or(0);
+
     if !build_mdd {
         return SearchResult::Standard(standard_focal_a_star_search(
             map,
@@ -29,6 +35,7 @@ pub(crate) fn focal_a_star_search(
             subopt_factor,
             constraints,
             path_length_constraint,
+            constraint_limit_time_step,
             paths,
             stats,
         ));
@@ -41,6 +48,7 @@ pub(crate) fn focal_a_star_search(
         subopt_factor,
         constraints,
         path_length_constraint,
+        constraint_limit_time_step,
         paths,
         stats,
     ) {
@@ -61,6 +69,7 @@ pub(crate) fn focal_a_star_search(
             position: agent.start,
             f_open_cost: map.heuristic[agent.id][agent.start.0][agent.start.1],
             g_cost: 0,
+            time_step: 0,
         };
         open_list.insert(start_node);
 
@@ -80,7 +89,7 @@ pub(crate) fn focal_a_star_search(
             }
 
             // Expand nodes from the current position.
-            for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+            for neighbor in &map.get_neighbors(current.position.0, current.position.1, true) {
                 // Checck node (position at current time) has closed.
                 if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                     continue;
@@ -105,6 +114,7 @@ pub(crate) fn focal_a_star_search(
                     position: *neighbor,
                     f_open_cost: f_cost,
                     g_cost: tentative_g_cost,
+                    time_step: tentative_g_cost,
                 };
 
                 if open_list.insert(new_node) {
@@ -132,16 +142,24 @@ pub(crate) fn standard_focal_a_star_search(
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
+    constraint_limit_time_step: usize,
     paths: &[Path],
     stats: &mut Stats,
 ) -> Option<(Path, usize)> {
-    debug!("constraints: {constraints:?}");
+    debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
 
     let mut f_min = if let Some(last_search_f_min) = last_search_f_min {
         last_search_f_min
     } else {
         debug!("double search.");
-        match standard_a_star_search(map, agent, constraints, path_length_constraint, stats) {
+        match standard_a_star_search(
+            map,
+            agent,
+            constraints,
+            path_length_constraint,
+            constraint_limit_time_step,
+            stats,
+        ) {
             Some((_, f_min)) => f_min,
             None => return None,
         }
@@ -161,6 +179,7 @@ pub(crate) fn standard_focal_a_star_search(
         position: agent.start,
         f_open_cost: start_h_open_cost,
         g_cost: 0,
+        time_step: 0,
     });
     focal_list.insert(LowLevelFocalNode {
         position: agent.start,
@@ -186,6 +205,7 @@ pub(crate) fn standard_focal_a_star_search(
             position: current.position,
             f_open_cost: current.f_open_cost,
             g_cost: current.g_cost,
+            time_step: current.g_cost,
         }));
 
         if current.position == agent.goal && current.g_cost > path_length_constraint {
@@ -200,7 +220,7 @@ pub(crate) fn standard_focal_a_star_search(
         let tentative_g_cost = current.g_cost + 1;
 
         // Expanding nodes from the current position
-        for neighbor in &map.get_neighbors(current.position.0, current.position.1) {
+        for neighbor in &map.get_neighbors(current.position.0, current.position.1, true) {
             // If node (position at current time) has closed, ignore.
             if closed_list.contains(&(*neighbor, tentative_g_cost)) {
                 continue;
@@ -231,6 +251,7 @@ pub(crate) fn standard_focal_a_star_search(
                 position: *neighbor,
                 f_open_cost,
                 g_cost: tentative_g_cost,
+                time_step: tentative_g_cost,
             }) {
                 trace.insert(
                     (*neighbor, tentative_g_cost),
