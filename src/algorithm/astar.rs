@@ -69,11 +69,10 @@ pub(crate) fn standard_a_star_search(
                 continue;
             }
 
-            // Check for constraints before exploring the neighbor.
-            if !exceed_constraints_limit_time_step
-                && constraints
-                    .iter()
-                    .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
+            // Check for constraints before exploring the neighbor
+            if constraints
+                .iter()
+                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
             {
                 continue; // This move is prohibited due to a constraint.
             }
@@ -176,10 +175,9 @@ pub(crate) fn a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if current.time_step <= constraint_limit_time_step
-                && constraints
-                    .iter()
-                    .any(|c| c.is_violated(*neighbor, tentative_g_cost))
+            if constraints
+                .iter()
+                .any(|c| c.is_violated(*neighbor, tentative_g_cost))
             {
                 continue;
             }
