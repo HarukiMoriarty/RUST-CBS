@@ -32,6 +32,7 @@ pub(crate) struct LowLevelFocalNode {
     pub(crate) f_focal_cost: usize,
     pub(crate) f_open_cost: usize,
     pub(crate) g_cost: usize,
+    pub(crate) time_step: usize,
 }
 
 impl Ord for LowLevelFocalNode {
@@ -40,6 +41,8 @@ impl Ord for LowLevelFocalNode {
             .cmp(&other.f_focal_cost)
             .then_with(|| self.f_open_cost.cmp(&other.f_open_cost))
             .then_with(|| self.g_cost.cmp(&other.g_cost).reverse())
+            // Tricky thing: if g cost is the same, then time step must be same;
+            // if time step is the same, g cost might be different.
             .then_with(|| self.position.cmp(&other.position))
     }
 }

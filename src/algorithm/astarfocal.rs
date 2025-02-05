@@ -56,7 +56,7 @@ pub(crate) fn focal_a_star_search(
         None => return SearchResult::WithMDD(None),
     };
 
-    // Build MDD using sub optimal f min.
+    // Build MDD using optimal f min.
     debug!("building mdd.");
     if sub_optimal_result.len() - 1 == f_min {
         let mut mdd_layers = vec![HashSet::new()];
@@ -165,7 +165,7 @@ pub(crate) fn standard_focal_a_star_search(
         }
     };
 
-    // Open list is indexed based on (f_open_cost, time, position)
+    // Open list is indexed based on (f_open_cost, g_cost(time), position)
     let mut open_list = BTreeSet::new();
     let mut focal_list = BTreeSet::new();
     let mut closed_list = HashSet::new();
@@ -186,16 +186,18 @@ pub(crate) fn standard_focal_a_star_search(
         f_focal_cost: 0,
         f_open_cost: start_h_open_cost,
         g_cost: 0,
+        time_step: 0,
     });
     f_focal_cost_map.insert((agent.start, 0), 0);
 
     while let Some(current) = focal_list.pop_first() {
         trace!("expand node: {current:?}");
+        let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
 
         // Update stats.
         stats.low_level_expand_focal_nodes += 1;
 
-        closed_list.insert((current.position, current.g_cost));
+        closed_list.insert((current.position, current.time_step));
 
         // Use last search f min to speed search.
         f_min = max(open_list.first().unwrap().f_open_cost, f_min);
@@ -211,7 +213,7 @@ pub(crate) fn standard_focal_a_star_search(
         if current.position == agent.goal && current.g_cost > path_length_constraint {
             debug!("find solution with f min {f_min:?}");
             return Some((
-                construct_path(&trace, (current.position, current.g_cost)),
+                construct_path(&trace, (current.position, current.time_step)),
                 f_min,
             ));
         }
@@ -219,10 +221,23 @@ pub(crate) fn standard_focal_a_star_search(
         // Assuming uniform cost.
         let tentative_g_cost = current.g_cost + 1;
 
+        // time step only increase if we haven't passed constraint limit
+        // Tricky: after constraint limit, we fixed time step as T + 1, algorithm
+        // demote to 2-D a star, enable branch pruning
+        let tentative_time_step = if exceed_constraints_limit_time_step {
+            current.time_step
+        } else {
+            current.time_step + 1
+        };
+
         // Expanding nodes from the current position
-        for neighbor in &map.get_neighbors(current.position.0, current.position.1, true) {
+        for neighbor in &map.get_neighbors(
+            current.position.0,
+            current.position.1,
+            !exceed_constraints_limit_time_step,
+        ) {
             // If node (position at current time) has closed, ignore.
-            if closed_list.contains(&(*neighbor, tentative_g_cost)) {
+            if closed_list.contains(&(*neighbor, tentative_time_step)) {
                 continue;
             }
 
@@ -251,11 +266,11 @@ pub(crate) fn standard_focal_a_star_search(
                 position: *neighbor,
                 f_open_cost,
                 g_cost: tentative_g_cost,
-                time_step: tentative_g_cost,
+                time_step: tentative_time_step,
             }) {
                 trace.insert(
-                    (*neighbor, tentative_g_cost),
-                    (current.position, current.g_cost),
+                    (*neighbor, tentative_time_step),
+                    (current.position, current.time_step),
                 );
                 f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
 
@@ -266,6 +281,7 @@ pub(crate) fn standard_focal_a_star_search(
                         f_focal_cost,
                         f_open_cost,
                         g_cost: tentative_g_cost,
+                        time_step: tentative_time_step,
                     });
                 }
             }
@@ -285,18 +301,21 @@ pub(crate) fn standard_focal_a_star_search(
                         f_focal_cost: old_f_focal_cost,
                         f_open_cost,
                         g_cost: tentative_g_cost,
+                        time_step: tentative_time_step,
                     }) {
                         focal_list.remove(&LowLevelFocalNode {
                             position: *neighbor,
                             f_focal_cost: old_f_focal_cost,
                             f_open_cost,
                             g_cost: tentative_g_cost,
+                            time_step: tentative_time_step,
                         });
                         focal_list.insert(LowLevelFocalNode {
                             position: *neighbor,
                             f_focal_cost,
                             f_open_cost,
                             g_cost: tentative_g_cost,
+                            time_step: tentative_time_step,
                         });
                     }
                 }
@@ -318,6 +337,7 @@ pub(crate) fn standard_focal_a_star_search(
                             f_focal_cost,
                             f_open_cost: node.f_open_cost,
                             g_cost: node.g_cost,
+                            time_step: node.time_step,
                         });
                     }
                 });
