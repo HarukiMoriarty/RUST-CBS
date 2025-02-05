@@ -70,13 +70,12 @@ pub(crate) fn standard_a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if !exceed_constraints_limit_time_step {
-                if constraints
+            if !exceed_constraints_limit_time_step
+                && constraints
                     .iter()
                     .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
-                {
-                    continue; // This move is prohibited due to a constraint.
-                }
+            {
+                continue; // This move is prohibited due to a constraint.
             }
 
             let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
@@ -177,13 +176,12 @@ pub(crate) fn a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if current.time_step <= constraint_limit_time_step {
-                if constraints
+            if current.time_step <= constraint_limit_time_step
+                && constraints
                     .iter()
                     .any(|c| c.is_violated(*neighbor, tentative_g_cost))
-                {
-                    continue;
-                }
+            {
+                continue;
             }
 
             let f_cost = tentative_g_cost + map.heuristic[agent.id][neighbor.0][neighbor.1];
