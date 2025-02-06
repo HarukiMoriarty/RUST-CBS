@@ -41,7 +41,7 @@ pub(crate) fn standard_a_star_search(
 
         if current.position == agent.goal && current.g_cost > path_length_constraint {
             return Some((
-                construct_path(&trace, (current.position, current.time_step)),
+                construct_path(&trace, (current.position, current.g_cost)),
                 current.f_open_cost,
             ));
         }
@@ -87,8 +87,8 @@ pub(crate) fn standard_a_star_search(
                 time_step: tentative_time_step,
             }) {
                 trace.insert(
-                    (*neighbor, tentative_time_step),
-                    (current.position, current.time_step),
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
                 );
             }
         }
@@ -442,5 +442,36 @@ mod tests {
         } else {
             panic!("Expected WithMDD result with valid path and Mdd");
         }
+    }
+
+    #[test]
+    fn test_a_star_in_path_conflict_without_mdd_trace_correctness() {
+        init_tracing();
+        let agent = Agent {
+            id: 0,
+            start: (18, 24),
+            goal: (12, 7),
+        };
+        let map = Map::from_file(
+            "map_file/random-32-32-20/random-32-32-20.map",
+            &vec![agent.clone()],
+        )
+        .unwrap();
+        let mut constraints = HashSet::new();
+        constraints.insert(Constraint {
+            position: (13, 13),
+            time_step: 20,
+            is_permanent: true,
+        });
+        constraints.insert(Constraint {
+            position: (13, 10),
+            time_step: 23,
+            is_permanent: true,
+        });
+        let stats = &mut Stats::default();
+        let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
+        let (path, _) = get_path_from_result(result).unwrap();
+        debug!("{path:?}");
+        assert_eq!(path.len(), 32);
     }
 }

@@ -213,7 +213,7 @@ pub(crate) fn standard_focal_a_star_search(
         if current.position == agent.goal && current.g_cost > path_length_constraint {
             debug!("find solution with f min {f_min:?}");
             return Some((
-                construct_path(&trace, (current.position, current.time_step)),
+                construct_path(&trace, (current.position, current.g_cost)),
                 f_min,
             ));
         }
@@ -269,8 +269,8 @@ pub(crate) fn standard_focal_a_star_search(
                 time_step: tentative_time_step,
             }) {
                 trace.insert(
-                    (*neighbor, tentative_time_step),
-                    (current.position, current.time_step),
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
                 );
                 f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
 
