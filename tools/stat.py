@@ -90,7 +90,8 @@ def compute_stats(data: pd.Series) -> Tuple[float, float, float]:
     """
     if data.empty:
         return np.nan, np.nan, np.nan
-    return tuple(np.percentile(data.dropna(), [0, 50, 99], method="nearest"))
+    numeric_data = pd.to_numeric(data.dropna(), errors='coerce')
+    return tuple(np.percentile(numeric_data, [0, 50, 99], method="nearest"))
 
 def check_solver_costs(data: pd.DataFrame) -> None:
     """
