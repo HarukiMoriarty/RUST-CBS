@@ -542,3 +542,794 @@ impl HighLevelFocalNode {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tracing_subscriber;
+
+    use super::*;
+
+    // Helper function to setup tracing
+    fn init_tracing() {
+        let _ = tracing_subscriber::fmt()
+            .with_env_filter("trace")
+            .try_init();
+    }
+
+    #[test]
+    fn test_constraints_violation() {
+        init_tracing();
+        // Test non perminant constraint
+        let non_perminant_constraint = Constraint {
+            position: (0, 0),
+            time_step: 1,
+            is_permanent: false,
+        };
+
+        assert!(!non_perminant_constraint.is_violated((0, 1), 1));
+        assert!(non_perminant_constraint.is_violated((0, 0), 1));
+        assert!(!non_perminant_constraint.is_violated((0, 0), 2));
+
+        // Test perminant constraint
+        let perminant_constraint = Constraint {
+            position: (0, 0),
+            time_step: 5,
+            is_permanent: true,
+        };
+
+        assert!(!perminant_constraint.is_violated((0, 1), 5));
+        assert!(perminant_constraint.is_violated((0, 0), 5));
+        assert!(perminant_constraint.is_violated((0, 0), 6));
+        assert!(!perminant_constraint.is_violated((0, 0), 4));
+    }
+
+    use crate::common::MddNode;
+    use std::collections::HashMap;
+
+    // Helper function for test mdd construction
+    fn create_mdd_from_layers(layers: Vec<Vec<(usize, usize)>>) -> Mdd {
+        let mut mdd = vec![HashMap::new(); layers.len()];
+        for (layer, positions) in layers.iter().enumerate() {
+            for &pos in positions {
+                mdd[layer].insert(
+                    pos,
+                    MddNode {
+                        parents: HashSet::new(),
+                        children: HashSet::new(),
+                    },
+                );
+            }
+        }
+        mdd
+    }
+
+    #[test]
+    fn test_detect_conflicts_cardinal_vertex() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 1),
+            },
+            Agent {
+                id: 1,
+                start: (0, 0),
+                goal: (0, 3),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        ];
+
+        let mdd1 =
+            create_mdd_from_layers(vec![vec![(2, 2)], vec![(1, 2)], vec![(0, 2)], vec![(0, 1)]]);
+
+        let mdd2 =
+            create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::Cardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_semi_cardinal_vertex() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 0),
+            },
+            Agent {
+                id: 1,
+                start: (0, 0),
+                goal: (0, 3),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![
+            vec![(2, 2)],         // layer 0
+            vec![(1, 2), (2, 1)], // layer 1
+            vec![(0, 2), (2, 0)], // layer 2
+            vec![(0, 1), (1, 0)], // layer 3
+            vec![(0, 0)],         // layer 4
+        ]);
+
+        let mdd2 =
+            create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::SemiCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_non_cardinal_vertex() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 0),
+            },
+            Agent {
+                id: 1,
+                start: (0, 4),
+                goal: (2, 2),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+            vec![(0, 4), (0, 3), (0, 2), (1, 2), (2, 2)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![
+            vec![(2, 2)],         // layer 0
+            vec![(1, 2), (2, 1)], // layer 1
+            vec![(0, 2), (2, 0)], // layer 2
+            vec![(0, 1), (1, 0)], // layer 3
+            vec![(0, 0)],         // layer 4
+        ]);
+
+        let mdd2 = create_mdd_from_layers(vec![
+            vec![(0, 4)],
+            vec![(0, 3), (1, 4)],
+            vec![(0, 2), (2, 4)],
+            vec![(1, 2), (2, 3)],
+            vec![(2, 2)],
+        ]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::NonCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_vertex_non_mdd_semicardinal() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 0),
+            },
+            Agent {
+                id: 1,
+                start: (0, 0),
+                goal: (0, 3),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        ];
+
+        let mdd2 =
+            create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![None, Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::SemiCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_vertex_non_mdd_noncardinal() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 0),
+            },
+            Agent {
+                id: 1,
+                start: (0, 0),
+                goal: (0, 3),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![
+            vec![(2, 2)],         // layer 0
+            vec![(1, 2), (2, 1)], // layer 1
+            vec![(0, 2), (2, 0)], // layer 2
+            vec![(0, 1), (1, 0)], // layer 3
+            vec![(0, 0)],         // layer 4
+        ]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), None],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::NonCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_vertex_unknowncardinal() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (2, 2),
+                goal: (0, 0),
+            },
+            Agent {
+                id: 1,
+                start: (0, 0),
+                goal: (0, 3),
+            },
+        ];
+
+        let paths = vec![
+            vec![(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        ];
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![None, None],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Vertex {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::Unknown
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_cardinal_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 1),
+                goal: (2, 2),
+            },
+            Agent {
+                id: 1,
+                start: (2, 2),
+                goal: (0, 1),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 1), (0, 2), (1, 2), (2, 2)],
+            vec![(2, 2), (1, 2), (0, 2), (0, 1)],
+        ];
+
+        let mdd1 =
+            create_mdd_from_layers(vec![vec![(0, 1)], vec![(0, 2)], vec![(1, 2)], vec![(2, 2)]]);
+
+        let mdd2 =
+            create_mdd_from_layers(vec![vec![(2, 2)], vec![(1, 2)], vec![(0, 2)], vec![(0, 1)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 6,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (1, 2),
+                    v: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::Cardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_semicardinal_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 2),
+                goal: (2, 2),
+            },
+            Agent {
+                id: 1,
+                start: (2, 3),
+                goal: (0, 0),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 2), (1, 2), (2, 2)],
+            vec![(2, 3), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![vec![(0, 2)], vec![(1, 2)], vec![(2, 2)]]);
+
+        let mdd2 = create_mdd_from_layers(vec![
+            vec![(2, 3)],
+            vec![(2, 2)],
+            vec![(1, 2), (2, 1)],
+            vec![(0, 2), (2, 0)],
+            vec![(0, 1), (1, 0)],
+            vec![(0, 0)],
+        ]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (2, 2),
+                    v: (1, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::SemiCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_noncardinal_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 0),
+                goal: (2, 3),
+            },
+            Agent {
+                id: 1,
+                start: (2, 3),
+                goal: (0, 0),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 3)],
+            vec![(2, 3), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![
+            vec![(0, 0)],
+            vec![(1, 0), (0, 1)],
+            vec![(2, 0), (0, 2)],
+            vec![(2, 1), (1, 2)],
+            vec![(2, 2)],
+            vec![(2, 3)],
+        ]);
+
+        let mdd2 = create_mdd_from_layers(vec![
+            vec![(2, 3)],
+            vec![(2, 2)],
+            vec![(1, 2), (2, 1)],
+            vec![(0, 2), (2, 0)],
+            vec![(0, 1), (1, 0)],
+            vec![(0, 0)],
+        ]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 10,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (1, 2),
+                    v: (0, 2),
+                    time_step: 3
+                },
+                cardinal_type: CardinalType::NonCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_none_mdd_semicardinal_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 2),
+                goal: (2, 2),
+            },
+            Agent {
+                id: 1,
+                start: (2, 3),
+                goal: (0, 0),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 2), (1, 2), (2, 2)],
+            vec![(2, 3), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![vec![(0, 2)], vec![(1, 2)], vec![(2, 2)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), None],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (2, 2),
+                    v: (1, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::SemiCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_none_mdd_noncardinal_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 2),
+                goal: (2, 2),
+            },
+            Agent {
+                id: 1,
+                start: (2, 3),
+                goal: (0, 0),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 2), (1, 2), (2, 2)],
+            vec![(2, 3), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0)],
+        ];
+
+        let mdd2 = create_mdd_from_layers(vec![
+            vec![(2, 3)],
+            vec![(2, 2)],
+            vec![(1, 2), (2, 1)],
+            vec![(0, 2), (2, 0)],
+            vec![(0, 1), (1, 0)],
+            vec![(0, 0)],
+        ]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 7,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![None, Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (2, 2),
+                    v: (1, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::NonCardinal
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_none_mdd_unknown_edge() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 1),
+                goal: (2, 2),
+            },
+            Agent {
+                id: 1,
+                start: (2, 2),
+                goal: (0, 1),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 1), (0, 2), (1, 2), (2, 2)],
+            vec![(2, 2), (1, 2), (0, 2), (0, 1)],
+        ];
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 6,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![None, None],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 0,
+                agent_2: 1,
+                conflict_type: ConflictType::Edge {
+                    u: (1, 2),
+                    v: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::Unknown
+            }]
+        );
+    }
+
+    #[test]
+    fn test_detect_conflicts_cardinal_target() {
+        init_tracing();
+        let agents = vec![
+            Agent {
+                id: 0,
+                start: (0, 0),
+                goal: (0, 4),
+            },
+            Agent {
+                id: 1,
+                start: (2, 2),
+                goal: (0, 2),
+            },
+        ];
+
+        let paths = vec![
+            vec![(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)],
+            vec![(2, 2), (1, 2), (0, 2)],
+        ];
+
+        let mdd1 = create_mdd_from_layers(vec![
+            vec![(0, 0)],
+            vec![(0, 1)],
+            vec![(0, 2)],
+            vec![(0, 3)],
+            vec![(0, 4)],
+        ]);
+
+        let mdd2 = create_mdd_from_layers(vec![vec![(2, 2)], vec![(1, 2)], vec![(0, 2)]]);
+
+        let mut node = HighLevelOpenNode {
+            agents,
+            constraints: Vec::new(),
+            path_length_constraints: Vec::new(),
+            conflicts: Vec::new(),
+            paths,
+            cost: 6,
+            low_level_f_min_agents: Vec::new(),
+            mdds: vec![Some(mdd1), Some(mdd2)],
+        };
+
+        node.detect_conflicts();
+
+        assert_eq!(
+            node.conflicts,
+            vec![Conflict {
+                agent_1: 1,
+                agent_2: 0,
+                conflict_type: ConflictType::Target {
+                    position: (0, 2),
+                    time_step: 2
+                },
+                cardinal_type: CardinalType::Cardinal
+            }]
+        );
+    }
+}
