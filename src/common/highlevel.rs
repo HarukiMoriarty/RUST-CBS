@@ -1,4 +1,4 @@
-use super::{Agent, Mdd, Path, SearchResult};
+use super::{is_singleton_at_position, Agent, Mdd, Path, SearchResult};
 use crate::algorithm::{a_star_search, focal_a_star_search};
 use crate::config::Config;
 use crate::map::Map;
@@ -199,8 +199,8 @@ impl HighLevelOpenNode {
                         // Check for cardinal type
                         let cardinal_type = match (&mdd1, &mdd2) {
                             (Some(mdd1), Some(mdd2)) => {
-                                let singlenton1 = mdd1.is_singleton_at_position(step, pos1);
-                                let singlenton2 = mdd2.is_singleton_at_position(step, pos2);
+                                let singlenton1 = is_singleton_at_position(mdd1, step, pos1);
+                                let singlenton2 = is_singleton_at_position(mdd2, step, pos2);
                                 if singlenton1 && singlenton2 {
                                     CardinalType::Cardinal
                                 } else if singlenton1 || singlenton2 {
@@ -210,7 +210,7 @@ impl HighLevelOpenNode {
                                 }
                             }
                             (Some(mdd), None) | (None, Some(mdd)) => {
-                                let singlenton = mdd.is_singleton_at_position(step, pos1);
+                                let singlenton = is_singleton_at_position(mdd, step, pos1);
                                 if singlenton {
                                     CardinalType::SemiCardinal
                                 } else {
@@ -269,12 +269,12 @@ impl HighLevelOpenNode {
                         let cardinal_type = match (&mdd1, &mdd2) {
                             (Some(mdd1), Some(mdd2)) => {
                                 // For edge conflicts, need singletons at both t-1 and t.
-                                let agent1_singleton = mdd1
-                                    .is_singleton_at_position(step - 1, prev_pos1)
-                                    && mdd1.is_singleton_at_position(step, pos1);
-                                let agent2_singleton = mdd2
-                                    .is_singleton_at_position(step - 1, prev_pos2)
-                                    && mdd2.is_singleton_at_position(step, pos2);
+                                let agent1_singleton =
+                                    is_singleton_at_position(mdd1, step - 1, prev_pos1)
+                                        && is_singleton_at_position(mdd1, step, pos1);
+                                let agent2_singleton =
+                                    is_singleton_at_position(mdd2, step - 1, prev_pos2)
+                                        && is_singleton_at_position(mdd2, step, pos2);
 
                                 if agent1_singleton && agent2_singleton {
                                     CardinalType::Cardinal
@@ -285,8 +285,8 @@ impl HighLevelOpenNode {
                                 }
                             }
                             (Some(mdd), None) | (None, Some(mdd)) => {
-                                let singlenton = mdd.is_singleton_at_position(step - 1, prev_pos1)
-                                    && mdd.is_singleton_at_position(step, pos1);
+                                let singlenton = is_singleton_at_position(mdd, step - 1, prev_pos1)
+                                    && is_singleton_at_position(mdd, step, pos1);
                                 if singlenton {
                                     CardinalType::SemiCardinal
                                 } else {

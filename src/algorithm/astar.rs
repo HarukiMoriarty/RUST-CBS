@@ -1,5 +1,5 @@
-use super::construct_path;
-use crate::common::{Agent, Constraint, LowLevelOpenNode, Mdd, Path, SearchResult};
+use super::{construct_mdd, construct_path};
+use crate::common::{Agent, Constraint, LowLevelOpenNode, Path, SearchResult};
 use crate::map::Map;
 use crate::stat::Stats;
 
@@ -125,7 +125,7 @@ pub(crate) fn a_star_search(
         ));
     }
 
-    let optimal_result = match standard_a_star_search(
+    let (path, f_min) = match standard_a_star_search(
         map,
         agent,
         constraints,
@@ -133,79 +133,18 @@ pub(crate) fn a_star_search(
         constraint_limit_time_step,
         stats,
     ) {
-        Some((path, cost)) => (path, cost),
+        Some((path, f_min)) => (path, f_min),
         None => return SearchResult::WithMDD(None),
     };
 
+    // f min should equal to cost.
+    assert_eq!(path.len() - 1, f_min);
+
     // Build MDD using optimal cost.
-    let mut mdd_layers = vec![HashSet::new()];
-    mdd_layers[0].insert(agent.start);
-
-    let mut open_list = BTreeSet::new();
-    let mut closed_list = BTreeSet::new();
-
-    let start_node = LowLevelOpenNode {
-        position: agent.start,
-        f_open_cost: map.heuristic[agent.id][agent.start.0][agent.start.1],
-        g_cost: 0,
-        time_step: 0,
-    };
-    open_list.insert(start_node);
-
-    while let Some(current) = open_list.pop_first() {
-        trace!("expand node: {current:?}");
-
-        // Update stats.
-        stats.low_level_mdd_expand_open_nodes += 1;
-
-        closed_list.insert((current.position, current.time_step));
-
-        // Assuming uniform cost, which also indicate the current time.
-        let tentative_g_cost = current.g_cost + 1;
-
-        while mdd_layers.len() <= tentative_g_cost && tentative_g_cost <= optimal_result.1 {
-            mdd_layers.push(HashSet::new());
-        }
-
-        // Expand nodes from the current position.
-        for neighbor in &map.get_neighbors(current.position.0, current.position.1, true) {
-            // Checck node (position at current time) has closed.
-            if closed_list.contains(&(*neighbor, tentative_g_cost)) {
-                continue;
-            }
-
-            // Check for constraints before exploring the neighbor.
-            if constraints
-                .iter()
-                .any(|c| c.is_violated(*neighbor, tentative_g_cost))
-            {
-                continue;
-            }
-
-            let f_cost = tentative_g_cost + map.heuristic[agent.id][neighbor.0][neighbor.1];
-
-            // Check for optimal solution
-            if f_cost > optimal_result.1 {
-                continue;
-            }
-
-            let new_node = LowLevelOpenNode {
-                position: *neighbor,
-                f_open_cost: f_cost,
-                g_cost: tentative_g_cost,
-                time_step: tentative_g_cost,
-            };
-
-            if open_list.insert(new_node) {
-                mdd_layers[tentative_g_cost].insert(*neighbor);
-            }
-        }
-    }
-
     SearchResult::WithMDD(Some((
-        optimal_result.0,
-        optimal_result.1,
-        Mdd { layers: mdd_layers },
+        path,
+        f_min,
+        construct_mdd(map, agent, constraints, f_min),
     )))
 }
 
@@ -215,7 +154,7 @@ mod tests {
     use tracing_subscriber;
 
     use super::*;
-    use crate::common::Agent;
+    use crate::common::{is_singleton_at_position, Agent, Mdd};
 
     // Helper function to setup tracing
     fn init_tracing() {
@@ -232,29 +171,57 @@ mod tests {
         }
     }
 
+    // Helper function to examine Mdd.
+    fn check_mdd_layer_positions(
+        mdd: &Mdd,
+        layer: usize,
+        expected_positions: HashSet<(usize, usize)>,
+    ) {
+        let actual_positions: HashSet<_> = mdd[layer].keys().cloned().collect();
+        assert_eq!(actual_positions, expected_positions);
+    }
+
     // Ideal Path
-    // [(25, 14), (24, 14), (23, 14), (22, 14), (21, 14),
-    //  (20, 14), (19, 14), (18, 14), (17, 14), (17, 15),
-    //  (17, 16), (17, 17), (16, 17), (15, 17), (14, 17),
-    //  (14, 18), (14, 19), (15, 19), (16, 19), (17, 19)]
+    // [(2, 2), (1, 2), (0, 2), (0, 1), (0, 0)]
+    // or
+    // [(2, 2), (2, 1), (2, 0), (1, 0), (0, 0)]
     #[test]
-    fn test_a_star_normal() {
+    fn test_a_star_without_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let constraints = HashSet::new();
         let stats = &mut Stats::default();
         let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
         let (path, _) = get_path_from_result(result).unwrap();
-        assert_eq!(path.len(), 20);
+        debug!("{path:?}");
+        assert_eq!(path.len(), 5);
+    }
+
+    #[test]
+    fn test_a_star_in_path_conflict_alternative_path_without_mdd() {
+        init_tracing();
+        let agent = Agent {
+            id: 0,
+            start: (2, 2),
+            goal: (0, 0),
+        };
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
+        let mut constraints = HashSet::new();
+        constraints.insert(Constraint {
+            position: (0, 2),
+            time_step: 2,
+            is_permanent: false,
+        });
+        let stats = &mut Stats::default();
+        let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
+        let (path, _) = get_path_from_result(result).unwrap();
+        debug!("{path:?}");
+        assert_eq!(path.len(), 5);
     }
 
     #[test]
@@ -262,24 +229,26 @@ mod tests {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
-            position: (23, 14),
+            position: (0, 2),
+            time_step: 2,
+            is_permanent: false,
+        });
+        constraints.insert(Constraint {
+            position: (2, 0),
             time_step: 2,
             is_permanent: false,
         });
         let stats = &mut Stats::default();
         let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
         let (path, _) = get_path_from_result(result).unwrap();
-        assert_eq!(path.len(), 21);
+        debug!("{path:?}");
+        assert_eq!(path.len(), 6);
     }
 
     #[test]
@@ -287,25 +256,21 @@ mod tests {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
-            position: (17, 19),
-            time_step: 29,
+            position: (0, 0),
+            time_step: 4,
             is_permanent: false,
         });
         let stats = &mut Stats::default();
-        let result = a_star_search(&map, &agent, &constraints, 29, false, stats);
+        let result = a_star_search(&map, &agent, &constraints, 4, false, stats);
         let (path, _) = get_path_from_result(result).unwrap();
-        println!("{path:?}");
-        assert_eq!(path.len(), 31);
+        debug!("{path:?}");
+        assert_eq!(path.len(), 6);
     }
 
     #[test]
@@ -313,38 +278,65 @@ mod tests {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let constraints = HashSet::new();
         let stats = &mut Stats::default();
 
         if let SearchResult::WithMDD(Some((path, _, mdd))) =
             a_star_search(&map, &agent, &constraints, 0, true, stats)
         {
-            assert_eq!(path.len(), 20);
-            println!("{mdd:?}");
+            assert_eq!(path.len(), 5);
+            debug!("{mdd:?}");
 
             // Start position should be singleton.
-            assert!(mdd.is_singleton_at_position(0, (25, 14)));
+            assert!(is_singleton_at_position(&mdd, 0, (2, 2)));
 
-            // Critical points where path has no alternatives should be singletons.
-            assert!(mdd.is_singleton_at_position(8, (17, 14)));
+            check_mdd_layer_positions(&mdd, 1, HashSet::from([(1, 2), (2, 1)]));
+            check_mdd_layer_positions(&mdd, 2, HashSet::from([(0, 2), (2, 0)]));
+            check_mdd_layer_positions(&mdd, 3, HashSet::from([(0, 1), (1, 0)]));
 
-            // Points with potential alternatives should not be singletons.
-            assert!(!mdd.is_singleton_at_position(15, (14, 19))); // Around (14, 19)
+            // End position should be singleton.
+            assert!(is_singleton_at_position(&mdd, 4, (0, 0)));
+        } else {
+            panic!("Expected WithMDD result with valid path and Mdd");
+        }
+    }
 
-            // Check some MDD layer sizes for bottleneck points.
-            assert_eq!(mdd.layers[8].len(), 1); // Turning point
-            assert!(mdd.layers[13].len() > 1); // Area with alternatives
+    #[test]
+    fn test_a_star_in_path_conflict_alternative_path_with_mdd() {
+        init_tracing();
+        let agent = Agent {
+            id: 0,
+            start: (2, 2),
+            goal: (0, 0),
+        };
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
+        let mut constraints = HashSet::new();
+        constraints.insert(Constraint {
+            position: (0, 2),
+            time_step: 2,
+            is_permanent: false,
+        });
+        let stats = &mut Stats::default();
 
-            // Goal position in final layer
-            assert!(mdd.layers[path.len() - 1].contains(&(17, 19)));
+        if let SearchResult::WithMDD(Some((path, _, mdd))) =
+            a_star_search(&map, &agent, &constraints, 0, true, stats)
+        {
+            assert_eq!(path.len(), 5);
+            debug!("{mdd:?}");
+
+            // Start position should be singleton.
+            assert!(is_singleton_at_position(&mdd, 0, (2, 2)));
+
+            assert!(is_singleton_at_position(&mdd, 1, (2, 1)));
+            assert!(is_singleton_at_position(&mdd, 2, (2, 0)));
+            assert!(is_singleton_at_position(&mdd, 3, (1, 0)));
+
+            // End position should be singleton.
+            assert!(is_singleton_at_position(&mdd, 4, (0, 0)));
         } else {
             panic!("Expected WithMDD result with valid path and Mdd");
         }
@@ -355,17 +347,18 @@ mod tests {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
-            position: (23, 14),
+            position: (0, 2),
+            time_step: 2,
+            is_permanent: false,
+        });
+        constraints.insert(Constraint {
+            position: (2, 0),
             time_step: 2,
             is_permanent: false,
         });
@@ -374,24 +367,19 @@ mod tests {
         if let SearchResult::WithMDD(Some((path, _, mdd))) =
             a_star_search(&map, &agent, &constraints, 0, true, stats)
         {
-            assert_eq!(path.len(), 21);
+            assert_eq!(path.len(), 6);
             debug!("{mdd:?}");
 
             // Start position should be singleton.
-            assert!(mdd.is_singleton_at_position(0, (25, 14)));
+            assert!(is_singleton_at_position(&mdd, 0, (2, 2)));
 
-            // Critical points where path has no alternatives should be singletons.
-            assert!(mdd.is_singleton_at_position(9, (17, 14)));
+            check_mdd_layer_positions(&mdd, 1, HashSet::from([(2, 2), (1, 2), (2, 1)]));
+            check_mdd_layer_positions(&mdd, 2, HashSet::from([(1, 2), (2, 1)]));
+            check_mdd_layer_positions(&mdd, 3, HashSet::from([(0, 2), (2, 0)]));
+            check_mdd_layer_positions(&mdd, 4, HashSet::from([(0, 1), (1, 0)]));
 
-            // Points with potential alternatives should not be singletons.
-            assert!(!mdd.is_singleton_at_position(16, (14, 19))); // Around (14, 19)
-
-            // Check some MDD layer sizes for bottleneck points.
-            assert_eq!(mdd.layers[9].len(), 1); // Turning point
-            assert!(mdd.layers[14].len() > 1); // Area with alternatives
-
-            // Goal position in final layer
-            assert!(mdd.layers[path.len() - 1].contains(&(17, 19)));
+            // End position should be singleton.
+            assert!(is_singleton_at_position(&mdd, 5, (0, 0)));
         } else {
             panic!("Expected WithMDD result with valid path and Mdd");
         }
@@ -402,43 +390,34 @@ mod tests {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (25, 14),
-            goal: (17, 19),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/maze-32-32-2-scen-even/maze-32-32-2.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
         constraints.insert(Constraint {
-            position: (17, 19),
-            time_step: 29,
+            position: (0, 0),
+            time_step: 4,
             is_permanent: false,
         });
         let stats = &mut Stats::default();
 
         if let SearchResult::WithMDD(Some((path, _, mdd))) =
-            a_star_search(&map, &agent, &constraints, 29, true, stats)
+            a_star_search(&map, &agent, &constraints, 4, true, stats)
         {
-            assert_eq!(path.len(), 31);
+            assert_eq!(path.len(), 6);
             debug!("{mdd:?}");
 
             // Start position should be singleton.
-            assert!(mdd.is_singleton_at_position(0, (25, 14)));
+            assert!(is_singleton_at_position(&mdd, 0, (2, 2)));
 
-            // Critical points where path has no alternatives should be singletons.
-            assert!(!mdd.is_singleton_at_position(9, (17, 14)));
-
-            // Points with potential alternatives should not be singletons.
-            assert!(!mdd.is_singleton_at_position(16, (14, 19))); // Around (14, 19)
-
-            // Check some MDD layer sizes for bottleneck points.
-            assert!(mdd.layers[9].len() > 1); // Turning point
-            assert!(mdd.layers[14].len() > 1); // Area with alternatives
+            check_mdd_layer_positions(&mdd, 1, HashSet::from([(2, 2), (1, 2), (2, 1)]));
+            check_mdd_layer_positions(&mdd, 2, HashSet::from([(1, 2), (2, 1), (2, 0), (0, 2)]));
+            check_mdd_layer_positions(&mdd, 3, HashSet::from([(0, 2), (2, 0), (1, 0), (0, 1)]));
+            check_mdd_layer_positions(&mdd, 4, HashSet::from([(0, 1), (1, 0)]));
 
             // Goal position in final layer
-            assert!(mdd.layers[path.len() - 1].contains(&(17, 19)));
+            assert!(is_singleton_at_position(&mdd, 5, (0, 0)));
         } else {
             panic!("Expected WithMDD result with valid path and Mdd");
         }

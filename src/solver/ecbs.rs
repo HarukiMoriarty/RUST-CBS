@@ -60,12 +60,7 @@ impl Solver for ECBS {
                                 .iter()
                                 .find(|c| c.cardinal_type == CardinalType::NonCardinal)
                         })
-                        .or_else(|| {
-                            current_open_node
-                                .conflicts
-                                .iter()
-                                .find(|c| c.cardinal_type == CardinalType::Unknown)
-                        })
+                        .or_else(|| current_open_node.conflicts.first())
                 } else {
                     current_open_node.conflicts.first()
                 };

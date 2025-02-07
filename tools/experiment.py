@@ -147,8 +147,7 @@ def check_and_create_csv(output_csv_path: str):
                 "solver", "high_level_suboptimal", "low_level_suboptimal",
                 "op_PC", "op_BC", "op_TR", "costs", "time(us)",
                 "high_level_expanded", "low_level_open_expanded",
-                "low_level_focal_expanded", "low_level_mdd_open_expanded",
-                "low_level_mdd_focal_expanded", "total_low_level_expanded"
+                "low_level_focal_expanded", "total_low_level_expanded"
             ]
             csv_file.write(",".join(headers) + "\n")
 

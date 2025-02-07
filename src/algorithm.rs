@@ -4,9 +4,10 @@ mod astarfocal;
 pub(crate) use astar::{a_star_search, standard_a_star_search};
 pub(crate) use astarfocal::focal_a_star_search;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use crate::common::Path;
+use crate::common::{Agent, Constraint, Mdd, MddNode, Path};
+use crate::map::Map;
 
 type Trace = HashMap<((usize, usize), usize), ((usize, usize), usize)>;
 
@@ -61,4 +62,59 @@ fn construct_path(trace: &Trace, mut current: ((usize, usize), usize)) -> Path {
     }
     path.reverse();
     path
+}
+
+fn construct_mdd(
+    map: &Map,
+    agent: &Agent,
+    constraints: &HashSet<Constraint>,
+    optimal_cost: usize,
+) -> Mdd {
+    let mut mdd = vec![HashMap::new(); optimal_cost + 1];
+
+    mdd[0].insert(
+        agent.start,
+        MddNode {
+            parents: HashSet::new(),
+            children: HashSet::new(),
+        },
+    );
+
+    // Forward pass
+    for depth in 0..optimal_cost {
+        for (&pos, _) in mdd[depth].clone().iter() {
+            for neighbor in map.get_neighbors(pos.0, pos.1, true) {
+                if constraints
+                    .iter()
+                    .any(|c| c.is_violated(neighbor, depth + 1))
+                {
+                    continue;
+                }
+
+                if map.heuristic[agent.id][neighbor.0][neighbor.1] <= optimal_cost - (depth + 1) {
+                    let next_node = mdd[depth + 1].entry(neighbor).or_insert(MddNode {
+                        parents: HashSet::new(),
+                        children: HashSet::new(),
+                    });
+                    next_node.parents.insert(pos);
+                    mdd[depth].get_mut(&pos).unwrap().children.insert(neighbor);
+                }
+            }
+        }
+    }
+
+    assert_eq!(mdd[optimal_cost].len(), 1);
+    assert!(mdd[optimal_cost].contains_key(&agent.goal));
+
+    // Backward pass
+    for depth in (0..optimal_cost).rev() {
+        let next_layer = mdd[depth + 1].clone();
+        mdd[depth].retain(|_, node| {
+            node.children
+                .iter()
+                .any(|child| next_layer.contains_key(child))
+        });
+    }
+
+    mdd
 }

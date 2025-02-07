@@ -51,12 +51,7 @@ impl Solver for CBS {
                                 .iter()
                                 .find(|c| c.cardinal_type == CardinalType::NonCardinal)
                         })
-                        .or_else(|| {
-                            current_node
-                                .conflicts
-                                .iter()
-                                .find(|c| c.cardinal_type == CardinalType::Unknown)
-                        })
+                        .or_else(|| current_node.conflicts.first())
                 } else {
                     current_node.conflicts.first()
                 };
@@ -73,7 +68,9 @@ impl Solver for CBS {
                         &mut self.stats,
                     );
 
-                    if config.op_bypass_conflicts {
+                    if config.op_bypass_conflicts
+                        && conflict.cardinal_type != CardinalType::Cardinal
+                    {
                         if let Some(ref child) = child_1 {
                             if child.cost == current_node.cost
                                 && child.conflicts.len() < current_node.conflicts.len()
@@ -95,7 +92,9 @@ impl Solver for CBS {
                         &mut self.stats,
                     );
 
-                    if config.op_bypass_conflicts {
+                    if config.op_bypass_conflicts
+                        && conflict.cardinal_type != CardinalType::Cardinal
+                    {
                         if let Some(ref child) = child_2 {
                             if child.cost == current_node.cost
                                 && child.conflicts.len() < current_node.conflicts.len()

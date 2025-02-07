@@ -51,12 +51,7 @@ impl Solver for LBCBS {
                                 .iter()
                                 .find(|c| c.cardinal_type == CardinalType::NonCardinal)
                         })
-                        .or_else(|| {
-                            current_node
-                                .conflicts
-                                .iter()
-                                .find(|c| c.cardinal_type == CardinalType::Unknown)
-                        })
+                        .or_else(|| current_node.conflicts.first())
                 } else {
                     current_node.conflicts.first()
                 };

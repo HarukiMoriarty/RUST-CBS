@@ -6,7 +6,8 @@ pub(crate) use lowlevel::{LowLevelFocalNode, LowLevelOpenNode};
 
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use tracing::{debug, error};
 
 use crate::map::Map;
@@ -122,22 +123,25 @@ impl Solution {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Mdd {
-    pub(crate) layers: Vec<HashSet<(usize, usize)>>,
+pub(crate) struct MddNode {
+    pub(crate) parents: HashSet<(usize, usize)>,
+    pub(crate) children: HashSet<(usize, usize)>,
 }
 
-impl Mdd {
-    pub(crate) fn is_singleton_at_position(
-        &self,
-        time_step: usize,
-        position: (usize, usize),
-    ) -> bool {
-        if time_step >= self.layers.len() {
-            return false;
-        }
-        let layer = &self.layers[time_step];
-        layer.len() == 1 && layer.contains(&position)
+pub(crate) type Mdd = Vec<HashMap<(usize, usize), MddNode>>;
+
+pub(crate) fn is_singleton_at_position(
+    mdd: &Mdd,
+    time_step: usize,
+    position: (usize, usize),
+) -> bool {
+    if time_step >= mdd.len() {
+        // Only vertex and target conflicts will inqury extended time step,
+        // when we see an extended time step, then it must be singleton (cost will increase).
+        return true;
     }
+    let layer = &mdd[time_step];
+    layer.len() == 1 && layer.contains_key(&position)
 }
 
 pub(crate) enum SearchResult {
