@@ -86,7 +86,7 @@ fn construct_mdd(
             for neighbor in map.get_neighbors(pos.0, pos.1, true) {
                 if constraints
                     .iter()
-                    .any(|c| c.is_violated(neighbor, depth + 1))
+                    .any(|c| c.is_violated(pos, neighbor, depth + 1))
                 {
                     continue;
                 }

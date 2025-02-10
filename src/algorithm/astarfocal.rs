@@ -21,7 +21,10 @@ pub(crate) fn focal_a_star_search(
 ) -> SearchResult {
     let constraint_limit_time_step = constraints
         .iter()
-        .map(|constraint| constraint.time_step)
+        .map(|constraint| match constraint {
+            Constraint::Vertex { time_step, .. } => *time_step,
+            Constraint::Edge { to_time_step, .. } => *to_time_step,
+        })
         .max()
         .unwrap_or(0);
 
@@ -176,10 +179,9 @@ pub(crate) fn standard_focal_a_star_search(
             }
 
             // Check for constraints before exploring the neighbor.
-            if constraints
-                .iter()
-                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
-            {
+            if constraints.iter().any(|constraint| {
+                constraint.is_violated(current.position, *neighbor, tentative_g_cost)
+            }) {
                 continue; // This move is prohibited due to a constraint
             }
 

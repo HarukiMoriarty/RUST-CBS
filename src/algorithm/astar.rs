@@ -70,10 +70,9 @@ pub(crate) fn standard_a_star_search(
             }
 
             // Check for constraints before exploring the neighbor
-            if constraints
-                .iter()
-                .any(|constraint| constraint.is_violated(*neighbor, tentative_g_cost))
-            {
+            if constraints.iter().any(|constraint| {
+                constraint.is_violated(current.position, *neighbor, tentative_g_cost)
+            }) {
                 continue; // This move is prohibited due to a constraint.
             }
 
@@ -110,7 +109,10 @@ pub(crate) fn a_star_search(
 ) -> SearchResult {
     let constraint_limit_time_step = constraints
         .iter()
-        .map(|constraint| constraint.time_step)
+        .map(|constraint| match constraint {
+            Constraint::Vertex { time_step, .. } => *time_step,
+            Constraint::Edge { to_time_step, .. } => *to_time_step,
+        })
         .max()
         .unwrap_or(0);
 
@@ -186,7 +188,7 @@ mod tests {
     // or
     // [(2, 2), (2, 1), (2, 0), (1, 0), (0, 0)]
     #[test]
-    fn test_a_star_without_mdd() {
+    fn test_a_star_no_constraint_without_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -203,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_in_path_conflict_alternative_path_without_mdd() {
+    fn test_a_star_in_path_vertex_constraint_alternative_path_without_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -212,7 +214,7 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 2),
             time_step: 2,
             is_permanent: false,
@@ -225,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_in_path_conflict_without_mdd() {
+    fn test_a_star_in_path_vertex_constraint_without_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -234,12 +236,12 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 2),
             time_step: 2,
             is_permanent: false,
         });
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (2, 0),
             time_step: 2,
             is_permanent: false,
@@ -261,7 +263,7 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 0),
             time_step: 4,
             is_permanent: false,
@@ -274,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_with_mdd() {
+    fn test_a_star_no_constraint_with_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -306,7 +308,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_in_path_conflict_alternative_path_with_mdd() {
+    fn test_a_star_in_path_vertex_constraint_alternative_path_with_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -315,7 +317,7 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 2),
             time_step: 2,
             is_permanent: false,
@@ -343,7 +345,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_in_path_conflict_with_mdd() {
+    fn test_a_star_in_path_vertex_constraint_with_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
@@ -352,12 +354,12 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 2),
             time_step: 2,
             is_permanent: false,
         });
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (2, 0),
             time_step: 2,
             is_permanent: false,
@@ -395,7 +397,7 @@ mod tests {
         };
         let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
+        constraints.insert(Constraint::Vertex {
             position: (0, 0),
             time_step: 4,
             is_permanent: false,
@@ -424,33 +426,51 @@ mod tests {
     }
 
     #[test]
-    fn test_a_star_in_path_conflict_without_mdd_trace_correctness() {
+    fn test_a_star_edge_constraint_alternative_path_without_mdd() {
         init_tracing();
         let agent = Agent {
             id: 0,
-            start: (18, 24),
-            goal: (12, 7),
+            start: (2, 2),
+            goal: (0, 0),
         };
-        let map = Map::from_file(
-            "map_file/random-32-32-20/random-32-32-20.map",
-            &vec![agent.clone()],
-        )
-        .unwrap();
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
         let mut constraints = HashSet::new();
-        constraints.insert(Constraint {
-            position: (13, 13),
-            time_step: 20,
-            is_permanent: true,
-        });
-        constraints.insert(Constraint {
-            position: (13, 10),
-            time_step: 23,
-            is_permanent: true,
+        constraints.insert(Constraint::Edge {
+            from_position: (0, 2),
+            to_position: (1, 2),
+            to_time_step: 2,
         });
         let stats = &mut Stats::default();
         let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
         let (path, _) = get_path_from_result(result).unwrap();
         debug!("{path:?}");
-        assert_eq!(path.len(), 32);
+        assert_eq!(path.len(), 5);
+    }
+
+    #[test]
+    fn test_a_star_edge_constraint_without_mdd() {
+        init_tracing();
+        let agent = Agent {
+            id: 0,
+            start: (2, 2),
+            goal: (0, 0),
+        };
+        let map = Map::from_file("map_file/test/test.map", &vec![agent.clone()]).unwrap();
+        let mut constraints = HashSet::new();
+        constraints.insert(Constraint::Edge {
+            from_position: (1, 2),
+            to_position: (0, 2),
+            to_time_step: 2,
+        });
+        constraints.insert(Constraint::Edge {
+            from_position: (2, 0),
+            to_position: (1, 0),
+            to_time_step: 3,
+        });
+        let stats = &mut Stats::default();
+        let result = a_star_search(&map, &agent, &constraints, 0, false, stats);
+        let (path, _) = get_path_from_result(result).unwrap();
+        debug!("{path:?}");
+        assert_eq!(path.len(), 6);
     }
 }

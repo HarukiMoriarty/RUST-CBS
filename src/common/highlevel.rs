@@ -16,9 +16,9 @@ pub(crate) enum ConflictType {
         time_step: usize,
     },
     Edge {
-        u: (usize, usize),
-        v: (usize, usize),
-        time_step: usize,
+        from_position: (usize, usize),
+        to_position: (usize, usize),
+        to_time_step: usize,
     },
     Target {
         position: (usize, usize),
@@ -43,22 +43,46 @@ pub(crate) struct Conflict {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
-pub(crate) struct Constraint {
-    pub(crate) position: (usize, usize),
-    pub(crate) time_step: usize,
-    pub(crate) is_permanent: bool,
+pub(crate) enum Constraint {
+    Vertex {
+        position: (usize, usize),
+        time_step: usize,
+        is_permanent: bool,
+    },
+    Edge {
+        from_position: (usize, usize),
+        to_position: (usize, usize),
+        to_time_step: usize,
+    },
 }
 
 impl Constraint {
-    pub fn is_violated(&self, position: (usize, usize), time: usize) -> bool {
-        if position != self.position {
-            return false;
-        }
-
-        if self.is_permanent {
-            time >= self.time_step
-        } else {
-            time == self.time_step
+    pub(crate) fn is_violated(
+        &self,
+        from_pos: (usize, usize),
+        to_pos: (usize, usize),
+        to_tmstep: usize,
+    ) -> bool {
+        match self {
+            Constraint::Vertex {
+                position,
+                time_step,
+                is_permanent,
+            } => {
+                if to_pos != *position {
+                    return false;
+                }
+                if *is_permanent {
+                    to_tmstep >= *time_step
+                } else {
+                    to_tmstep == *time_step
+                }
+            }
+            Constraint::Edge {
+                from_position,
+                to_position,
+                to_time_step,
+            } => from_pos == *from_position && to_pos == *to_position && to_tmstep == *to_time_step,
         }
     }
 }
@@ -89,6 +113,76 @@ impl Ord for HighLevelOpenNode {
 impl PartialOrd for HighLevelOpenNode {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+pub(crate) fn convert_conflict_to_constraint(
+    conflict: &Conflict,
+    resolve_first: bool,
+    target_reasoning: bool,
+    agent_to_update: usize,
+    new_constraints: &mut [HashSet<Constraint>],
+    new_path_length_constraints: &mut [usize],
+) {
+    match conflict.conflict_type {
+        ConflictType::Vertex {
+            position,
+            time_step,
+        } => {
+            new_constraints[agent_to_update].insert(Constraint::Vertex {
+                position,
+                time_step,
+                is_permanent: false,
+            });
+        }
+        ConflictType::Edge {
+            from_position,
+            to_position,
+            to_time_step,
+        } => {
+            new_constraints[agent_to_update].insert(if resolve_first {
+                Constraint::Edge {
+                    from_position,
+                    to_position,
+                    to_time_step,
+                }
+            } else {
+                Constraint::Edge {
+                    from_position: to_position,
+                    to_position: from_position,
+                    to_time_step,
+                }
+            });
+        }
+        ConflictType::Target {
+            position,
+            time_step,
+        } => {
+            if target_reasoning && !resolve_first {
+                new_constraints
+                    .iter_mut()
+                    .enumerate()
+                    .filter(|&(agent, _)| agent != conflict.agent_1)
+                    .for_each(|(_, constraints)| {
+                        constraints.insert(Constraint::Vertex {
+                            position,
+                            time_step,
+                            is_permanent: true,
+                        });
+                    });
+            } else {
+                new_constraints[agent_to_update].insert(Constraint::Vertex {
+                    position,
+                    time_step,
+                    is_permanent: false,
+                });
+
+                if resolve_first {
+                    new_path_length_constraints[agent_to_update] =
+                        max(new_path_length_constraints[agent_to_update], time_step);
+                }
+            }
+        }
     }
 }
 
@@ -300,9 +394,9 @@ impl HighLevelOpenNode {
                             agent_1: i,
                             agent_2: j,
                             conflict_type: ConflictType::Edge {
-                                u: pos1,
-                                v: prev_pos1,
-                                time_step: step,
+                                from_position: prev_pos1,
+                                to_position: pos1,
+                                to_time_step: step,
                             },
                             cardinal_type,
                         });
@@ -335,56 +429,14 @@ impl HighLevelOpenNode {
             conflict.agent_2
         };
 
-        match conflict.conflict_type {
-            ConflictType::Vertex {
-                position,
-                time_step,
-            } => {
-                new_constraints[agent_to_update].insert(Constraint {
-                    position,
-                    time_step,
-                    is_permanent: false,
-                });
-            }
-            ConflictType::Edge { u, v, time_step } => {
-                let position = if resolve_first { u } else { v };
-                new_constraints[agent_to_update].insert(Constraint {
-                    position,
-                    time_step,
-                    is_permanent: false,
-                });
-            }
-            ConflictType::Target {
-                position,
-                time_step,
-            } => {
-                if config.op_target_reasoning && !resolve_first {
-                    new_constraints
-                        .iter_mut()
-                        .enumerate()
-                        .filter(|&(agent, _)| agent != conflict.agent_1)
-                        .for_each(|(_, constraints)| {
-                            constraints.insert(Constraint {
-                                position,
-                                time_step,
-                                is_permanent: true,
-                            });
-                        });
-                } else {
-                    new_constraints[agent_to_update].insert(Constraint {
-                        position,
-                        time_step,
-                        is_permanent: false,
-                    });
-                }
-
-                // Update path constaints
-                if resolve_first {
-                    new_path_length_constraints[agent_to_update] =
-                        max(new_path_length_constraints[agent_to_update], time_step);
-                }
-            }
-        }
+        convert_conflict_to_constraint(
+            conflict,
+            resolve_first,
+            config.op_target_reasoning,
+            agent_to_update,
+            &mut new_constraints,
+            &mut new_path_length_constraints,
+        );
 
         let (new_path, new_low_level_f_min, new_mdd) = match config.solver.as_str() {
             "cbs" | "hbcbs" => match a_star_search(
@@ -559,28 +611,39 @@ mod tests {
     #[test]
     fn test_constraints_violation() {
         init_tracing();
-        // Test non perminant constraint
-        let non_perminant_constraint = Constraint {
+        // Test non perminant vertex constraint
+        let non_perminant_vertex_constraint = Constraint::Vertex {
             position: (0, 0),
             time_step: 1,
             is_permanent: false,
         };
 
-        assert!(!non_perminant_constraint.is_violated((0, 1), 1));
-        assert!(non_perminant_constraint.is_violated((0, 0), 1));
-        assert!(!non_perminant_constraint.is_violated((0, 0), 2));
+        assert!(!non_perminant_vertex_constraint.is_violated((0, 0), (0, 1), 1));
+        assert!(non_perminant_vertex_constraint.is_violated((0, 1), (0, 0), 1));
+        assert!(!non_perminant_vertex_constraint.is_violated((0, 1), (0, 0), 2));
 
-        // Test perminant constraint
-        let perminant_constraint = Constraint {
+        // Test perminant vertex constraint
+        let perminant_vertex_constraint = Constraint::Vertex {
             position: (0, 0),
             time_step: 5,
             is_permanent: true,
         };
 
-        assert!(!perminant_constraint.is_violated((0, 1), 5));
-        assert!(perminant_constraint.is_violated((0, 0), 5));
-        assert!(perminant_constraint.is_violated((0, 0), 6));
-        assert!(!perminant_constraint.is_violated((0, 0), 4));
+        assert!(!perminant_vertex_constraint.is_violated((0, 0), (0, 1), 5));
+        assert!(perminant_vertex_constraint.is_violated((0, 1), (0, 0), 5));
+        assert!(perminant_vertex_constraint.is_violated((0, 1), (0, 0), 6));
+        assert!(!perminant_vertex_constraint.is_violated((0, 0), (0, 1), 4));
+
+        // Test edge constraint
+        let edge_constraint = Constraint::Edge {
+            from_position: (0, 0),
+            to_position: (0, 1),
+            to_time_step: 2,
+        };
+
+        assert!(!edge_constraint.is_violated((0, 0), (0, 1), 1));
+        assert!(!edge_constraint.is_violated((1, 1), (0, 1), 2));
+        assert!(edge_constraint.is_violated((0, 0), (0, 1), 2));
     }
 
     use crate::common::MddNode;
@@ -981,9 +1044,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (1, 2),
-                    v: (0, 2),
-                    time_step: 2
+                    from_position: (0, 2),
+                    to_position: (1, 2),
+                    to_time_step: 2
                 },
                 cardinal_type: CardinalType::Cardinal
             }]
@@ -1041,9 +1104,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (2, 2),
-                    v: (1, 2),
-                    time_step: 2
+                    from_position: (1, 2),
+                    to_position: (2, 2),
+                    to_time_step: 2
                 },
                 cardinal_type: CardinalType::SemiCardinal
             }]
@@ -1108,9 +1171,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (1, 2),
-                    v: (0, 2),
-                    time_step: 3
+                    from_position: (0, 2),
+                    to_position: (1, 2),
+                    to_time_step: 3
                 },
                 cardinal_type: CardinalType::NonCardinal
             }]
@@ -1159,9 +1222,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (2, 2),
-                    v: (1, 2),
-                    time_step: 2
+                    from_position: (1, 2),
+                    to_position: (2, 2),
+                    to_time_step: 2
                 },
                 cardinal_type: CardinalType::SemiCardinal
             }]
@@ -1217,9 +1280,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (2, 2),
-                    v: (1, 2),
-                    time_step: 2
+                    from_position: (1, 2),
+                    to_position: (2, 2),
+                    to_time_step: 2
                 },
                 cardinal_type: CardinalType::NonCardinal
             }]
@@ -1266,9 +1329,9 @@ mod tests {
                 agent_1: 0,
                 agent_2: 1,
                 conflict_type: ConflictType::Edge {
-                    u: (1, 2),
-                    v: (0, 2),
-                    time_step: 2
+                    from_position: (0, 2),
+                    to_position: (1, 2),
+                    to_time_step: 2
                 },
                 cardinal_type: CardinalType::Unknown
             }]
@@ -1331,5 +1394,168 @@ mod tests {
                 cardinal_type: CardinalType::Cardinal
             }]
         );
+    }
+
+    #[test]
+    fn test_convert_vertex_conflict_to_constraint() {
+        init_tracing();
+        let conflict = Conflict {
+            agent_1: 0,
+            agent_2: 1,
+            cardinal_type: CardinalType::Cardinal,
+            conflict_type: ConflictType::Vertex {
+                position: (0, 0),
+                time_step: 1,
+            },
+        };
+        let mut constraints = vec![HashSet::new(), HashSet::new()];
+        let mut path_length_constraints: Vec<usize> = vec![0, 0];
+
+        convert_conflict_to_constraint(
+            &conflict,
+            true,
+            false,
+            0,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[0].len(), 1);
+        assert!(constraints[0].contains(&Constraint::Vertex {
+            position: (0, 0),
+            time_step: 1,
+            is_permanent: false,
+        }));
+        assert!(constraints[1].is_empty());
+
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![0, 0]);
+
+        convert_conflict_to_constraint(
+            &conflict,
+            false,
+            false,
+            1,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[1].len(), 1);
+        assert!(constraints[1].contains(&Constraint::Vertex {
+            position: (0, 0),
+            time_step: 1,
+            is_permanent: false,
+        }));
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![0, 0]);
+    }
+
+    #[test]
+    fn test_convert_edge_conflict_to_constraint() {
+        init_tracing();
+        let conflict = Conflict {
+            agent_1: 0,
+            agent_2: 1,
+            cardinal_type: CardinalType::Cardinal,
+            conflict_type: ConflictType::Edge {
+                from_position: (0, 0),
+                to_position: (0, 1),
+                to_time_step: 2,
+            },
+        };
+        let mut constraints = vec![HashSet::new(), HashSet::new()];
+        let mut path_length_constraints: Vec<usize> = vec![0, 0];
+
+        convert_conflict_to_constraint(
+            &conflict,
+            true,
+            false,
+            0,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[0].len(), 1);
+        assert!(constraints[0].contains(&Constraint::Edge {
+            from_position: (0, 0),
+            to_position: (0, 1),
+            to_time_step: 2,
+        }));
+        assert!(constraints[1].is_empty());
+
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![0, 0]);
+
+        convert_conflict_to_constraint(
+            &conflict,
+            false,
+            false,
+            1,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[1].len(), 1);
+        assert!(constraints[1].contains(&Constraint::Edge {
+            from_position: (0, 1),
+            to_position: (0, 0),
+            to_time_step: 2,
+        }));
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![0, 0]);
+    }
+
+    #[test]
+    fn test_convert_target_conflict_to_constraint() {
+        init_tracing();
+        let conflict = Conflict {
+            agent_1: 0,
+            agent_2: 1,
+            cardinal_type: CardinalType::Cardinal,
+            conflict_type: ConflictType::Target {
+                position: (0, 0),
+                time_step: 5,
+            },
+        };
+        let mut constraints = vec![HashSet::new(), HashSet::new()];
+        let mut path_length_constraints: Vec<usize> = vec![0, 0];
+
+        convert_conflict_to_constraint(
+            &conflict,
+            true,
+            true,
+            0,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[0].len(), 1);
+        assert!(constraints[0].contains(&Constraint::Vertex {
+            position: (0, 0),
+            time_step: 5,
+            is_permanent: false,
+        }));
+        assert!(constraints[1].is_empty());
+
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![5, 0]);
+
+        convert_conflict_to_constraint(
+            &conflict,
+            false,
+            true,
+            1,
+            &mut constraints,
+            &mut path_length_constraints,
+        );
+
+        assert_eq!(constraints[1].len(), 1);
+        assert!(constraints[1].contains(&Constraint::Vertex {
+            position: (0, 0),
+            time_step: 5,
+            is_permanent: true,
+        }));
+        // Assert path length constraints remain unchanged
+        assert_eq!(path_length_constraints, vec![5, 0]);
     }
 }
