@@ -27,6 +27,7 @@ impl LBCBS {
 impl Solver for LBCBS {
     fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
+        let mut global_high_level_node_id = 0;
         let mut open = BTreeSet::new();
 
         if let Some(root) =
@@ -34,6 +35,10 @@ impl Solver for LBCBS {
         {
             open.insert(root);
             while let Some(current_node) = open.pop_first() {
+                debug!(
+                    "Node Id: {:?}, conflicts: {:?}",
+                    current_node.node_id, current_node.conflicts
+                );
                 let conflict = if config.op_prioritize_conflicts {
                     current_node
                         .conflicts
@@ -60,11 +65,13 @@ impl Solver for LBCBS {
                     debug!("conflict: {conflict:?}");
                     let mut bypass = false;
 
+                    global_high_level_node_id += 1;
                     let child_1 = current_node.update_constraint(
                         conflict,
                         true,
                         &self.map,
                         config,
+                        global_high_level_node_id,
                         &mut self.stats,
                     );
 
@@ -75,6 +82,10 @@ impl Solver for LBCBS {
                                 child,
                                 config.sub_optimal.1.unwrap(),
                             ) {
+                                debug!(
+                                    "Bypass Node {:?} into Node {:?}",
+                                    current_node.node_id, child.node_id
+                                );
                                 open.insert(
                                     current_node.update_bypass_node(child, conflict.agent_1),
                                 );
@@ -84,11 +95,13 @@ impl Solver for LBCBS {
                         }
                     }
 
+                    global_high_level_node_id += 1;
                     let child_2 = current_node.update_constraint(
                         conflict,
                         false,
                         &self.map,
                         config,
+                        global_high_level_node_id,
                         &mut self.stats,
                     );
 
@@ -99,6 +112,10 @@ impl Solver for LBCBS {
                                 child,
                                 config.sub_optimal.1.unwrap(),
                             ) {
+                                debug!(
+                                    "Bypass Node {:?} into Node {:?}",
+                                    current_node.node_id, child.node_id
+                                );
                                 open.insert(
                                     current_node.update_bypass_node(child, conflict.agent_2),
                                 );
@@ -113,11 +130,19 @@ impl Solver for LBCBS {
                     }
 
                     if let Some(child) = child_1 {
+                        debug!(
+                            "Expand Node {:?} into Node {:?}",
+                            current_node.node_id, child.node_id
+                        );
                         open.insert(child);
                         self.stats.high_level_expand_nodes += 1;
                     }
 
                     if let Some(child) = child_2 {
+                        debug!(
+                            "Expand Node {:?} into Node {:?}",
+                            current_node.node_id, child.node_id
+                        );
                         open.insert(child);
                         self.stats.high_level_expand_nodes += 1;
                     }

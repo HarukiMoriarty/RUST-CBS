@@ -27,6 +27,7 @@ impl DECBS {
 impl Solver for DECBS {
     fn solve(&mut self, config: &Config) -> Option<Solution> {
         let total_solve_start_time = Instant::now();
+        let mut global_high_level_node_id = 0;
         let subopt_factor = config.sub_optimal.1.unwrap();
 
         let mut open = BTreeSet::new();
@@ -38,8 +39,11 @@ impl Solver for DECBS {
             open.insert(root.clone());
             focal.insert(root.to_focal_node());
             while let Some(current_focal_node) = focal.pop_first() {
+                debug!(
+                    "Node Id: {:?}, conflicts: {:?}",
+                    current_focal_node.node_id, current_focal_node.conflicts
+                );
                 let current_open_node = current_focal_node.to_open_node();
-                debug!("current node : {current_open_node:?}");
                 let old_f_min: usize = open.first().unwrap().low_level_f_min_agents.iter().sum();
 
                 open.remove(&current_open_node);
@@ -70,11 +74,13 @@ impl Solver for DECBS {
                     debug!("conflict: {conflict:?}");
                     let mut bypass = false;
 
+                    global_high_level_node_id += 1;
                     let child_1 = current_open_node.update_constraint(
                         conflict,
                         true,
                         &self.map,
                         config,
+                        global_high_level_node_id,
                         &mut self.stats,
                     );
 
@@ -95,11 +101,13 @@ impl Solver for DECBS {
                         }
                     }
 
+                    global_high_level_node_id += 1;
                     let child_2 = current_open_node.update_constraint(
                         conflict,
                         false,
                         &self.map,
                         config,
+                        global_high_level_node_id,
                         &mut self.stats,
                     );
 
@@ -110,6 +118,10 @@ impl Solver for DECBS {
                                 child,
                                 subopt_factor,
                             ) {
+                                debug!(
+                                    "Bypass Node {:?} into Node {:?}",
+                                    current_open_node.node_id, child.node_id
+                                );
                                 open.insert(
                                     current_open_node.update_bypass_node(child, conflict.agent_2),
                                 );
@@ -125,6 +137,10 @@ impl Solver for DECBS {
                     }
 
                     if let Some(child) = child_1 {
+                        debug!(
+                            "Expand Node {:?} into Node {:?}",
+                            current_open_node.node_id, child.node_id
+                        );
                         if child.cost as f64 <= (old_f_min as f64 * subopt_factor) {
                             focal.insert(child.to_focal_node());
                         }
@@ -133,6 +149,10 @@ impl Solver for DECBS {
                     }
 
                     if let Some(child) = child_2 {
+                        debug!(
+                            "Expand Node {:?} into Node {:?}",
+                            current_open_node.node_id, child.node_id
+                        );
                         if child.cost as f64 <= (old_f_min as f64 * subopt_factor) {
                             focal.insert(child.to_focal_node());
                         }

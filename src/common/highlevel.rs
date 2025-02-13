@@ -89,6 +89,7 @@ impl Constraint {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct HighLevelOpenNode {
+    pub(crate) node_id: u64,
     pub(crate) agents: Vec<Agent>,
     pub(crate) constraints: Vec<HashSet<Constraint>>,
     pub(crate) path_length_constraints: Vec<usize>,
@@ -247,6 +248,7 @@ impl HighLevelOpenNode {
         }
 
         let mut start = HighLevelOpenNode {
+            node_id: 0,
             agents: agents.to_vec(),
             constraints: vec![HashSet::new(); agents.len()],
             path_length_constraints: vec![0; agents.len()],
@@ -423,6 +425,7 @@ impl HighLevelOpenNode {
         resolve_first: bool,
         map: &Map,
         config: &Config,
+        new_node_id: u64,
         stats: &mut Stats,
     ) -> Option<HighLevelOpenNode> {
         let mut new_constraints = self.constraints.clone();
@@ -515,6 +518,7 @@ impl HighLevelOpenNode {
         new_mdds[agent_to_update] = new_mdd;
 
         let mut new_node = HighLevelOpenNode {
+            node_id: new_node_id,
             agents: self.agents.clone(),
             constraints: new_constraints,
             path_length_constraints: new_path_length_constraints,
@@ -535,6 +539,8 @@ impl HighLevelOpenNode {
         agent_id: usize,
     ) -> HighLevelOpenNode {
         let mut bypass_node = self.clone();
+        // Update node id
+        bypass_node.node_id = new_node.node_id;
         bypass_node.paths[agent_id] = new_node.paths[agent_id].clone();
         bypass_node.conflicts = new_node.conflicts.clone();
         bypass_node.mdds[agent_id] = new_node.mdds[agent_id].clone();
@@ -546,6 +552,7 @@ impl HighLevelOpenNode {
 
     pub(crate) fn to_focal_node(&self) -> HighLevelFocalNode {
         HighLevelFocalNode {
+            node_id: self.node_id,
             agents: self.agents.clone(),
             constraints: self.constraints.clone(),
             path_length_constraints: self.path_length_constraints.clone(),
@@ -561,6 +568,7 @@ impl HighLevelOpenNode {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct HighLevelFocalNode {
+    pub(crate) node_id: u64,
     pub(crate) agents: Vec<Agent>,
     pub(crate) constraints: Vec<HashSet<Constraint>>,
     pub(crate) path_length_constraints: Vec<usize>,
@@ -591,6 +599,7 @@ impl PartialOrd for HighLevelFocalNode {
 impl HighLevelFocalNode {
     pub(crate) fn to_open_node(&self) -> HighLevelOpenNode {
         HighLevelOpenNode {
+            node_id: self.node_id,
             agents: self.agents.clone(),
             constraints: self.constraints.clone(),
             path_length_constraints: self.path_length_constraints.clone(),
@@ -702,6 +711,7 @@ mod tests {
             create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -761,6 +771,7 @@ mod tests {
             create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -825,6 +836,7 @@ mod tests {
         ]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -876,6 +888,7 @@ mod tests {
             create_mdd_from_layers(vec![vec![(0, 0)], vec![(0, 1)], vec![(0, 2)], vec![(0, 3)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -932,6 +945,7 @@ mod tests {
         ]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -980,6 +994,7 @@ mod tests {
         ];
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1034,6 +1049,7 @@ mod tests {
             create_mdd_from_layers(vec![vec![(2, 2)], vec![(1, 2)], vec![(0, 2)], vec![(0, 1)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1094,6 +1110,7 @@ mod tests {
         ]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1161,6 +1178,7 @@ mod tests {
         ]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1212,6 +1230,7 @@ mod tests {
         let mdd1 = create_mdd_from_layers(vec![vec![(0, 2)], vec![(1, 2)], vec![(2, 2)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1270,6 +1289,7 @@ mod tests {
         ]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1319,6 +1339,7 @@ mod tests {
         ];
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
@@ -1378,6 +1399,7 @@ mod tests {
         let mdd2 = create_mdd_from_layers(vec![vec![(2, 2)], vec![(1, 2)], vec![(0, 2)]]);
 
         let mut node = HighLevelOpenNode {
+            node_id: 0,
             agents,
             constraints: Vec::new(),
             path_length_constraints: Vec::new(),
