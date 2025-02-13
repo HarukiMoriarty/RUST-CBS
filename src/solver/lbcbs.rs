@@ -80,6 +80,7 @@ impl Solver for LBCBS {
                             if sub_optimal_bypass_comparation(
                                 &current_node,
                                 child,
+                                conflict.agent_1,
                                 config.sub_optimal.1.unwrap(),
                             ) {
                                 debug!(
@@ -110,6 +111,7 @@ impl Solver for LBCBS {
                             if sub_optimal_bypass_comparation(
                                 &current_node,
                                 child,
+                                conflict.agent_2,
                                 config.sub_optimal.1.unwrap(),
                             ) {
                                 debug!(

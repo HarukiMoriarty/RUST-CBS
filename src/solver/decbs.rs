@@ -38,6 +38,7 @@ impl Solver for DECBS {
         {
             open.insert(root.clone());
             focal.insert(root.to_focal_node());
+
             while let Some(current_focal_node) = focal.pop_first() {
                 debug!(
                     "Node Id: {:?}, conflicts: {:?}",
@@ -89,8 +90,13 @@ impl Solver for DECBS {
                             if sub_optimal_bypass_comparation(
                                 &current_open_node,
                                 child,
+                                conflict.agent_1,
                                 subopt_factor,
                             ) {
+                                debug!(
+                                    "Bypass Node {:?} into Node {:?}",
+                                    current_open_node.node_id, child.node_id
+                                );
                                 open.insert(
                                     current_open_node.update_bypass_node(child, conflict.agent_1),
                                 );
@@ -116,6 +122,7 @@ impl Solver for DECBS {
                             if sub_optimal_bypass_comparation(
                                 &current_open_node,
                                 child,
+                                conflict.agent_2,
                                 subopt_factor,
                             ) {
                                 debug!(

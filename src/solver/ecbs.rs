@@ -90,6 +90,7 @@ impl Solver for ECBS {
                             if sub_optimal_bypass_comparation(
                                 &current_open_node,
                                 child,
+                                conflict.agent_1,
                                 subopt_factor,
                             ) {
                                 debug!(
@@ -121,6 +122,7 @@ impl Solver for ECBS {
                             if sub_optimal_bypass_comparation(
                                 &current_open_node,
                                 child,
+                                conflict.agent_2,
                                 subopt_factor,
                             ) {
                                 debug!(
