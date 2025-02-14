@@ -3,3 +3,4 @@ debug.yaml
 transform.yaml
 result/
 *.txt
+fig
