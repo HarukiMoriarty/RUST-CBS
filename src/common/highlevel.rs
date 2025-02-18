@@ -258,11 +258,11 @@ impl HighLevelOpenNode {
             low_level_f_min_agents,
             mdds,
         };
-        start.detect_conflicts(config.op_target_reasoning);
+        start.detect_conflicts();
         Some(start)
     }
 
-    pub(crate) fn detect_conflicts(&mut self, op_target_reasoning: bool) {
+    pub(crate) fn detect_conflicts(&mut self) {
         let mut conflicts = Vec::new();
 
         // Compare paths of each pair of agents to find conflicts
@@ -290,7 +290,7 @@ impl HighLevelOpenNode {
                         *path2.last().unwrap()
                     };
 
-                    // Check for Vertex Conflict
+                    // Check for Vertex/Target Conflict
                     if pos1 == pos2 {
                         // Check for cardinal type
                         let cardinal_type = match (&mdd1, &mdd2) {
@@ -317,7 +317,8 @@ impl HighLevelOpenNode {
                         };
 
                         // Check for target conflicts first
-                        if step >= path1.len() - 1 && pos1 == self.agents[i].goal {
+                        if step >= path1.len() - 1 {
+                            assert_eq!(pos1, self.agents[i].goal);
                             // Agent i is at its target and agent j is interfering
                             conflicts.push(Conflict {
                                 agent_1: i,
@@ -326,13 +327,10 @@ impl HighLevelOpenNode {
                                     position: pos1,
                                     time_step: step,
                                 },
-                                cardinal_type: if op_target_reasoning {
-                                    cardinal_type
-                                } else {
-                                    CardinalType::Unknown
-                                },
+                                cardinal_type,
                             });
-                        } else if step >= path2.len() - 1 && pos2 == self.agents[j].goal {
+                        } else if step >= path2.len() - 1 {
+                            assert_eq!(pos2, self.agents[j].goal);
                             // Agent j is at its target and agent i is interfering
                             conflicts.push(Conflict {
                                 agent_1: j,
@@ -341,11 +339,7 @@ impl HighLevelOpenNode {
                                     position: pos2,
                                     time_step: step,
                                 },
-                                cardinal_type: if op_target_reasoning {
-                                    cardinal_type
-                                } else {
-                                    CardinalType::Unknown
-                                },
+                                cardinal_type,
                             });
                         } else {
                             // Regular vertex conflict
@@ -388,9 +382,18 @@ impl HighLevelOpenNode {
                                     CardinalType::NonCardinal
                                 }
                             }
-                            (Some(mdd), None) | (None, Some(mdd)) => {
+                            (Some(mdd), None) => {
                                 let singlenton = is_singleton_at_position(mdd, step - 1, prev_pos1)
                                     && is_singleton_at_position(mdd, step, pos1);
+                                if singlenton {
+                                    CardinalType::SemiCardinal
+                                } else {
+                                    CardinalType::NonCardinal
+                                }
+                            }
+                            (None, Some(mdd)) => {
+                                let singlenton = is_singleton_at_position(mdd, step - 1, prev_pos2)
+                                    && is_singleton_at_position(mdd, step, pos2);
                                 if singlenton {
                                     CardinalType::SemiCardinal
                                 } else {
@@ -528,7 +531,7 @@ impl HighLevelOpenNode {
             low_level_f_min_agents: new_low_level_f_min_agents,
             mdds: new_mdds,
         };
-        new_node.detect_conflicts(config.op_target_reasoning);
+        new_node.detect_conflicts();
 
         Some(new_node)
     }
@@ -722,7 +725,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -782,7 +785,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -847,7 +850,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -899,7 +902,7 @@ mod tests {
             mdds: vec![None, Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -956,7 +959,7 @@ mod tests {
             mdds: vec![Some(mdd1), None],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1005,7 +1008,7 @@ mod tests {
             mdds: vec![None, None],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1060,7 +1063,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1121,7 +1124,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1189,7 +1192,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1241,7 +1244,7 @@ mod tests {
             mdds: vec![Some(mdd1), None],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1300,7 +1303,7 @@ mod tests {
             mdds: vec![None, Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1350,7 +1353,7 @@ mod tests {
             mdds: vec![None, None],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
@@ -1410,7 +1413,7 @@ mod tests {
             mdds: vec![Some(mdd1), Some(mdd2)],
         };
 
-        node.detect_conflicts(true);
+        node.detect_conflicts();
 
         assert_eq!(
             node.conflicts,
