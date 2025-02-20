@@ -58,7 +58,7 @@ pub(crate) fn focal_a_star_search(
     };
 
     // Assert the solution cost is sub-optimal bounded.
-    assert!(f_min as f64 * subopt_factor <= (sub_optimal_result.len() - 1) as f64);
+    assert!((sub_optimal_result.len() - 1) as f64 <= f_min as f64 * subopt_factor);
 
     // Build MDD using optimal f min.
     if sub_optimal_result.len() - 1 == f_min {
