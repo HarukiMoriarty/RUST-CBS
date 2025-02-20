@@ -57,15 +57,19 @@ pub(crate) fn focal_a_star_search(
         None => return SearchResult::WithMDD(None),
     };
 
+    // Assert the solution cost is sub-optimal bounded.
+    assert!(f_min as f64 * subopt_factor <= (sub_optimal_result.len() - 1) as f64);
+
     // Build MDD using optimal f min.
-    debug!("building mdd.");
     if sub_optimal_result.len() - 1 == f_min {
+        debug!("building MDD for agent {:?}", agent.id);
         SearchResult::WithMDD(Some((
             sub_optimal_result,
             f_min,
             construct_mdd(map, agent, constraints, f_min),
         )))
     } else {
+        debug!("no building mdd for agent {:?}", agent.id);
         SearchResult::Standard(Some((sub_optimal_result, f_min)))
     }
 }
@@ -85,8 +89,8 @@ pub(crate) fn standard_focal_a_star_search(
 ) -> Option<(Path, usize)> {
     debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
 
-    let mut f_min = if let Some(last_search_f_min) = last_search_f_min {
-        last_search_f_min
+    let (double_search, mut f_min) = if let Some(last_search_f_min) = last_search_f_min {
+        (false, last_search_f_min)
     } else {
         debug!("double search.");
         match standard_a_star_search(
@@ -97,7 +101,7 @@ pub(crate) fn standard_focal_a_star_search(
             constraint_limit_time_step,
             stats,
         ) {
-            Some((_, f_min)) => f_min,
+            Some((_, f_min)) => (true, f_min),
             None => return None,
         }
     };
@@ -136,8 +140,10 @@ pub(crate) fn standard_focal_a_star_search(
 
         closed_list.insert((current.position, current.time_step));
 
-        // Use last search f min to speed search.
-        f_min = max(open_list.first().unwrap().f_open_cost, f_min);
+        // If we do not perform double search, we need to update f min.
+        if !double_search {
+            f_min = max(open_list.first().unwrap().f_open_cost, f_min);
+        }
 
         // Remove the same node from open list.
         assert!(open_list.remove(&LowLevelOpenNode {
