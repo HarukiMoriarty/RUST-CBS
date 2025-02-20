@@ -264,7 +264,7 @@ pub(crate) fn standard_focal_a_star_search(
             }
         }
 
-        if !open_list.is_empty() {
+        if !open_list.is_empty() && !double_search {
             // Maintain the focal list, since we have changed the f min.
             let new_f_min = open_list.first().unwrap().f_open_cost;
             if f_min < new_f_min {
