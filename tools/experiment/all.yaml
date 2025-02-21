@@ -1,0 +1,8 @@
+yaml_path: ["map_file/random-32-32-20/random-32-32-20-random-1.scen"]
+map_path: ["map_file/random-32-32-20/random-32-32-20.map"]
+num_agents: [10, 20, 30, 40]
+seed_num: 1000
+sub_optimal: [1.02]
+solver: ["cbs", "lbcbs", "hbcbs", "bcbs", "ecbs", "decbs"]
+time_out: 60
+optimization_level: ["none", "bc", "bc_pc", "all"]
