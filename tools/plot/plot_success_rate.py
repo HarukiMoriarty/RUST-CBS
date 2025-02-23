@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
 
 def create_plot(csv_path):
     # Read the CSV file
@@ -11,10 +12,15 @@ def create_plot(csv_path):
     
     # Create optimization combination column for each solver
     def get_full_name(row):
-        base_solver = 'DECBS' if row['solver'] == 'decbs' else 'ECBS'
-        if base_solver == 'ECBS':
-            return 'ECBS'  # ECBS is always without optimization
-        return get_opt_name(base_solver, row['op_BC'], row['op_PC'], row['op_TR'])
+        if row['solver'] == 'ecbs' and not row['op_PC'] and not row['op_BC'] and not row['op_TR']:
+            return 'ECBS'
+        elif row['solver'] == 'decbs':
+            if not row['op_PC'] and not row['op_BC'] and not row['op_TR']:
+                return 'DECBS'
+            elif not row['op_PC'] and row['op_BC'] and not row['op_TR']:
+                return 'DECBS+BC'
+            elif not row['op_PC'] and row['op_BC'] and row['op_TR']:
+                return 'DECBS+BC+TR'
     
     df['full_name'] = df.apply(get_full_name, axis=1)
     
@@ -31,8 +37,7 @@ def create_plot(csv_path):
     opt_colors = {
         'DECBS': '#1b9e77',
         'DECBS+BC': '#c95f02',
-        'DECBS+BC+PC': '#7570b3',
-        'DECBS+BC+PC+TR': '#e7298a',
+        'DECBS+BC+TR': '#7570b3',
         'ECBS': '#66a61e'  
     }
     
@@ -53,8 +58,7 @@ def create_plot(csv_path):
     markers = {
         'DECBS': 'o',
         'DECBS+BC': 's',
-        'DECBS+BC+PC': '^',
-        'DECBS+BC+PC+TR': 'D',
+        'DECBS+BC+TR': 'D',
         'ECBS': '*'
     }
     
@@ -66,7 +70,7 @@ def create_plot(csv_path):
         factor_data = df[df['low_level_suboptimal'] == factor]
         
         # Plot all solvers including ECBS
-        for solver_name in ['ECBS', 'DECBS', 'DECBS+BC', 'DECBS+BC+PC', 'DECBS+BC+PC+TR']:
+        for solver_name in ['ECBS', 'DECBS', 'DECBS+BC', 'DECBS+BC+TR']:
             solver_data = factor_data[factor_data['full_name'] == solver_name]
             if not solver_data.empty:
                 plt.plot(solver_data['num_agents'], 
@@ -100,7 +104,7 @@ def create_plot(csv_path):
     ax.set_ylim(-0.05, 1.1)
     
     # Customize x-axis ticks
-    ax.set_xticks(np.arange(40, 151, 15))
+    ax.set_xticks(np.arange(45, 150, 15))
     ax.tick_params(axis='both', which='major', labelsize=12)
     
     # Move the x-axis slightly down
@@ -108,20 +112,16 @@ def create_plot(csv_path):
     
     return plt
 
-def get_opt_name(base_solver, bc, pc, tr):
-    if not bc:
-        return base_solver
-    elif bc and not pc:
-        return f'{base_solver}+BC'
-    elif bc and pc and not tr:
-        return f'{base_solver}+BC+PC'
-    elif bc and pc and tr:
-        return f'{base_solver}+BC+PC+TR'
-    return base_solver
-
 # Usage
 if __name__ == "__main__":
-    plt = create_plot('result/stat.csv')
+    parser = argparse.ArgumentParser(description='Create success rate plot')
+    parser.add_argument('--csv_path', type=str, default='result/stat.csv',
+                       help='Path to the input CSV file')
+    parser.add_argument('--output_path', type=str, default='fig/success_rate_plot.png',
+                       help='Path to save the output plot')
+    
+    args = parser.parse_args()
+    
+    plt = create_plot(args.csv_path)
     plt.tight_layout()
-    plt.savefig('fig/success_rate_plot.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.savefig(args.output_path, dpi=300, bbox_inches='tight')
