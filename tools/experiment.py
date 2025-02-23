@@ -52,6 +52,7 @@ class ExperimentParameters(TypedDict):
     solver: List[str]
     time_out: str
     optimization_level: List[str]
+    output: str
 
 def get_optimization_flags(opt_level: str) -> tuple[bool, bool, bool]:
     """Convert optimization level to specific flags.
@@ -159,7 +160,7 @@ def write_error_csv(params: ExperimentParameters, error_msg: str):
         params (ExperimentParameters): Parameters of the failed experiment
         error_msg (str): Error message to log
     """
-    output_path = params.get("output_csv_result", "./result/result.csv")
+    output_path = params.get("output", "./result/result.csv")
     with open(output_path, 'a+') as file:
         # Build CSV row components
         base_info = [
@@ -200,7 +201,7 @@ def run_experiment(params: ExperimentParameters):
         params (ExperimentParameters): Parameters for this experiment run
     """
     # Ensure output CSV exists
-    check_and_create_csv(params.get("output_csv_result", "./result/result.csv"))
+    check_and_create_csv(params.get("output", "./result/result.csv"))
     timeout = params["time_out"]
 
     # Build base command
@@ -211,6 +212,7 @@ def run_experiment(params: ExperimentParameters):
         "--num-agents", str(params["num_agents"]),
         "--seed", str(params["seed_num"]),
         "--solver", str(params["solver"]),
+        "--output-path", str(params["output"])
     ]
 
     # Add solver-specific parameters
