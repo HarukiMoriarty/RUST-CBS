@@ -1,0 +1,8 @@
+yaml_path: ["map_file/den-312d/den312d-random-1.scen"]
+map_path: ["map_file/den-312d/den312d.map"]
+num_agents: [105, 120, 135, 150, 165, 180, 195, 210]
+seed_num: 200
+sub_optimal: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.10]
+solver: ["decbs", "ecbs"]
+time_out: 60
+optimization_level: ["none", "bc", "bc_tr"]

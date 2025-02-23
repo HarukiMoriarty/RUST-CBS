@@ -1,0 +1,8 @@
+yaml_path: ["map_file/warehouse-10-20-10-2-1/warehouse-10-20-10-2-1-random-1.scen"]
+map_path: ["map_file/warehouse-10-20-10-2-1/warehouse-10-20-10-2-1.map"]
+num_agents: [90, 120, 150, 180, 210, 240, 270, 300]
+seed_num: 200
+sub_optimal: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.10]
+solver: ["decbs", "ecbs"]
+time_out: 60
+optimization_level: ["none", "bc", "bc_tr"]
