@@ -49,14 +49,8 @@ def create_plots(csv_path):
     
     # Define line styles for different suboptimal factors
     line_styles = {
-        1.02: '-.',
-        1.04: '--',
-        1.06: 'dotted',
-        1.08: ':',
+        1.02: ':',
         1.1: '--',
-        1.12: 'solid',
-        1.14: 'dashed',
-        1.16: 'dashdot',
         1.2: '-'
     }
     
@@ -65,38 +59,38 @@ def create_plots(csv_path):
         'DECBS': 'o',
         'DECBS+BC': 's',
         'DECBS+BC+TR': 'D',
-        'ECBS': '*',
-        'ECBS+BC': '^',
-        'ECBS+BC+TR': 'v'
+        'ECBS': 'o',
+        'ECBS+BC': 's',
+        'ECBS+BC+TR': 'D'
     }
 
-    # Create figure with subplots
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 16))
+    # Create figure with subplots in one row
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 5))
     plt.rcParams.update({'font.size': 12})
 
     # Subplot configurations
     subplot_configs = [
         {
             'ax': ax1,
-            'title': 'All Variants',
             'solvers': ['ECBS', 'ECBS+BC', 'ECBS+BC+TR', 'DECBS', 'DECBS+BC', 'DECBS+BC+TR']
         },
         {
             'ax': ax2,
-            'title': 'ECBS vs DECBS',
             'solvers': ['ECBS', 'DECBS']
         },
         {
             'ax': ax3,
-            'title': 'ECBS+BC vs DECBS+BC',
             'solvers': ['ECBS+BC', 'DECBS+BC']
         },
         {
             'ax': ax4,
-            'title': 'ECBS+BC+TR vs DECBS+BC+TR',
             'solvers': ['ECBS+BC+TR', 'DECBS+BC+TR']
         }
     ]
+
+    # Store all lines for the legend
+    legend_lines = []
+    legend_labels = []
 
     # Plot each subplot
     for config in subplot_configs:
@@ -109,21 +103,25 @@ def create_plots(csv_path):
             for solver_name in config['solvers']:
                 solver_data = factor_data[factor_data['full_name'] == solver_name]
                 if not solver_data.empty:
-                    ax.plot(solver_data['num_agents'], 
-                           solver_data['success_rate'],
-                           linestyle=line_styles[factor],
-                           marker=markers[solver_name],
-                           color=opt_colors[solver_name],
-                           label=f'{solver_name}({factor})',
-                           markerfacecolor='white',
-                           markersize=6,
-                           linewidth=2)
+                    line = ax.plot(solver_data['num_agents'], 
+                                 solver_data['success_rate'],
+                                 linestyle=line_styles[factor],
+                                 marker=markers[solver_name],
+                                 color=opt_colors[solver_name],
+                                 markerfacecolor='white',
+                                 markersize=6,
+                                 linewidth=2)
+                    
+                    # Only store for legend if it's from the first subplot
+                    if ax == ax1:
+                        legend_lines.append(line[0])
+                        legend_labels.append(f'{solver_name}({factor})')
         
         # Customize each subplot
         ax.set_xlabel('Number of agents', fontsize=12)
-        ax.set_ylabel('Success rate', fontsize=12)
+        if ax == ax1:  # Only add y-label to the first subplot
+            ax.set_ylabel('Success rate', fontsize=12)
         ax.grid(True, linestyle='--', alpha=0.3)
-        ax.set_title(config['title'], fontsize=14, pad=20)
         
         # Set axis limits with padding
         ax.set_xlim(35, 155)
@@ -135,15 +133,17 @@ def create_plots(csv_path):
         
         # Move the x-axis slightly down
         ax.spines['bottom'].set_position(('data', -0.05))
-        
-        # Create legend
-        ax.legend(bbox_to_anchor=(1.05, 0.5),
-                 loc='center left',
-                 fontsize=12,
-                 borderaxespad=0,
-                 frameon=True,
-                 markerscale=1.5)
 
+    # Create a single legend for all subplots
+    fig.legend(legend_lines, legend_labels,
+              loc='center left',
+              bbox_to_anchor=(1.01, 0.5),
+              fontsize=12,
+              borderaxespad=0,
+              frameon=True,
+              markerscale=1.5)
+
+    # Adjust layout to prevent overlap
     plt.tight_layout()
     return plt
 
