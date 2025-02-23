@@ -1,0 +1,9 @@
+yaml_path: ["map_file/Paris-1-256/Paris_1_256-random-1.scen"]
+map_path: ["map_file/Paris-1-256/Paris_1_256.map"]
+num_agents: [200, 300, 400, 500, 600, 700, 800, 900]
+seed_num: 200
+sub_optimal: [1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020]
+solver: ["decbs", "ecbs"]
+time_out: 60
+optimization_level: ["none", "bc", "bc_tr"]
+output: "result/decbs_Paris_1_256_result.csv"
