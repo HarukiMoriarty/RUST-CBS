@@ -25,6 +25,9 @@ REQUIRED_COLUMNS = [
     'low_level_open_expanded', 'low_level_focal_expanded',
     'total_low_level_expanded'
 ]
+TIMEOUT_SECONDS = 60
+MICROSECONDS_PER_SECOND = 1_000_000
+TIMEOUT_MICROSECONDS = TIMEOUT_SECONDS * MICROSECONDS_PER_SECOND
 
 def load_and_clean_data(file_path: str) -> pd.DataFrame:
     """
@@ -63,9 +66,12 @@ def load_and_clean_data(file_path: str) -> pd.DataFrame:
         data['costs'] = pd.to_numeric(data['costs'], errors='coerce')
         data.loc[timeout_mask, 'costs'] = MAX_INT
         
+        data['time(us)'] = pd.to_numeric(data['time(us)'], errors='coerce')
+        data.loc[timeout_mask, 'time(us)'] = TIMEOUT_MICROSECONDS
+        
         # Set other metrics to MAX_INT for timeout cases
         timeout_columns = [
-            'time(us)', 'high_level_expanded', 'low_level_open_expanded',
+            'high_level_expanded', 'low_level_open_expanded',
             'low_level_focal_expanded', 'total_low_level_expanded'
         ]
         data.loc[timeout_mask, timeout_columns] = MAX_INT
@@ -135,11 +141,57 @@ def check_solver_costs(data: pd.DataFrame) -> None:
                     f"num_agents={solver_data['num_agents']}, seed={solver_data['seed']}\n"
                     f"Solver cost: {solver_data['costs']}, CBS optimal cost: {optimal_cost}\n"
                     f"Configuration: {solver_data[['op_PC', 'op_BC', 'op_TR', 'high_level_suboptimal', 'low_level_suboptimal']].to_dict()}"
-        )
+                )
+
+def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filter out row pairs where both 'ecbs' and 'decbs' are present.
+    For each pair, if not both timed out, keep only the solver with smallest execution time.
+    If both timed out, exclude the entire pair.
+    
+    Args:
+        data: DataFrame containing experiment results
+        
+    Returns:
+        DataFrame with filtered rows
+    """
+    filtered_data = data.copy()
+    
+    # Create a unique identifier for each problem instance, excluding solver
+    pair_key_cols = ['seed', 'num_agents', 'op_PC', 'op_BC', 'op_TR', 
+                      'high_level_suboptimal', 'low_level_suboptimal']
+    
+    # Track rows to exclude
+    rows_to_drop = []
+    
+    # Group by each problem instance configuration
+    for key, group in data.groupby(pair_key_cols):
+        # Check if both 'ecbs' and 'decbs' are present in this group
+        ecbs_rows = group[group['solver'] == 'ecbs']
+        decbs_rows = group[group['solver'] == 'decbs']
+
+        assert len(ecbs_rows) <= 2
+        assert len(decbs_rows) <= 2 
+
+        if not ecbs_rows.empty and not decbs_rows.empty:
+            # Check if both solvers timed out
+            ecbs_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+            decbs_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+            
+            if ecbs_timeout and decbs_timeout:
+                # Both timed out, exclude the whole pair
+                rows_to_drop.extend(group.index.tolist())
+    
+    # Drop the identified rows
+    filtered_data = filtered_data.drop(rows_to_drop)
+    
+    return filtered_data
 
 def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate statistics for each solver configuration.
+    For average time calculation, use filtered data that excludes certain pairs.
+    For all other statistics, use the original unfiltered data.
     
     Args:
         data: DataFrame containing experiment results
@@ -147,13 +199,17 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame containing computed statistics
     """
+    # Filter data only for avg_time calculation
+    filtered_data = filter_excluded_pairs(data)
+    
     results = []
     group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR',
                   'high_level_suboptimal', 'low_level_suboptimal']
     
+    # Process original data for all statistics except avg_time
     for group_key, group_data in data.groupby(group_cols):
         # Calculate timeout rate
-        timeouts = group_data['time(us)'] == MAX_INT
+        timeouts = group_data['time(us)'] == TIMEOUT_MICROSECONDS
         timeout_rate = timeouts.sum() / len(group_data)
         
         # Get successful runs
@@ -179,7 +235,21 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
                 f'P50{metric}': p50,
                 f'P99{metric}': p99
             })
+        
+        # For avg_time, use the filtered data
+        filtered_group = filtered_data.loc[
+            (filtered_data[group_cols] == group_key).all(axis=1)
+        ]
+        
+        if not filtered_group.empty:
+            # Calculate avg_time using filtered data
+            avg_time = filtered_group['time(us)'].mean() / MICROSECONDS_PER_SECOND
+        else:
+            # If this group was completely filtered out, use NaN
+            avg_time = TIMEOUT_SECONDS
             
+        result['avg_time'] = avg_time
+        
         results.append(result)
     
     return pd.DataFrame(results)
@@ -199,7 +269,7 @@ def analyze_experiments(input_path: str, output_path: str) -> None:
         LOG.info("Checking solver costs against CBS")
         check_solver_costs(data)
         
-        LOG.info("Calculating solver statistics")
+        LOG.info("Calculating solver statistics with exclusion of ecbs/decbs pairs")
         results_df = calculate_solver_stats(data)
         
         LOG.info(f"Saving results to {output_path}")
