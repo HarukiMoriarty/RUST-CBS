@@ -190,8 +190,7 @@ def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
 def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate statistics for each solver configuration.
-    For average time calculation, use filtered data that excludes certain pairs.
-    For all other statistics, use the original unfiltered data.
+    Using original data for all statistics.
     
     Args:
         data: DataFrame containing experiment results
@@ -199,14 +198,11 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame containing computed statistics
     """
-    # Filter data only for avg_time calculation
-    filtered_data = filter_excluded_pairs(data)
-    
     results = []
     group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR',
                   'high_level_suboptimal', 'low_level_suboptimal']
     
-    # Process original data for all statistics except avg_time
+    # Process original data for all statistics
     for group_key, group_data in data.groupby(group_cols):
         # Calculate timeout rate
         timeouts = group_data['time(us)'] == TIMEOUT_MICROSECONDS
@@ -235,19 +231,36 @@ def calculate_solver_stats(data: pd.DataFrame) -> pd.DataFrame:
                 f'P50{metric}': p50,
                 f'P99{metric}': p99
             })
-        
-        # For avg_time, use the filtered data
-        filtered_group = filtered_data.loc[
-            (filtered_data[group_cols] == group_key).all(axis=1)
-        ]
-        
-        if not filtered_group.empty:
-            # Calculate avg_time using filtered data
-            avg_time = filtered_group['time(us)'].mean() / MICROSECONDS_PER_SECOND
-        else:
-            # If this group was completely filtered out, use NaN
-            avg_time = TIMEOUT_SECONDS
             
+        results.append(result)
+    
+    return pd.DataFrame(results)
+
+def calculate_avg_time_stats(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate average time statistics using filtered data with a different grouping.
+    
+    Args:
+        data: DataFrame containing experiment results
+        
+    Returns:
+        DataFrame containing average time statistics
+    """
+    # First, filter out the excluded pairs
+    filtered_data = filter_excluded_pairs(data)
+    
+    results = []
+    # For avg_time, we use a different grouping that excludes num_agents
+    avg_time_group_cols = ['solver', 'op_PC', 'op_BC', 'op_TR',
+                          'high_level_suboptimal', 'low_level_suboptimal']
+    
+    # Process filtered data for avg_time calculation with different grouping
+    for group_key, group_data in filtered_data.groupby(avg_time_group_cols):
+        # Create result dictionary
+        result = dict(zip(avg_time_group_cols, group_key))
+        
+        # Calculate average time (including timeouts)
+        avg_time = group_data['time(us)'].mean() / MICROSECONDS_PER_SECOND
         result['avg_time'] = avg_time
         
         results.append(result)
@@ -269,11 +282,19 @@ def analyze_experiments(input_path: str, output_path: str) -> None:
         LOG.info("Checking solver costs against CBS")
         check_solver_costs(data)
         
-        LOG.info("Calculating solver statistics with exclusion of ecbs/decbs pairs")
+        LOG.info("Calculating solver statistics")
         results_df = calculate_solver_stats(data)
         
-        LOG.info(f"Saving results to {output_path}")
+        LOG.info(f"Saving primary results to {output_path}")
         results_df.to_csv(output_path, index=False)
+        
+        # Generate and save average time stats in a separate file
+        avg_time_output = output_path.replace('.csv', '_avg_time.csv')
+        LOG.info(f"Calculating average time statistics with filtered data")
+        avg_time_df = calculate_avg_time_stats(data)
+        
+        LOG.info(f"Saving average time results to {avg_time_output}")
+        avg_time_df.to_csv(avg_time_output, index=False)
         
         LOG.info("Analysis completed successfully")
         
