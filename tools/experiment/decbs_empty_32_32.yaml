@@ -1,6 +1,6 @@
 yaml_path: ["map_file/empty-32-32/empty-32-32-random-1.scen"]
 map_path: ["map_file/empty-32-32/empty-32-32.map"]
-num_agents: [90, 120, 150, 180, 210, 240, 270, 300, 330]
+num_agents: [150, 170, 190, 210, 230, 250, 270, 290, 310, 330]
 seed_num: 200
 sub_optimal: [1.02, 1.04, 1.06, 1.08, 1.10, 1.12, 1.14, 1.16, 1.18, 1.20]
 solver: ["decbs", "ecbs"]
