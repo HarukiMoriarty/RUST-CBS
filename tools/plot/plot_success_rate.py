@@ -137,11 +137,12 @@ def create_plots(csv_path):
     # Create a single legend for all subplots
     fig.legend(legend_lines, legend_labels,
               loc='center left',
-              bbox_to_anchor=(1.01, 0.5),
-              fontsize=12,
+              bbox_to_anchor=(0.1, 0.5),
+              fontsize=22,
               borderaxespad=0,
               frameon=True,
-              markerscale=1.5)
+              markerscale=1.5,
+              ncol=2)
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
