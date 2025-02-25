@@ -4,22 +4,51 @@ import numpy as np
 import argparse
 import os
 import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
 
 def plot_expanded_nodes(ax, df, title):
     # Set the Seaborn style
     sns.set_style("whitegrid")
     
-    # Use a nicer color palette
-    palette = sns.color_palette("deep")
+    # Create a custom colormap from light blue to dark blue
+    # This will make areas with high density appear darker blue
+    colors = ["#E6F3FF", "#ADD8E6", "#5CACEE", "#1E90FF", "#0000CD"]
+    custom_blue_cmap = LinearSegmentedColormap.from_list("custom_blues", colors)
     
-    # Plot points with better aesthetics
+    # Get the data points
+    x = df['expanded_decbs']
+    y = df['expanded_ecbs']
+    
+    # Create a 2D histogram with logarithmic bins to show density
+    h, xedges, yedges = np.histogram2d(
+        np.log10(x), 
+        np.log10(y), 
+        bins=50,
+        range=[[np.log10(10**3), np.log10(10**7)], [np.log10(10**3), np.log10(10**7)]]
+    )
+    
+    # Plot the 2D histogram as an image
+    h = h.T  # Transpose for correct orientation
+    h = np.log1p(h)  # Log transform counts for better color scaling
+    
+    # Plot the 2D histogram with blue color gradient
+    img = ax.imshow(h, 
+               extent=[np.log10(10**3), np.log10(10**7), np.log10(10**3), np.log10(10**7)],
+               aspect='auto',
+               origin='lower',
+               cmap=custom_blue_cmap,
+               alpha=0.8)
+    
+    # Also overlay scatter plot with minimal opacity for individual points
     sns.scatterplot(
         x='expanded_decbs',
         y='expanded_ecbs',
         data=df,
-        color=palette[1],
-        s=30,
-        alpha=0.8,
+        color='#ADD8E6',
+        s=15,  # Smaller points
+        alpha=0.3,  # More transparent
+        edgecolor='#1E90FF',  
+        linewidth=0.3,
         ax=ax
     )
     
@@ -40,7 +69,6 @@ def plot_expanded_nodes(ax, df, title):
     # Better labels
     ax.set_xlabel('DECBS low level focal node', fontsize=14)
     ax.set_ylabel('ECBS low level focal node', fontsize=14)
-    ax.set_title(title, fontsize=15, pad=15)
     
     # Add legend for the reference lines
     ax.legend(loc='upper left', fontsize=16)
