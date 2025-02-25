@@ -4,6 +4,7 @@ import numpy as np
 import argparse
 import seaborn as sns
 import os
+from matplotlib.lines import Line2D
 
 def get_full_name(row):
     """
@@ -31,7 +32,7 @@ def get_full_name(row):
     
     return result
 
-def plot_success_rate(ax, csv_path, store_legend=False):
+def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=False):
     """
     Plot success rate data from a CSV file on the given axis.
     Returns legend lines and labels if store_legend is True.
@@ -68,7 +69,6 @@ def plot_success_rate(ax, csv_path, store_legend=False):
             print(unknown_rows[['solver', 'op_PC', 'op_BC', 'op_TR']].head())
         
         # Define suboptimal factors and solver names
-        subopt_factors = [1.02, 1.1, 1.2]
         solvers = ['ECBS', 'ECBS+BC', 'ECBS+BC+TR', 'DECBS', 'DECBS+BC', 'DECBS+BC+TR']
         
         # Define colors, line styles, and markers
@@ -80,11 +80,6 @@ def plot_success_rate(ax, csv_path, store_legend=False):
             'ECBS': colors[3],
             'ECBS+BC': colors[4],
             'ECBS+BC+TR': colors[5]
-        }
-        line_styles = {
-            1.02: ':',
-            1.1: '--',
-            1.2: '-'
         }
         markers = {
             'DECBS': 'o',
@@ -149,6 +144,14 @@ def plot_success_rate(ax, csv_path, store_legend=False):
             ax.set_xlim(40, 155)
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(45, 165, 15))
+        elif 'den_312' in csv_path:
+            ax.set_xlim(100, 215)
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_xticks(np.arange(105, 215, 15))
+        elif 'warehouse' in csv_path:
+            ax.set_xlim(80, 310)
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_xticks(np.arange(90, 300, 30))
         else:
             # Default range
             ax.set_xlim(35, 155)
@@ -222,7 +225,7 @@ def plot_avg_time(ax, csv_path, store_legend=False):
         legend_labels = []
         
         # Debug: Print unique values of important columns
-        print(f"Unique high level suboptimal factors in {csv_path}: {df['low_level_suboptimal'].unique()}")
+        print(f"Unique low level suboptimal factors in {csv_path}: {df['low_level_suboptimal'].unique()}")
         print(f"Unique solvers in {csv_path}: {df['solver'].unique()}")
         
         # Plot lines for each solver
@@ -257,8 +260,23 @@ def plot_avg_time(ax, csv_path, store_legend=False):
         # Set appropriate y-limits based on data
         if not df.empty and 'avg_time' in df.columns:
             max_time = df['avg_time'].max()
-            ax.set_ylim(-1, max_time * 1.1)  # Add 10% padding
-            ax.set_xlim(0.98, 1.22)
+            ax.set_ylim(0, max_time * 1.1)  # Add 10% padding
+            if 'empty' in csv_path:
+                ax.set_xlim(1, 1.22)
+                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
+            elif 'random' in csv_path:
+                ax.set_xlim(1, 1.22)
+                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
+            elif 'den_312' in csv_path:
+                ax.set_xlim(1, 1.11)
+                ax.set_xticks(np.arange(1.01, 1.1, 0.01))
+            elif 'warehouse' in csv_path:
+                ax.set_xlim(1, 1.11)
+                ax.set_xticks(np.arange(1.01, 1.1, 0.01))
+            else:
+                # Default range
+                ax.set_xlim(1, 1.22)
+                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
         
         ax.tick_params(axis='both', which='major', labelsize=12)
         
@@ -268,84 +286,153 @@ def plot_avg_time(ax, csv_path, store_legend=False):
         print(f"Error processing {csv_path}: {str(e)}")
         return [], []
 
+def create_legend(fig, row_idx=0):
+    """
+    Create a combined legend for a specific row index with both solvers and suboptimality factors
+    
+    Parameters:
+    fig - The figure to add the legend to
+    row_idx - Row index (0 for top row, 1 for bottom row)
+    
+    Returns:
+    legend - The created legend object
+    """
+    colors = sns.color_palette("deep")
+    # Create custom handles for solvers
+    solver_handles = [
+        Line2D([0], [0], color=colors[3], marker='o', markerfacecolor='white', markersize=6, label='ECBS'),
+        Line2D([0], [0], color=colors[4], marker='s', markerfacecolor='white', markersize=6, label='ECBS+BC'),
+        Line2D([0], [0], color=colors[5], marker='D', markerfacecolor='white', markersize=6, label='ECBS+BC+TR'),
+        Line2D([0], [0], color=colors[0], marker='o', markerfacecolor='white', markersize=6, label='DECBS'),
+        Line2D([0], [0], color=colors[1], marker='s', markerfacecolor='white', markersize=6, label='DECBS+BC'),
+        Line2D([0], [0], color=colors[2], marker='D', markerfacecolor='white', markersize=6, label='DECBS+BC+TR')
+    ]
+    
+    # Create custom handles for suboptimality factors based on row
+    if row_idx == 0:
+        # First row: 1.02, 1.1, 1.2
+        subopt_handles = [
+            Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.02'),
+            Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.10'),
+            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.20')
+        ]
+    else:
+        # Second row: 1.01, 1.05, 1.1
+        subopt_handles = [
+            Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.01'),
+            Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.05'),
+            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.10')
+        ]
+    
+    # Combine all handles
+    all_handles = solver_handles + subopt_handles
+    all_labels = [h.get_label() for h in all_handles]
+    
+    # Add a single combined legend for the row
+    if row_idx == 0:
+        legend = fig.legend(handles=all_handles, 
+                     labels=all_labels,
+                     loc='upper center', 
+                     bbox_to_anchor=(0.5, 0.92),
+                     ncol=len(all_handles), 
+                     fontsize=10, 
+                     frameon=True)
+    elif row_idx == 1:
+        legend = fig.legend(handles=all_handles, 
+                     labels=all_labels,
+                     loc='upper center', 
+                     bbox_to_anchor=(0.5, 0.49),
+                     ncol=len(all_handles), 
+                     fontsize=10, 
+                     frameon=True)
+    
+    
+    return legend
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create success rate and average time plots from CSV files')
-    parser.add_argument('--csv_paths', type=str, nargs='+', default=['result/empty-32-32-20_stat.csv', 'result/random-32-32-20_stat.csv'],
-                        help='Paths to the input success rate CSV file(s)')
-    parser.add_argument('--time_csv_paths', type=str, nargs='+', default=None,
-                        help='Paths to the input time CSV file(s). If not provided, will use csv_paths with _time suffix')
     parser.add_argument('--output_path', type=str, default='fig/combined_plots.png',
                         help='Path to save the output figure')
     
     args = parser.parse_args()
     
-    num_files = len(args.csv_paths)
+    # File paths
+    map_files = {
+        'random': {
+            'stat': 'result/random-32-32-20_stat.csv',
+            'time': 'result/random-32-32-20_time.csv'
+        },
+        'empty': {
+            'stat': 'result/empty-32-32-20_stat.csv',
+            'time': 'result/empty-32-32-20_time.csv'
+        },
+        'den_312': {
+            'stat': 'result/den_312d_stat.csv',
+            'time': 'result/den_312d_time.csv'
+        },
+        'warehouse': {
+            'stat': 'result/warehouse-10-20-10-2-1_stat.csv',
+            'time': 'result/warehouse-10-20-10-2-1_time.csv'
+        }
+    }
     
-    # Ensure we have the same number of time CSV files as success rate files
-    if len(args.time_csv_paths) != num_files:
-        print("Warning: Number of time CSV files doesn't match success rate files. Using only the first ones.")
-        args.time_csv_paths = args.time_csv_paths[:num_files]
+    # Create a figure with 2 rows and 4 columns
+    fig, axes = plt.subplots(2, 4, figsize=(30, 10))
+
+    line_styles1 = {
+            1.02: ':',
+            1.1: '--',
+            1.2: '-'
+        }
+
+    line_styles2 = {
+            1.01: ':',
+            1.05: '--',
+            1.1: '-'
+        }
     
-    # Create a figure with 2 rows and n columns (n = number of files)
-    fig, axes = plt.subplots(2, num_files, figsize=(8*num_files, 7))
+    # Create all plots according to the specified layout
+    # Row 0
+    plot_success_rate(axes[0, 0], map_files['random']['stat'], [1.02, 1.1, 1.2], line_styles1)
+    plot_avg_time(axes[0, 1], map_files['random']['time'])
+    plot_success_rate(axes[0, 2], map_files['empty']['stat'], [1.02, 1.1, 1.2], line_styles1)
+    plot_avg_time(axes[0, 3], map_files['empty']['time'])
     
-    # If only one file is provided, ensure axes is a 2D array
-    if num_files == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
+    # Row 1
+    plot_success_rate(axes[1, 0], map_files['den_312']['stat'], [1.01, 1.05, 1.1], line_styles2)
+    plot_avg_time(axes[1, 1], map_files['den_312']['time'])
+    plot_success_rate(axes[1, 2], map_files['warehouse']['stat'], [1.01, 1.05, 1.1], line_styles2)
+    plot_avg_time(axes[1, 3], map_files['warehouse']['time'])
     
-    all_legend_lines = []
-    all_legend_labels = []
+    # Set titles for each subplot
+    map_titles = {
+        'random': 'Random 32x32',
+        'empty': 'Empty 32x32',
+        'den_312': 'Den 312d',
+        'warehouse': 'Warehouse'
+    }
     
-    # Loop through each CSV file and plot success rate on the first row
-    for i, csv_path in enumerate(args.csv_paths):
-        # Store legend from all subplots to ensure completeness
-        legend_lines, legend_labels = plot_success_rate(axes[0, i], csv_path, store_legend=True)
-        
-        # Use a more descriptive title (filename without path)
-        title = os.path.basename(csv_path.replace(".csv", ""))
-        axes[0, i].set_title(f"{title}", fontsize=14)
-        
-        # Add to the complete legend collection
-        all_legend_lines.extend(legend_lines)
-        all_legend_labels.extend(legend_labels)
+    # Set titles
+    axes[0, 0].set_title(f"{map_titles['random']}", fontsize=14)
+    axes[0, 1].set_title(f"{map_titles['random']}", fontsize=14)
+    axes[0, 2].set_title(f"{map_titles['empty']}", fontsize=14)
+    axes[0, 3].set_title(f"{map_titles['empty']}", fontsize=14)
     
-    # Loop through each time CSV file and plot average time on the second row
-    for i, time_csv_path in enumerate(args.time_csv_paths):
-        # Store legend from all subplots
-        legend_lines, legend_labels = plot_avg_time(axes[1, i], time_csv_path, store_legend=True)
-        
-        # Use a more descriptive title (filename without path)
-        title = os.path.basename(time_csv_path.replace(".csv", "").replace("_time", ""))
-        
-        # Add to the complete legend collection
-        all_legend_lines.extend(legend_lines)
-        all_legend_labels.extend(legend_labels)
+    axes[1, 0].set_title(f"{map_titles['den_312']}", fontsize=14)
+    axes[1, 1].set_title(f"{map_titles['den_312']}", fontsize=14)
+    axes[1, 2].set_title(f"{map_titles['warehouse']}", fontsize=14)
+    axes[1, 3].set_title(f"{map_titles['warehouse']}", fontsize=14)
     
-    # Create a common legend for the figure
-    if all_legend_lines:
-        # Remove duplicate legend entries
-        unique_labels = []
-        unique_lines = []
-        seen_labels = set()
-        
-        for line, label in zip(all_legend_lines, all_legend_labels):
-            if label not in seen_labels:
-                seen_labels.add(label)
-                unique_labels.append(label)
-                unique_lines.append(line)
-        
-        legend = fig.legend(unique_lines, unique_labels,
-                    loc='center left',
-                    bbox_to_anchor=(0.9, 0.5),
-                    fontsize=22,
-                    borderaxespad=0.5,
-                    markerscale=1.5,
-                    ncol=2)
+    # Create separate legends for each row
+    legend1 = create_legend(fig, row_idx=0)
+    legend2 = create_legend(fig, row_idx=1)
     
-    plt.tight_layout(rect=[0, 0, 0.85, 1])
+    # Adjust spacing between plots
+    plt.subplots_adjust(hspace=0.4, wspace=0.3, top=0.85)
     
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
     
+    # Save the figure
     plt.savefig(args.output_path, dpi=300, bbox_inches='tight')
     print(f"Figure saved to {args.output_path}")
