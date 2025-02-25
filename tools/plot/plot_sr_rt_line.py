@@ -130,8 +130,8 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
                         legend_labels.append(f'{solver_name} ({factor})')
         
         # Customize the axis
-        ax.set_xlabel('Number of agents', fontsize=12)
-        ax.set_ylabel('Success rate', fontsize=12)
+        ax.set_xlabel('Number of agents', fontsize=14)
+        ax.set_ylabel('Success rate', fontsize=14)
         ax.grid(True, linestyle='--', alpha=0.3)
         ax.set_ylim(0, 1.05)  # Fixed y-limits to standard success rate range
         
@@ -151,11 +151,11 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
         elif 'warehouse' in csv_path:
             ax.set_xlim(80, 310)
             ax.set_ylim(-0.1, 1.1)
-            ax.set_xticks(np.arange(90, 300, 30))
+            ax.set_xticks(np.arange(90, 310, 30))
         elif 'den_520' in csv_path:
             ax.set_xlim(90, 460)
             ax.set_ylim(-0.1, 1.1)
-            ax.set_xticks(np.arange(100, 450, 50))
+            ax.set_xticks(np.arange(100, 460, 50))
         elif 'Paris' in csv_path:
             ax.set_xlim(40, 410)
             ax.set_ylim(-0.1, 1.1)
@@ -166,6 +166,8 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(45, 150, 15))
         
+        ax.tick_params(axis='both', which='major', labelsize=14)
+
         return legend_lines, legend_labels
         
     except Exception as e:
@@ -259,8 +261,8 @@ def plot_avg_time(ax, csv_path, store_legend=False):
                     legend_labels.append(solver_name)
         
         # Customize the axis
-        ax.set_xlabel('Suboptimality factor', fontsize=12)
-        ax.set_ylabel('Average time (s)', fontsize=12)
+        ax.set_xlabel('Suboptimality factor', fontsize=14)
+        ax.set_ylabel('Running time (s)', fontsize=14)
         ax.grid(True, linestyle='--', alpha=0.3)
         
         # Set appropriate y-limits based on data
@@ -290,7 +292,7 @@ def plot_avg_time(ax, csv_path, store_legend=False):
                 ax.set_xlim(1, 1.22)
                 ax.set_xticks(np.arange(1.02, 1.2, 0.02))
         
-        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.tick_params(axis='both', which='major', labelsize=14)
         ticks = ax.get_xticks()
         for i, label in enumerate(ax.get_xticklabels()):
             if i % 2 != 0:
@@ -487,7 +489,7 @@ if __name__ == "__main__":
     legend3 = create_legend(fig, row_idx=2)
     
     # Adjust spacing between plots
-    plt.subplots_adjust(hspace=0.4, wspace=0.3, top=0.85)
+    plt.subplots_adjust(hspace=0.4, wspace=0.15, top=0.85)
     
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
