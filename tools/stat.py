@@ -174,13 +174,22 @@ def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
         assert len(decbs_rows) <= 2 
 
         if not ecbs_rows.empty and not decbs_rows.empty:
-            # Check if both solvers timed out
-            ecbs_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
-            decbs_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
-            
-            if ecbs_timeout and decbs_timeout:
-                # Both timed out, exclude the whole pair
+            # Check if both solvers contain ONLY timeouts
+            ecbs_all_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+            decbs_all_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+    
+            if ecbs_all_timeout and decbs_all_timeout:
+                # Both contain only timeouts, exclude the whole pair
                 rows_to_drop.extend(group.index.tolist())
+            else:
+                # At least one solver has a non-timeout entry
+                # Only remove the individual timeout entries
+                ecbs_timeout_indices = ecbs_rows[ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS].index.tolist()
+                decbs_timeout_indices = decbs_rows[decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS].index.tolist()
+        
+                # Add all timeout entries to the rows to drop
+                rows_to_drop.extend(ecbs_timeout_indices)
+                rows_to_drop.extend(decbs_timeout_indices)
     
     # Drop the identified rows
     filtered_data = filtered_data.drop(rows_to_drop)

@@ -152,13 +152,19 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             ax.set_xlim(80, 310)
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(90, 300, 30))
+        elif 'den_520' in csv_path:
+            ax.set_xlim(90, 460)
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_xticks(np.arange(100, 450, 50))
+        elif 'Paris' in csv_path:
+            ax.set_xlim(40, 410)
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_xticks(np.arange(50, 410, 50))
         else:
             # Default range
             ax.set_xlim(35, 155)
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(45, 150, 15))
-            
-        ax.tick_params(axis='both', which='major', labelsize=12)
         
         return legend_lines, legend_labels
         
@@ -273,12 +279,22 @@ def plot_avg_time(ax, csv_path, store_legend=False):
             elif 'warehouse' in csv_path:
                 ax.set_xlim(1, 1.11)
                 ax.set_xticks(np.arange(1.01, 1.1, 0.01))
+            elif 'den_520' in csv_path:
+                ax.set_xlim(1, 1.022)
+                ax.set_xticks(np.arange(1.002, 1.02, 0.002))
+            elif 'Paris' in csv_path:
+                ax.set_xlim(1, 1.022)
+                ax.set_xticks(np.arange(1.002, 1.02, 0.002))
             else:
                 # Default range
                 ax.set_xlim(1, 1.22)
                 ax.set_xticks(np.arange(1.02, 1.2, 0.02))
         
         ax.tick_params(axis='both', which='major', labelsize=12)
+        ticks = ax.get_xticks()
+        for i, label in enumerate(ax.get_xticklabels()):
+            if i % 2 != 0:
+                label.set_visible(False)
         
         return legend_lines, legend_labels
         
@@ -316,12 +332,19 @@ def create_legend(fig, row_idx=0):
             Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.10'),
             Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.20')
         ]
-    else:
+    elif row_idx == 1:
         # Second row: 1.01, 1.05, 1.1
         subopt_handles = [
             Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.01'),
             Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.05'),
             Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.10')
+        ]
+    elif row_idx == 2:
+        # Second row: 1.002, 1.01, 1.02
+        subopt_handles = [
+            Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.002'),
+            Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.01'),
+            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.02')
         ]
     
     # Combine all handles
@@ -333,7 +356,7 @@ def create_legend(fig, row_idx=0):
         legend = fig.legend(handles=all_handles, 
                      labels=all_labels,
                      loc='upper center', 
-                     bbox_to_anchor=(0.5, 0.92),
+                     bbox_to_anchor=(0.5, 0.90),
                      ncol=len(all_handles), 
                      fontsize=10, 
                      frameon=True)
@@ -341,7 +364,15 @@ def create_legend(fig, row_idx=0):
         legend = fig.legend(handles=all_handles, 
                      labels=all_labels,
                      loc='upper center', 
-                     bbox_to_anchor=(0.5, 0.49),
+                     bbox_to_anchor=(0.5, 0.62),
+                     ncol=len(all_handles), 
+                     fontsize=10, 
+                     frameon=True)
+    elif row_idx == 2:
+        legend = fig.legend(handles=all_handles, 
+                     labels=all_labels,
+                     loc='upper center', 
+                     bbox_to_anchor=(0.5, 0.35),
                      ncol=len(all_handles), 
                      fontsize=10, 
                      frameon=True)
@@ -373,11 +404,19 @@ if __name__ == "__main__":
         'warehouse': {
             'stat': 'result/warehouse-10-20-10-2-1_stat.csv',
             'time': 'result/warehouse-10-20-10-2-1_time.csv'
+        },
+        'den_520': {
+            'stat': 'result/den_520d_stat.csv',
+            'time': 'result/den_520d_time.csv'
+        },
+        'Paris': {
+            'stat': 'result/Paris_1_256_stat.csv',
+            'time': 'result/Paris_1_256_time.csv'
         }
     }
     
-    # Create a figure with 2 rows and 4 columns
-    fig, axes = plt.subplots(2, 4, figsize=(30, 10))
+    # Create a figure with 3 rows and 4 columns
+    fig, axes = plt.subplots(3, 4, figsize=(32, 15))
 
     line_styles1 = {
             1.02: ':',
@@ -389,6 +428,12 @@ if __name__ == "__main__":
             1.01: ':',
             1.05: '--',
             1.1: '-'
+        }
+
+    line_styles3 = {
+            1.002: ':',
+            1.01: '--',
+            1.02: '-'
         }
     
     # Create all plots according to the specified layout
@@ -403,13 +448,21 @@ if __name__ == "__main__":
     plot_avg_time(axes[1, 1], map_files['den_312']['time'])
     plot_success_rate(axes[1, 2], map_files['warehouse']['stat'], [1.01, 1.05, 1.1], line_styles2)
     plot_avg_time(axes[1, 3], map_files['warehouse']['time'])
+
+    # Row 3
+    plot_success_rate(axes[2, 0], map_files['den_520']['stat'], [1.002, 1.01, 1.02], line_styles3)
+    plot_avg_time(axes[2, 1], map_files['den_520']['time'])
+    plot_success_rate(axes[2, 2], map_files['Paris']['stat'], [1.002, 1.01, 1.02], line_styles3)
+    plot_avg_time(axes[2, 3], map_files['Paris']['time'])
     
     # Set titles for each subplot
     map_titles = {
-        'random': 'Random 32x32',
-        'empty': 'Empty 32x32',
-        'den_312': 'Den 312d',
-        'warehouse': 'Warehouse'
+        'random': 'random-32-32-20',
+        'empty': 'empty-32-32-20',
+        'den_312': 'den_312d',
+        'warehouse': 'warehouse-10-20-10-2-1',
+        'den_512': 'den_520d',
+        'Paris': 'Paris_1_256'
     }
     
     # Set titles
@@ -422,10 +475,16 @@ if __name__ == "__main__":
     axes[1, 1].set_title(f"{map_titles['den_312']}", fontsize=14)
     axes[1, 2].set_title(f"{map_titles['warehouse']}", fontsize=14)
     axes[1, 3].set_title(f"{map_titles['warehouse']}", fontsize=14)
+
+    axes[2, 0].set_title(f"{map_titles['den_512']}", fontsize=14)
+    axes[2, 1].set_title(f"{map_titles['den_512']}", fontsize=14)
+    axes[2, 2].set_title(f"{map_titles['Paris']}", fontsize=14)
+    axes[2, 3].set_title(f"{map_titles['Paris']}", fontsize=14)
     
     # Create separate legends for each row
     legend1 = create_legend(fig, row_idx=0)
     legend2 = create_legend(fig, row_idx=1)
+    legend3 = create_legend(fig, row_idx=2)
     
     # Adjust spacing between plots
     plt.subplots_adjust(hspace=0.4, wspace=0.3, top=0.85)
