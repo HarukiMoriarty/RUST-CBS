@@ -1,8 +1,8 @@
 yaml_path: ["map_file/den-520d/den520d-random-1.scen"]
 map_path: ["map_file/den-520d/den520d.map"]
-num_agents: [150, 200, 250, 300, 350, 400, 450, 500]
+num_agents: [100, 150, 200, 250, 300, 350, 400, 450]
 seed_num: 200
-sub_optimal: [1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020]
+sub_optimal: [1.005, 1.010, 1.015, 1.020, 1.025, 1.030, 1.035, 1.040, 1.045, 1.050]
 solver: ["decbs", "ecbs"]
 time_out: 60
 optimization_level: ["none", "bc", "bc_tr"]
