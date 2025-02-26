@@ -104,8 +104,8 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
                         legend_labels.append(f'{solver_name} ({factor})')
         
         # Customize the axis
-        ax.set_xlabel('Number of agents', fontsize=14)
-        ax.set_ylabel('Success rate', fontsize=14)
+        ax.set_xlabel('Number of agents', fontsize=18)
+        ax.set_ylabel('Success rate', fontsize=18)
         ax.grid(True, linestyle='--', alpha=0.3)
         ax.set_ylim(0, 1.05)  # Fixed y-limits to standard success rate range
         
@@ -140,7 +140,7 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(45, 150, 15))
         
-        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.tick_params(axis='both', which='major', labelsize=16)
         return legend_lines, legend_labels
         
     except Exception as e:
@@ -149,9 +149,12 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
 
 def plot_case(ax, dfs, color_map, labels):
     """
-    Plot scatter points for runtime comparison.
+    Plot scatter points for runtime comparison with a single global average per agent.
     """
-    # Plot points for each configuration
+    # Create a dictionary to collect all data points for each agent
+    all_data_by_agent = {}
+    
+    # First, plot all individual data points for each configuration
     for i, df in enumerate(dfs):
         for agent, color in color_map.items():
             sub = df[df['num_agents'] == agent]
@@ -164,20 +167,29 @@ def plot_case(ax, dfs, color_map, labels):
                            color=softer_color, 
                            s=5, 
                            label=f'{agent} agents {labels[i]}' if i == 0 else None)
+                
+                # Collect data for global average calculation
+                if agent not in all_data_by_agent:
+                    all_data_by_agent[agent] = {'time_decbs': [], 'time_ecbs': []}
+                
+                all_data_by_agent[agent]['time_decbs'].extend(sub['time_decbs'].tolist())
+                all_data_by_agent[agent]['time_ecbs'].extend(sub['time_ecbs'].tolist())
     
-        # Plot average points with more obvious markers
-        avg_points = df.groupby('num_agents')[['time_decbs', 'time_ecbs']].mean().reset_index()
-        for idx, row in avg_points.iterrows():
-            agent = row['num_agents']
-            ax.scatter(row['time_decbs'], row['time_ecbs'],
+    # Now calculate and plot the global average for each agent (across all configurations)
+    for agent, data in all_data_by_agent.items():
+        avg_decbs = sum(data['time_decbs']) / len(data['time_decbs']) if data['time_decbs'] else 0
+        avg_ecbs = sum(data['time_ecbs']) / len(data['time_ecbs']) if data['time_ecbs'] else 0
+        
+        if avg_decbs > 0 and avg_ecbs > 0:  # Only plot if we have valid data
+            ax.scatter(avg_decbs, avg_ecbs,
                       color=color_map.get(agent, 'k'),
                       s=150,  # Large size
                       marker='X', 
                       edgecolor='black', 
                       linewidth=2.0)  # Thick outline
 
-    ax.set_xlabel('DECBS runtime (s)', fontsize=14)
-    ax.set_ylabel('ECBS runtime (s)', fontsize=14)
+    ax.set_xlabel('DECBS runtime (s)', fontsize=18)
+    ax.set_ylabel('ECBS runtime (s)', fontsize=18)
     ax.set_xlim(0, 60)
     ax.set_ylim(0, 60)
 
@@ -199,6 +211,8 @@ def plot_case(ax, dfs, color_map, labels):
     # Reset the limits
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
 
 def plot_time(ax, data_path):
     """
@@ -245,14 +259,7 @@ def plot_time(ax, data_path):
     legend_handles = []
     legend_labels = []
     
-    # Add entries for each agent number (use a maximum of 7 for clarity)
-    display_agents = unique_agents
-    if len(unique_agents) > 7:
-        # Select a representative subset if there are too many agents
-        step = max(1, len(unique_agents) // 7)
-        display_agents = unique_agents[::step]
-    
-    for agent in display_agents:
+    for agent in unique_agents:
         softer_color = tuple(c * 0.8 + 0.2 for c in color_map[agent][:3]) + (0.7,)
         handle = Line2D([0], [0], marker='o', color='w', 
                         markerfacecolor=softer_color, markersize=6)
@@ -262,9 +269,11 @@ def plot_time(ax, data_path):
     # Place the agent legend at the upper left of the plot
     agent_legend = ax.legend(legend_handles, legend_labels, 
                         loc='upper left',
-                        fontsize=12,
+                        fontsize=14,
                         framealpha=0.7,
-                        ncol=2)
+                        ncol=2,
+                        handletextpad=0.1,  
+                        columnspacing=0.3,)
     ax.add_artist(agent_legend)
     
     # Add ratio legend at bottom right
@@ -338,14 +347,14 @@ def create_legend(fig, row_idx=0, color_map=None):
     all_labels = [h.get_label() for h in all_handles]
     
     # Add a single combined legend for the row
-    bbox_anchors = {0: (0.5, 0.90), 1: (0.5, 0.62), 2: (0.5, 0.35)}
+    bbox_anchors = {0: (0.5, 0.92), 1: (0.5, 0.64), 2: (0.5, 0.35)}
     
     legend = fig.legend(handles=all_handles, 
                  labels=all_labels,
                  loc='upper center', 
                  bbox_to_anchor=bbox_anchors[row_idx],
                  ncol=len(all_handles), 
-                 fontsize=12,
+                 fontsize=18,
                  frameon=True)
     
     return legend
@@ -430,13 +439,13 @@ if __name__ == "__main__":
     
     # Apply titles to all subplots
     for col, map_key in enumerate(['random', 'random', 'empty', 'empty']):
-        axes[0, col].set_title(f"{map_titles[map_key]}", fontsize=14)
+        axes[0, col].set_title(f"{map_titles[map_key]}", fontsize=18)
     
     for col, map_key in enumerate(['den_312', 'den_312', 'warehouse', 'warehouse']):
-        axes[1, col].set_title(f"{map_titles[map_key]}", fontsize=14)
+        axes[1, col].set_title(f"{map_titles[map_key]}", fontsize=18)
 
     for col, map_key in enumerate(['den_512', 'den_512', 'Paris', 'Paris']):
-        axes[2, col].set_title(f"{map_titles[map_key]}", fontsize=14)
+        axes[2, col].set_title(f"{map_titles[map_key]}", fontsize=18)
     
     # Create separate legends for each row, including the Average marker
     legend1 = create_legend(fig, row_idx=0, color_map=color_maps[0])
@@ -444,7 +453,7 @@ if __name__ == "__main__":
     legend3 = create_legend(fig, row_idx=2, color_map=color_maps[2])
     
     # Adjust subplot spacing
-    plt.subplots_adjust(hspace=0.5, wspace=0.19, top=0.85)
+    plt.subplots_adjust(hspace=0.7, wspace=0.22, top=0.85)
     
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)

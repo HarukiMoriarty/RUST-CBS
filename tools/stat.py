@@ -175,10 +175,10 @@ def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
 
         if not ecbs_rows.empty and not decbs_rows.empty:
             # Check if both solvers contain ONLY timeouts
-            ecbs_all_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).any()
-            decbs_all_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).any()
+            ecbs_all_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+            decbs_all_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
     
-            if ecbs_all_timeout and decbs_all_timeout:
+            if ecbs_all_timeout or decbs_all_timeout:
                 # Both contain only timeouts, exclude the whole pair
                 rows_to_drop.extend(group.index.tolist())
             else:
@@ -192,6 +192,7 @@ def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
                 rows_to_drop.extend(decbs_timeout_indices)
     
     # Drop the identified rows
+    print(len(rows_to_drop) / len(filtered_data))
     filtered_data = filtered_data.drop(rows_to_drop)
     
     return filtered_data
@@ -255,16 +256,28 @@ def calculate_avg_time_stats(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame containing average time statistics
     """
-    # First, filter out the excluded pairs
-    filtered_data = filter_excluded_pairs(data)
+    group = ['op_PC', 'op_BC', 'op_TR',
+                          'high_level_suboptimal', 'low_level_suboptimal']
     
+    filtered_rows = []
+    
+    for group_key, group_data in data.groupby(group):
+        # Filter excluded pairs for this group
+        filtered_group_data = filter_excluded_pairs(group_data)
+        
+        # Add the filtered data to our list
+        filtered_rows.append(filtered_group_data)
+    
+    # Concatenate all filtered groups into a new DataFrame
+    result_df = pd.concat(filtered_rows, ignore_index=True)
+
     results = []
     # For avg_time, we use a different grouping that excludes num_agents
-    avg_time_group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR',
+    avg_time_group_cols = ['solver', 'op_PC', 'op_BC', 'op_TR',
                           'high_level_suboptimal', 'low_level_suboptimal']
     
     # Process filtered data for avg_time calculation with different grouping
-    for group_key, group_data in filtered_data.groupby(avg_time_group_cols):
+    for group_key, group_data in result_df.groupby(avg_time_group_cols):
         # Create result dictionary
         result = dict(zip(avg_time_group_cols, group_key))
         

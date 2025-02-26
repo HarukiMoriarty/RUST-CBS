@@ -28,8 +28,8 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
     # This ensures consistent x-axis across all plots
     std_suboptimal_values = [[1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2],
                              [1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2],
-                             [1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
-                             [1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
+                             [1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
+                             [1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
                              [1.01, 1.014, 1.018, 1.022, 1.026, 1.03, 1.034, 1.038],
                              [1.01, 1.014, 1.018, 1.022, 1.026, 1.03, 1.034, 1.038]]
     
@@ -64,11 +64,12 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             ax = axes[i]
             ax.text(0.5, 0.5, f"File not found:\n{file_path}", 
                     horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=14, color='red')
+                    transform=ax.transAxes, fontsize=18, color='red')
             continue
         
         # Get title from filename (without extension)
         title = os.path.splitext(os.path.basename(file_path))[0]
+        title = title.replace('_time', '')
         
         try:
             # Read the CSV file
@@ -149,26 +150,21 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             
             # Set x-ticks and labels
             ax.set_xticks(indices)
-            ax.set_xticklabels([str(s) for s in suboptimal], fontsize=14)
+            ax.set_xticklabels([str(s) for s in suboptimal], fontsize=18)
             
             # Set title and labels
-            ax.set_title(title, fontsize=14)
-            ax.set_xlabel('Suboptimality Factor', fontsize=14)
-            ax.set_ylabel('Improvement (%)', fontsize=14)
+            ax.set_title(title, fontsize=18)
+            ax.set_xlabel('Suboptimality factor', fontsize=18)
+            ax.set_ylabel('Improvement percentage (%)', fontsize=18)
             ax.grid(True, alpha=0.3, axis='y')
-            ax.tick_params(axis='y', labelsize=14)
+            ax.tick_params(axis='y', labelsize=18)
             
-            # Set reasonable y-axis limits
-            max_val = max([v for v in list(improvements1.values()) + list(improvements2.values()) if not np.isnan(v)], default=50) + 10
-            min_val = min([v for v in list(improvements1.values()) + list(improvements2.values()) if not np.isnan(v)], default=-50) - 10
-            
-            # Ensure we have reasonable limits in case of all NaN
-            if np.isnan(max_val) or np.isnan(min_val):
-                max_val, min_val = 50, -50
-                
-            # Make sure y-limits are appropriate
-            min_val = min(-10, min_val)  # At least show some negative space
-            ax.set_ylim([min_val, max_val])
+            if i <= 1:
+                ax.set_ylim([-10, 55])
+            elif i <= 3:
+                ax.set_ylim([-10, 55])
+            elif i <= 5:
+                ax.set_ylim([-55, 10])
             
             # Print summary stats for this file
             print(f"\nFile: {file_path}")
@@ -181,7 +177,7 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             ax = axes[i]
             ax.text(0.5, 0.5, f"Error processing:\n{file_path}\n{str(e)}", 
                     horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=14, color='red', wrap=True)
+                    transform=ax.transAxes, fontsize=18, color='red', wrap=True)
     
     # Create a custom legend for the entire figure
     custom_lines = [
@@ -199,11 +195,11 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
     ]
     
     fig.legend(custom_lines, custom_labels, loc='upper center', 
-               bbox_to_anchor=(0.5, 0.98), ncol=4, fontsize=14, frameon=True)
+               bbox_to_anchor=(0.5, 0.99), ncol=4, fontsize=14, frameon=True)
     
     # Adjust layout
     plt.tight_layout()
-    plt.subplots_adjust(top=0.94)  # Make room for the legend
+    plt.subplots_adjust(top=0.94, hspace=0.25, wspace=0.18)  # Make room for the legend
     
     # Create directory for output if it doesn't exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
