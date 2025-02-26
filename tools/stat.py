@@ -175,8 +175,8 @@ def filter_excluded_pairs(data: pd.DataFrame) -> pd.DataFrame:
 
         if not ecbs_rows.empty and not decbs_rows.empty:
             # Check if both solvers contain ONLY timeouts
-            ecbs_all_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
-            decbs_all_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).all()
+            ecbs_all_timeout = (ecbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).any()
+            decbs_all_timeout = (decbs_rows['time(us)'] == TIMEOUT_MICROSECONDS).any()
     
             if ecbs_all_timeout and decbs_all_timeout:
                 # Both contain only timeouts, exclude the whole pair
@@ -260,7 +260,7 @@ def calculate_avg_time_stats(data: pd.DataFrame) -> pd.DataFrame:
     
     results = []
     # For avg_time, we use a different grouping that excludes num_agents
-    avg_time_group_cols = ['solver', 'op_PC', 'op_BC', 'op_TR',
+    avg_time_group_cols = ['solver', 'num_agents', 'op_PC', 'op_BC', 'op_TR',
                           'high_level_suboptimal', 'low_level_suboptimal']
     
     # Process filtered data for avg_time calculation with different grouping
@@ -276,13 +276,12 @@ def calculate_avg_time_stats(data: pd.DataFrame) -> pd.DataFrame:
     
     return pd.DataFrame(results)
 
-def analyze_experiments(input_path: str, output_path: str) -> None:
+def analyze_experiments(input_path: str) -> None:
     """
     Main analysis function that processes experiment data and saves results.
     
     Args:
         input_path: Path to input CSV file
-        output_path: Path to save output CSV file
     """
     try:
         LOG.info(f"Loading data from {input_path}")
@@ -294,11 +293,12 @@ def analyze_experiments(input_path: str, output_path: str) -> None:
         LOG.info("Calculating solver statistics")
         results_df = calculate_solver_stats(data)
         
-        LOG.info(f"Saving primary results to {output_path}")
-        results_df.to_csv(output_path, index=False)
+        stat_path = input_path.replace('result.csv', 'stat.csv')
+        LOG.info(f"Saving primary results to {stat_path}")
+        results_df.to_csv(stat_path, index=False)
         
         # Generate and save average time stats in a separate file
-        avg_time_output = output_path.replace('.csv', '_avg_time.csv')
+        avg_time_output = input_path.replace('result.csv', 'time.csv')
         LOG.info(f"Calculating average time statistics with filtered data")
         avg_time_df = calculate_avg_time_stats(data)
         
@@ -320,13 +320,9 @@ def main():
         "file_path",
         help="Path to the input CSV file containing experiment data"
     )
-    parser.add_argument(
-        "output_file_path",
-        help="Path to save the analysis results CSV file"
-    )
     
     args = parser.parse_args()
-    analyze_experiments(args.file_path, args.output_file_path)
+    analyze_experiments(args.file_path)
 
 if __name__ == "__main__":
     main()

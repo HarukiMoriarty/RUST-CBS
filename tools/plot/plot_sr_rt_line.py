@@ -9,38 +9,29 @@ from matplotlib.lines import Line2D
 def get_full_name(row):
     """
     Get the full solver name based on the solver type and optimization options.
-    Returns a default value if no matching configuration is found.
     """
-    result = "Unknown"
-    
     if row['solver'] == 'ecbs':
         if not row['op_PC'] and not row['op_BC'] and not row['op_TR']:
-            result = 'ECBS'
+            return 'ECBS'
         elif not row['op_PC'] and row['op_BC'] and not row['op_TR']:
-            result = 'ECBS+BC'
+            return 'ECBS+BC'
         elif not row['op_PC'] and row['op_BC'] and row['op_TR']:
-            result = 'ECBS+BC+TR'
-        # Add other combinations if needed
+            return 'ECBS+BC+TR'
     elif row['solver'] == 'decbs':
         if not row['op_PC'] and not row['op_BC'] and not row['op_TR']:
-            result = 'DECBS'
+            return 'DECBS'
         elif not row['op_PC'] and row['op_BC'] and not row['op_TR']:
-            result = 'DECBS+BC'
+            return 'DECBS+BC'
         elif not row['op_PC'] and row['op_BC'] and row['op_TR']:
-            result = 'DECBS+BC+TR'
-        # Add other combinations if needed
-    
-    return result
+            return 'DECBS+BC+TR'
+    return "Unknown"
 
 def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=False):
     """
     Plot success rate data from a CSV file on the given axis.
-    Returns legend lines and labels if store_legend is True.
     """
     sns.set_theme(style="whitegrid", font_scale=1.0)
     sns.set_palette("deep")
-    
-    # Print the CSV filename being processed for debugging
     print(f"Processing success rate file: {csv_path}")
 
     try:
@@ -58,20 +49,11 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
         if df['success_rate'].max() > 1.0:
             df['success_rate'] = df['success_rate'] / 100.0
         
-        # Apply the get_full_name function and handle any errors
+        # Apply the get_full_name function
         df['full_name'] = df.apply(get_full_name, axis=1)
         
-        # Check if any rows have "Unknown" as the full_name
-        unknown_rows = df[df['full_name'] == 'Unknown']
-        if not unknown_rows.empty:
-            print(f"Warning: {len(unknown_rows)} rows have unrecognized solver configurations in {csv_path}")
-            print("Sample of unrecognized configurations:")
-            print(unknown_rows[['solver', 'op_PC', 'op_BC', 'op_TR']].head())
-        
-        # Define suboptimal factors and solver names
+        # Define solvers and styles
         solvers = ['ECBS', 'ECBS+BC', 'ECBS+BC+TR', 'DECBS', 'DECBS+BC', 'DECBS+BC+TR']
-        
-        # Define colors, line styles, and markers
         colors = sns.color_palette("deep")
         opt_colors = {
             'DECBS': colors[0],
@@ -93,11 +75,6 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
         legend_lines = []
         legend_labels = []
         
-        # Debug: Print unique values of important columns
-        print(f"Unique suboptimal factors in {csv_path}: {df['low_level_suboptimal'].unique()}")
-        print(f"Unique solvers in {csv_path}: {df['solver'].unique()}")
-        print(f"Unique agent counts in {csv_path}: {sorted(df['num_agents'].unique())}")
-        
         # Plot lines for each suboptimal factor and solver
         for factor in subopt_factors:
             factor_data = df[df['low_level_suboptimal'] == factor]
@@ -108,9 +85,6 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             for solver_name in solvers:
                 solver_data = factor_data[factor_data['full_name'] == solver_name]
                 if not solver_data.empty:
-                    if len(solver_data['num_agents']) < 2:
-                        print(f"Warning: Only {len(solver_data)} data points for {solver_name} ({factor}) in {csv_path}")
-                    
                     # Sort the data by num_agents to ensure proper line connections
                     solver_data = solver_data.sort_values(by='num_agents')
                     
@@ -137,9 +111,9 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
         
         # Set x-axis range and ticks based on the filename
         if 'empty' in csv_path:
-            ax.set_xlim(110, 270)
+            ax.set_xlim(140, 340)
             ax.set_ylim(-0.1, 1.1)
-            ax.set_xticks(np.arange(120, 280, 20))
+            ax.set_xticks(np.arange(150, 340, 20))
         elif 'random' in csv_path:
             ax.set_xlim(40, 155)
             ax.set_ylim(-0.1, 1.1)
@@ -167,150 +141,153 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             ax.set_xticks(np.arange(45, 150, 15))
         
         ax.tick_params(axis='both', which='major', labelsize=14)
-
         return legend_lines, legend_labels
         
     except Exception as e:
         print(f"Error processing {csv_path}: {str(e)}")
         return [], []
 
-def plot_avg_time(ax, csv_path, store_legend=False):
+def plot_case(ax, dfs, color_map, labels):
     """
-    Plot average time data from a CSV file on the given axis.
-    X-axis is low_level_suboptimal, Y-axis is avg_time.
-    Returns legend lines and labels if store_legend is True.
+    Plot scatter points for runtime comparison.
     """
-    sns.set_theme(style="whitegrid", font_scale=1.0)
-    sns.set_palette("deep")
+    # Plot points for each configuration
+    for i, df in enumerate(dfs):
+        for agent, color in color_map.items():
+            sub = df[df['num_agents'] == agent]
+            if not sub.empty:
+                # Create a softer version of the color
+                softer_color = tuple(c * 0.8 + 0.2 for c in color[:3]) + (0.7,)  # Lighter + some transparency
+                
+                ax.scatter(sub['time_decbs'], 
+                           sub['time_ecbs'],
+                           color=softer_color, 
+                           s=5, 
+                           label=f'{agent} agents {labels[i]}' if i == 0 else None)
     
-    # Print the CSV filename being processed for debugging
-    print(f"Processing average time file: {csv_path}")
+        # Plot average points with more obvious markers
+        avg_points = df.groupby('num_agents')[['time_decbs', 'time_ecbs']].mean().reset_index()
+        for idx, row in avg_points.iterrows():
+            agent = row['num_agents']
+            ax.scatter(row['time_decbs'], row['time_ecbs'],
+                      color=color_map.get(agent, 'k'),
+                      s=150,  # Large size
+                      marker='X', 
+                      edgecolor='black', 
+                      linewidth=2.0)  # Thick outline
 
-    try:
-        # Read the CSV file
-        df = pd.read_csv(csv_path)
-        
-        # Check if required columns exist
-        required_columns = ['solver', 'op_PC', 'op_BC', 'op_TR', 'avg_time', 'low_level_suboptimal']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            print(f"Warning: Missing columns in {csv_path}: {missing_columns}")
-            return [], []
-        
-        # Apply the get_full_name function and handle any errors
-        df['full_name'] = df.apply(get_full_name, axis=1)
-        
-        # Check if any rows have "Unknown" as the full_name
-        unknown_rows = df[df['full_name'] == 'Unknown']
-        if not unknown_rows.empty:
-            print(f"Warning: {len(unknown_rows)} rows have unrecognized solver configurations in {csv_path}")
-            print("Sample of unrecognized configurations:")
-            print(unknown_rows[['solver', 'op_PC', 'op_BC', 'op_TR']].head())
-        
-        # Define solver names
-        solvers = ['ECBS', 'ECBS+BC', 'ECBS+BC+TR', 'DECBS', 'DECBS+BC', 'DECBS+BC+TR']
-        
-        # Define colors and markers
-        colors = sns.color_palette("deep")
-        opt_colors = {
-            'DECBS': colors[0],
-            'DECBS+BC': colors[1],
-            'DECBS+BC+TR': colors[2],
-            'ECBS': colors[3],
-            'ECBS+BC': colors[4],
-            'ECBS+BC+TR': colors[5]
-        }
-        markers = {
-            'DECBS': 'o',
-            'DECBS+BC': 's',
-            'DECBS+BC+TR': 'D',
-            'ECBS': 'o',
-            'ECBS+BC': 's',
-            'ECBS+BC+TR': 'D'
-        }
-        
-        legend_lines = []
-        legend_labels = []
-        
-        # Debug: Print unique values of important columns
-        print(f"Unique low level suboptimal factors in {csv_path}: {df['low_level_suboptimal'].unique()}")
-        print(f"Unique solvers in {csv_path}: {df['solver'].unique()}")
-        
-        # Plot lines for each solver
-        for solver_name in solvers:
-            solver_data = df[df['full_name'] == solver_name]
-            if not solver_data.empty:
-                if len(solver_data) < 2:
-                    print(f"Warning: Only {len(solver_data)} data points for {solver_name} in {csv_path}")
-                
-                # Sort the data by low_level_suboptimal to ensure proper line connections
-                solver_data = solver_data.sort_values(by='low_level_suboptimal')
-                
-                line, = ax.plot(
-                    solver_data['low_level_suboptimal'], 
-                    solver_data['avg_time'],
-                    marker=markers[solver_name],
-                    color=opt_colors[solver_name],
-                    markerfacecolor='white',
-                    markersize=6,
-                    linewidth=2,
-                    label=solver_name
-                )
-                if store_legend:
-                    legend_lines.append(line)
-                    legend_labels.append(solver_name)
-        
-        # Customize the axis
-        ax.set_xlabel('Suboptimality factor', fontsize=14)
-        ax.set_ylabel('Running time (s)', fontsize=14)
-        ax.grid(True, linestyle='--', alpha=0.3)
-        
-        # Set appropriate y-limits based on data
-        if not df.empty and 'avg_time' in df.columns:
-            max_time = df['avg_time'].max()
-            ax.set_ylim(0, max_time * 1.1)  # Add 10% padding
-            if 'empty' in csv_path:
-                ax.set_xlim(1, 1.22)
-                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
-            elif 'random' in csv_path:
-                ax.set_xlim(1, 1.22)
-                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
-            elif 'den_312' in csv_path:
-                ax.set_xlim(1, 1.11)
-                ax.set_xticks(np.arange(1.01, 1.1, 0.01))
-            elif 'warehouse' in csv_path:
-                ax.set_xlim(1, 1.11)
-                ax.set_xticks(np.arange(1.01, 1.1, 0.01))
-            elif 'den_520' in csv_path:
-                ax.set_xlim(1, 1.022)
-                ax.set_xticks(np.arange(1.002, 1.02, 0.002))
-            elif 'Paris' in csv_path:
-                ax.set_xlim(1, 1.022)
-                ax.set_xticks(np.arange(1.002, 1.02, 0.002))
-            else:
-                # Default range
-                ax.set_xlim(1, 1.22)
-                ax.set_xticks(np.arange(1.02, 1.2, 0.02))
-        
-        ax.tick_params(axis='both', which='major', labelsize=14)
-        ticks = ax.get_xticks()
-        for i, label in enumerate(ax.get_xticklabels()):
-            if i % 2 != 0:
-                label.set_visible(False)
-        
-        return legend_lines, legend_labels
-        
-    except Exception as e:
-        print(f"Error processing {csv_path}: {str(e)}")
-        return [], []
+    ax.set_xlabel('DECBS runtime (s)', fontsize=14)
+    ax.set_ylabel('ECBS runtime (s)', fontsize=14)
+    ax.set_xlim(0, 60)
+    ax.set_ylim(0, 60)
 
-def create_legend(fig, row_idx=0):
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    # Draw reference lines
+    xlims = ax.get_xlim()
+    ylims = ax.get_ylim()
+    lower = min(xlims[0], ylims[0])
+    upper = max(xlims[1], ylims[1])
+    
+    # Equal runtime (y = x)
+    ax.plot([lower, upper], [lower, upper], 'k--', lw=1.5)
+    
+    # 2x runtime (y = 2x)
+    ax.plot([lower, upper], [2*lower, 2*upper], 'k--', lw=2)
+
+    # Reset the limits
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+def plot_time(ax, data_path):
     """
-    Create a combined legend for a specific row index with both solvers and suboptimality factors
+    Process CSV data and create scatter plot for runtime comparison.
+    """
+    # Load the data
+    df = pd.read_csv(data_path)
+    df['time(us)'] = pd.to_numeric(df['time(us)'], errors='coerce') / 1_000_000
+
+    # Columns that define a unique experiment setting
+    merge_cols = ["map_path", "yaml_path", 
+                  "num_agents", "seed",
+                  "low_level_suboptimal",
+                  "op_PC", "op_BC", "op_TR"]
+
+    # Group and pivot data
+    df_grouped = df.groupby(merge_cols + ['solver'], as_index=False)['time(us)'].first()
+    df_pivot = df_grouped.pivot(index=merge_cols, columns='solver', values='time(us)').reset_index()
+    df_pivot = df_pivot.dropna(subset=['decbs','ecbs'], how='any')
+    df_pivot = df_pivot.fillna(60)  # Fill missing values
+    df_pivot = df_pivot.rename(columns={'decbs': 'time_decbs', 'ecbs': 'time_ecbs'})
+
+    # Define the different configuration cases
+    df1 = df_pivot[(df_pivot['op_PC'] == False) & 
+                   (df_pivot['op_BC'] == False) & 
+                   (df_pivot['op_TR'] == False)]
+    df2 = df_pivot[(df_pivot['op_PC'] == False) & 
+                   (df_pivot['op_BC'] == True) & 
+                   (df_pivot['op_TR'] == False)]
+    df3 = df_pivot[(df_pivot['op_PC'] == False) & 
+                   (df_pivot['op_BC'] == True) & 
+                   (df_pivot['op_TR'] == True)]
+
+    # Create a color mapping for num_agents
+    unique_agents = sorted(df_pivot['num_agents'].unique())
+    colors = plt.cm.jet(np.linspace(0, 1, len(unique_agents)))
+    color_map = {agent: color for agent, color in zip(unique_agents, colors)}
+
+    # Plot the data
+    config_labels = ['', 'BC', 'BC+TR']
+    plot_case(ax, [df1, df2, df3], color_map, config_labels)
+    
+    # Create legend handles for agent numbers
+    legend_handles = []
+    legend_labels = []
+    
+    # Add entries for each agent number (use a maximum of 7 for clarity)
+    display_agents = unique_agents
+    if len(unique_agents) > 7:
+        # Select a representative subset if there are too many agents
+        step = max(1, len(unique_agents) // 7)
+        display_agents = unique_agents[::step]
+    
+    for agent in display_agents:
+        softer_color = tuple(c * 0.8 + 0.2 for c in color_map[agent][:3]) + (0.7,)
+        handle = Line2D([0], [0], marker='o', color='w', 
+                        markerfacecolor=softer_color, markersize=6)
+        legend_handles.append(handle)
+        legend_labels.append(f'{agent}')
+    
+    # Place the agent legend at the upper left of the plot
+    agent_legend = ax.legend(legend_handles, legend_labels, 
+                        loc='upper left',
+                        fontsize=12,
+                        framealpha=0.7,
+                        ncol=2)
+    ax.add_artist(agent_legend)
+    
+    # Add ratio legend at bottom right
+    ratio_handles = [
+        Line2D([0], [0], linestyle='--', color='k', lw=1.5),
+        Line2D([0], [0], linestyle='--', color='k', lw=2)
+    ]
+    ratio_labels = ['1x', '2x']
+    ratio_legend = ax.legend(ratio_handles, ratio_labels, 
+                         loc='lower right', 
+                         fontsize=16)
+    ax.add_artist(ratio_legend)
+    
+    return unique_agents, color_map
+
+def create_legend(fig, row_idx=0, color_map=None):
+    """
+    Create a combined legend for a specific row, including the Average marker.
     
     Parameters:
     fig - The figure to add the legend to
     row_idx - Row index (0 for top row, 1 for bottom row)
+    color_map - Color mapping for agents (to include Average marker)
     
     Returns:
     legend - The created legend object
@@ -342,48 +319,39 @@ def create_legend(fig, row_idx=0):
             Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.10')
         ]
     elif row_idx == 2:
-        # Second row: 1.002, 1.01, 1.02
+        # Third row: 1.002, 1.018, 1.034
         subopt_handles = [
             Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.002'),
-            Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.01'),
-            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.02')
+            Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.018'),
+            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.038')
         ]
+    
+    # Add the Average marker if color_map is provided
+    if color_map is not None:
+        # Add average marker
+        avg_handle = Line2D([0], [0], marker='X', color='w', 
+                           markersize=8, markeredgecolor='black', markeredgewidth=1.5, label='Average')
+        solver_handles.append(avg_handle)
     
     # Combine all handles
     all_handles = solver_handles + subopt_handles
     all_labels = [h.get_label() for h in all_handles]
     
     # Add a single combined legend for the row
-    if row_idx == 0:
-        legend = fig.legend(handles=all_handles, 
-                     labels=all_labels,
-                     loc='upper center', 
-                     bbox_to_anchor=(0.5, 0.90),
-                     ncol=len(all_handles), 
-                     fontsize=10, 
-                     frameon=True)
-    elif row_idx == 1:
-        legend = fig.legend(handles=all_handles, 
-                     labels=all_labels,
-                     loc='upper center', 
-                     bbox_to_anchor=(0.5, 0.62),
-                     ncol=len(all_handles), 
-                     fontsize=10, 
-                     frameon=True)
-    elif row_idx == 2:
-        legend = fig.legend(handles=all_handles, 
-                     labels=all_labels,
-                     loc='upper center', 
-                     bbox_to_anchor=(0.5, 0.35),
-                     ncol=len(all_handles), 
-                     fontsize=10, 
-                     frameon=True)
+    bbox_anchors = {0: (0.5, 0.90), 1: (0.5, 0.62), 2: (0.5, 0.35)}
     
+    legend = fig.legend(handles=all_handles, 
+                 labels=all_labels,
+                 loc='upper center', 
+                 bbox_to_anchor=bbox_anchors[row_idx],
+                 ncol=len(all_handles), 
+                 fontsize=12,
+                 frameon=True)
     
     return legend
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Create success rate and average time plots from CSV files')
+    parser = argparse.ArgumentParser(description='Create success rate and runtime plots from CSV files')
     parser.add_argument('--output_path', type=str, default='fig/combined_plots.png',
                         help='Path to save the output figure')
     
@@ -392,70 +360,63 @@ if __name__ == "__main__":
     # File paths
     map_files = {
         'random': {
-            'stat': 'result/random-32-32-20_stat.csv',
-            'time': 'result/random-32-32-20_time.csv'
+            'stat': 'result/decbs_random-32-32-20_stat.csv',
+            'time': 'result/decbs_random-32-32-20_result.csv'
         },
         'empty': {
-            'stat': 'result/empty-32-32-20_stat.csv',
-            'time': 'result/empty-32-32-20_time.csv'
+            'stat': 'result/decbs_empty_32_32_stat.csv',
+            'time': 'result/decbs_empty_32_32_result.csv'
         },
         'den_312': {
-            'stat': 'result/den_312d_stat.csv',
-            'time': 'result/den_312d_time.csv'
+            'stat': 'result/decbs_den_312d_stat.csv',
+            'time': 'result/decbs_den_312d_result.csv'
         },
         'warehouse': {
-            'stat': 'result/warehouse-10-20-10-2-1_stat.csv',
-            'time': 'result/warehouse-10-20-10-2-1_time.csv'
+            'stat': 'result/decbs_warehouse-10-20-10-2-1_stat.csv',
+            'time': 'result/decbs_warehouse-10-20-10-2-1_result.csv'
         },
         'den_520': {
-            'stat': 'result/den_520d_stat.csv',
-            'time': 'result/den_520d_time.csv'
+            'stat': 'result/decbs_den_520d_stat.csv',
+            'time': 'result/decbs_den_520d_result.csv'
         },
         'Paris': {
-            'stat': 'result/Paris_1_256_stat.csv',
-            'time': 'result/Paris_1_256_time.csv'
+            'stat': 'result/decbs_Paris_1_256_stat.csv',
+            'time': 'result/decbs_Paris_1_256_result.csv'
         }
     }
     
     # Create a figure with 3 rows and 4 columns
-    fig, axes = plt.subplots(3, 4, figsize=(32, 15))
+    fig, axes = plt.subplots(3, 4, figsize=(30, 15))
 
-    line_styles1 = {
-            1.02: ':',
-            1.1: '--',
-            1.2: '-'
-        }
-
-    line_styles2 = {
-            1.01: ':',
-            1.05: '--',
-            1.1: '-'
-        }
-
-    line_styles3 = {
-            1.002: ':',
-            1.01: '--',
-            1.02: '-'
-        }
+    # Define line styles for different suboptimality factors
+    line_styles1 = {1.02: ':', 1.1: '--', 1.2: '-'}
+    line_styles2 = {1.01: ':', 1.05: '--', 1.1: '-'}
+    line_styles3 = {1.002: ':', 1.018: '--', 1.034: '-'}
+    
+    # Store color maps for each row to use in the row legends
+    color_maps = {0: None, 1: None, 2: None}
     
     # Create all plots according to the specified layout
     # Row 0
     plot_success_rate(axes[0, 0], map_files['random']['stat'], [1.02, 1.1, 1.2], line_styles1)
-    plot_avg_time(axes[0, 1], map_files['random']['time'])
+    agents, color_map = plot_time(axes[0, 1], map_files['random']['time'])
+    color_maps[0] = color_map
     plot_success_rate(axes[0, 2], map_files['empty']['stat'], [1.02, 1.1, 1.2], line_styles1)
-    plot_avg_time(axes[0, 3], map_files['empty']['time'])
+    plot_time(axes[0, 3], map_files['empty']['time'])
     
     # Row 1
     plot_success_rate(axes[1, 0], map_files['den_312']['stat'], [1.01, 1.05, 1.1], line_styles2)
-    plot_avg_time(axes[1, 1], map_files['den_312']['time'])
+    agents, color_map = plot_time(axes[1, 1], map_files['den_312']['time'])
+    color_maps[1] = color_map
     plot_success_rate(axes[1, 2], map_files['warehouse']['stat'], [1.01, 1.05, 1.1], line_styles2)
-    plot_avg_time(axes[1, 3], map_files['warehouse']['time'])
+    plot_time(axes[1, 3], map_files['warehouse']['time'])
 
-    # Row 3
-    plot_success_rate(axes[2, 0], map_files['den_520']['stat'], [1.002, 1.01, 1.02], line_styles3)
-    plot_avg_time(axes[2, 1], map_files['den_520']['time'])
-    plot_success_rate(axes[2, 2], map_files['Paris']['stat'], [1.002, 1.01, 1.02], line_styles3)
-    plot_avg_time(axes[2, 3], map_files['Paris']['time'])
+    # Row 2
+    plot_success_rate(axes[2, 0], map_files['den_520']['stat'], [1.002, 1.018, 1.034], line_styles3)
+    agents, color_map = plot_time(axes[2, 1], map_files['den_520']['time'])
+    color_maps[2] = color_map
+    plot_success_rate(axes[2, 2], map_files['Paris']['stat'], [1.002, 1.018, 1.034], line_styles3)
+    plot_time(axes[2, 3], map_files['Paris']['time'])
     
     # Set titles for each subplot
     map_titles = {
@@ -467,29 +428,23 @@ if __name__ == "__main__":
         'Paris': 'Paris_1_256'
     }
     
-    # Set titles
-    axes[0, 0].set_title(f"{map_titles['random']}", fontsize=14)
-    axes[0, 1].set_title(f"{map_titles['random']}", fontsize=14)
-    axes[0, 2].set_title(f"{map_titles['empty']}", fontsize=14)
-    axes[0, 3].set_title(f"{map_titles['empty']}", fontsize=14)
+    # Apply titles to all subplots
+    for col, map_key in enumerate(['random', 'random', 'empty', 'empty']):
+        axes[0, col].set_title(f"{map_titles[map_key]}", fontsize=14)
     
-    axes[1, 0].set_title(f"{map_titles['den_312']}", fontsize=14)
-    axes[1, 1].set_title(f"{map_titles['den_312']}", fontsize=14)
-    axes[1, 2].set_title(f"{map_titles['warehouse']}", fontsize=14)
-    axes[1, 3].set_title(f"{map_titles['warehouse']}", fontsize=14)
+    for col, map_key in enumerate(['den_312', 'den_312', 'warehouse', 'warehouse']):
+        axes[1, col].set_title(f"{map_titles[map_key]}", fontsize=14)
 
-    axes[2, 0].set_title(f"{map_titles['den_512']}", fontsize=14)
-    axes[2, 1].set_title(f"{map_titles['den_512']}", fontsize=14)
-    axes[2, 2].set_title(f"{map_titles['Paris']}", fontsize=14)
-    axes[2, 3].set_title(f"{map_titles['Paris']}", fontsize=14)
+    for col, map_key in enumerate(['den_512', 'den_512', 'Paris', 'Paris']):
+        axes[2, col].set_title(f"{map_titles[map_key]}", fontsize=14)
     
-    # Create separate legends for each row
-    legend1 = create_legend(fig, row_idx=0)
-    legend2 = create_legend(fig, row_idx=1)
-    legend3 = create_legend(fig, row_idx=2)
+    # Create separate legends for each row, including the Average marker
+    legend1 = create_legend(fig, row_idx=0, color_map=color_maps[0])
+    legend2 = create_legend(fig, row_idx=1, color_map=color_maps[1])
+    legend3 = create_legend(fig, row_idx=2, color_map=color_maps[2])
     
-    # Adjust spacing between plots
-    plt.subplots_adjust(hspace=0.4, wspace=0.15, top=0.85)
+    # Adjust subplot spacing
+    plt.subplots_adjust(hspace=0.5, wspace=0.19, top=0.85)
     
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
