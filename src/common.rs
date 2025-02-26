@@ -44,8 +44,8 @@ impl Solution {
         }
 
         for (path, agent) in self.paths.iter().zip(agents.iter()) {
-            if path.first().map_or(true, |&s| s != agent.start)
-                || path.last().map_or(true, |&g| g != agent.goal)
+            if path.first().is_none_or(|&s| s != agent.start)
+                || path.last().is_none_or(|&g| g != agent.goal)
             {
                 error!(
                     "start and goal failed: path start {:?} path end {:?}, but agent start {:?} agent end {:?}",

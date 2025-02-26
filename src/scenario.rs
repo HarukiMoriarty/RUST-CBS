@@ -100,7 +100,7 @@ impl Scenario {
                 .filter(|idx| {
                     used_routes
                         .get(&bucket_index)
-                        .map_or(true, |used| !used.contains(idx))
+                        .is_none_or(|used| !used.contains(idx))
                 })
                 .collect();
 
