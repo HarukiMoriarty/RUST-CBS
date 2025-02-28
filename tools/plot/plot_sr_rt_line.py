@@ -127,13 +127,13 @@ def plot_success_rate(ax, csv_path, subopt_factors, line_styles, store_legend=Fa
             ax.set_ylim(-0.1, 1.1)
             ax.set_xticks(np.arange(90, 310, 30))
         elif 'den_520' in csv_path:
-            ax.set_xlim(90, 460)
+            ax.set_xlim(40, 360)
             ax.set_ylim(-0.1, 1.1)
-            ax.set_xticks(np.arange(100, 460, 50))
+            ax.set_xticks(np.arange(50, 360, 50))
         elif 'Paris' in csv_path:
-            ax.set_xlim(40, 410)
+            ax.set_xlim(40, 360)
             ax.set_ylim(-0.1, 1.1)
-            ax.set_xticks(np.arange(50, 410, 50))
+            ax.set_xticks(np.arange(50, 360, 50))
         else:
             # Default range
             ax.set_xlim(35, 155)
@@ -196,7 +196,7 @@ def plot_case(ax, dfs, color_map, labels):
     ax.set_xscale('log')
     ax.set_yscale('log')
 
-    # Draw reference lines
+    # Draw reference lines (but don't add legends for them)
     xlims = ax.get_xlim()
     ylims = ax.get_ylim()
     lower = min(xlims[0], ylims[0])
@@ -214,9 +214,14 @@ def plot_case(ax, dfs, color_map, labels):
 
     ax.tick_params(axis='both', which='major', labelsize=16)
 
-def plot_time(ax, data_path):
+def plot_time(ax, data_path, show_agent_legend=True):
     """
     Process CSV data and create scatter plot for runtime comparison.
+    
+    Parameters:
+    ax - The axis to plot on
+    data_path - Path to the CSV data file
+    show_agent_legend - Whether to show the agent legend (default: True)
     """
     # Load the data
     df = pd.read_csv(data_path)
@@ -255,48 +260,39 @@ def plot_time(ax, data_path):
     config_labels = ['', 'BC', 'BC+TR']
     plot_case(ax, [df1, df2, df3], color_map, config_labels)
     
-    # Create legend handles for agent numbers
-    legend_handles = []
-    legend_labels = []
+    # Create and display agent legend only if requested
+    if show_agent_legend:
+        legend_handles = []
+        legend_labels = []
+        
+        for agent in unique_agents:
+            softer_color = tuple(c * 0.8 + 0.2 for c in color_map[agent][:3]) + (0.7,)
+            handle = Line2D([0], [0], marker='o', color='w', 
+                            markerfacecolor=softer_color, markersize=6)
+            legend_handles.append(handle)
+            legend_labels.append(f'{agent}')
+        
+        # Place the agent legend at the upper left of the plot
+        agent_legend = ax.legend(legend_handles, legend_labels, 
+                            loc='upper left',
+                            fontsize=14,
+                            framealpha=0.7,
+                            ncol=2,
+                            handletextpad=0.1,  
+                            columnspacing=0.3,)
+        ax.add_artist(agent_legend)
     
-    for agent in unique_agents:
-        softer_color = tuple(c * 0.8 + 0.2 for c in color_map[agent][:3]) + (0.7,)
-        handle = Line2D([0], [0], marker='o', color='w', 
-                        markerfacecolor=softer_color, markersize=6)
-        legend_handles.append(handle)
-        legend_labels.append(f'{agent}')
-    
-    # Place the agent legend at the upper left of the plot
-    agent_legend = ax.legend(legend_handles, legend_labels, 
-                        loc='upper left',
-                        fontsize=14,
-                        framealpha=0.7,
-                        ncol=2,
-                        handletextpad=0.1,  
-                        columnspacing=0.3,)
-    ax.add_artist(agent_legend)
-    
-    # Add ratio legend at bottom right
-    ratio_handles = [
-        Line2D([0], [0], linestyle='--', color='k', lw=1.5),
-        Line2D([0], [0], linestyle='--', color='k', lw=2)
-    ]
-    ratio_labels = ['1x', '2x']
-    ratio_legend = ax.legend(ratio_handles, ratio_labels, 
-                         loc='lower right', 
-                         fontsize=16)
-    ax.add_artist(ratio_legend)
+    # Note: Removed the individual ratio legends
     
     return unique_agents, color_map
 
-def create_legend(fig, row_idx=0, color_map=None):
+def create_success_rate_legend(fig, row_idx=0):
     """
-    Create a combined legend for a specific row, including the Average marker.
+    Create a row-specific legend for the success rate figure.
     
     Parameters:
     fig - The figure to add the legend to
-    row_idx - Row index (0 for top row, 1 for bottom row)
-    color_map - Color mapping for agents (to include Average marker)
+    row_idx - Row index (0 for top row, 1 for middle row, 2 for bottom row)
     
     Returns:
     legend - The created legend object
@@ -332,22 +328,15 @@ def create_legend(fig, row_idx=0, color_map=None):
         subopt_handles = [
             Line2D([0], [0], color='gray', linestyle=':', linewidth=2, label='1.002'),
             Line2D([0], [0], color='gray', linestyle='--', linewidth=2, label='1.018'),
-            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.038')
+            Line2D([0], [0], color='gray', linestyle='-', linewidth=2, label='1.034')
         ]
-    
-    # Add the Average marker if color_map is provided
-    if color_map is not None:
-        # Add average marker
-        avg_handle = Line2D([0], [0], marker='X', color='w', 
-                           markersize=8, markeredgecolor='black', markeredgewidth=1.5, label='Average')
-        solver_handles.append(avg_handle)
     
     # Combine all handles
     all_handles = solver_handles + subopt_handles
     all_labels = [h.get_label() for h in all_handles]
     
-    # Add a single combined legend for the row
-    bbox_anchors = {0: (0.5, 0.92), 1: (0.5, 0.64), 2: (0.5, 0.35)}
+    # Add a row-specific legend
+    bbox_anchors = {0: (0.5, 0.95), 1: (0.5, 0.655), 2: (0.5, 0.36)}
     
     legend = fig.legend(handles=all_handles, 
                  labels=all_labels,
@@ -359,10 +348,41 @@ def create_legend(fig, row_idx=0, color_map=None):
     
     return legend
 
+def create_runtime_legend(fig, color_map=None):
+    """
+    Create a comprehensive legend for the runtime figure.
+    """
+    # Create custom handles for the average marker
+    legend_handles = [Line2D([0], [0], marker='X', color='w', 
+                      markersize=8, markeredgecolor='black', markeredgewidth=1.5, label='Average')]
+    
+    # Create custom handles for ratio
+    ratio_handles = [
+        Line2D([0], [0], linestyle='--', color='k', lw=1.5, label='1x'),
+        Line2D([0], [0], linestyle='--', color='k', lw=2, label='2x')
+    ]
+    
+    # Combine handles
+    all_handles = legend_handles + ratio_handles
+    all_labels = [h.get_label() for h in all_handles]
+    
+    # Add a single combined legend for the figure at the top
+    legend = fig.legend(handles=all_handles, 
+                 labels=all_labels,
+                 loc='upper center', 
+                 bbox_to_anchor=(0.5, 0.96),
+                 ncol=len(all_handles), 
+                 fontsize=18,
+                 frameon=True)
+    
+    return legend
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Create success rate and runtime plots from CSV files')
-    parser.add_argument('--output_path', type=str, default='fig/combined_plots.png',
-                        help='Path to save the output figure')
+    parser = argparse.ArgumentParser(description='Create separate success rate and runtime plots')
+    parser.add_argument('--success_rate_output', type=str, default='fig/success_rate_plots.pdf',
+                       help='Path to save the success rate figure')
+    parser.add_argument('--runtime_output', type=str, default='fig/runtime_plots.pdf',
+                       help='Path to save the runtime figure')
     
     args = parser.parse_args()
     
@@ -394,70 +414,117 @@ if __name__ == "__main__":
         }
     }
     
-    # Create a figure with 3 rows and 4 columns
-    fig, axes = plt.subplots(3, 4, figsize=(30, 15))
-
-    # Define line styles for different suboptimality factors
-    line_styles1 = {1.02: ':', 1.1: '--', 1.2: '-'}
-    line_styles2 = {1.01: ':', 1.05: '--', 1.1: '-'}
-    line_styles3 = {1.002: ':', 1.018: '--', 1.034: '-'}
-    
-    # Store color maps for each row to use in the row legends
-    color_maps = {0: None, 1: None, 2: None}
-    
-    # Create all plots according to the specified layout
-    # Row 0
-    plot_success_rate(axes[0, 0], map_files['random']['stat'], [1.02, 1.1, 1.2], line_styles1)
-    agents, color_map = plot_time(axes[0, 1], map_files['random']['time'])
-    color_maps[0] = color_map
-    plot_success_rate(axes[0, 2], map_files['empty']['stat'], [1.02, 1.1, 1.2], line_styles1)
-    plot_time(axes[0, 3], map_files['empty']['time'])
-    
-    # Row 1
-    plot_success_rate(axes[1, 0], map_files['den_312']['stat'], [1.01, 1.05, 1.1], line_styles2)
-    agents, color_map = plot_time(axes[1, 1], map_files['den_312']['time'])
-    color_maps[1] = color_map
-    plot_success_rate(axes[1, 2], map_files['warehouse']['stat'], [1.01, 1.05, 1.1], line_styles2)
-    plot_time(axes[1, 3], map_files['warehouse']['time'])
-
-    # Row 2
-    plot_success_rate(axes[2, 0], map_files['den_520']['stat'], [1.002, 1.018, 1.034], line_styles3)
-    agents, color_map = plot_time(axes[2, 1], map_files['den_520']['time'])
-    color_maps[2] = color_map
-    plot_success_rate(axes[2, 2], map_files['Paris']['stat'], [1.002, 1.018, 1.034], line_styles3)
-    plot_time(axes[2, 3], map_files['Paris']['time'])
-    
-    # Set titles for each subplot
+    # Map titles for plots
     map_titles = {
         'random': 'random-32-32-20',
-        'empty': 'empty-32-32-20',
+        'empty': 'empty-32-32',
         'den_312': 'den_312d',
         'warehouse': 'warehouse-10-20-10-2-1',
-        'den_512': 'den_520d',
+        'den_520': 'den_520d',
         'Paris': 'Paris_1_256'
     }
     
-    # Apply titles to all subplots
-    for col, map_key in enumerate(['random', 'random', 'empty', 'empty']):
-        axes[0, col].set_title(f"{map_titles[map_key]}", fontsize=18)
+    # Define line styles for different suboptimality factors
+    line_styles1 = {1.02: ':', 1.1: '--', 1.2: '-'}  # For random and empty
+    line_styles2 = {1.01: ':', 1.05: '--', 1.1: '-'}  # For den_312, warehouse, den_520, Paris
+    line_styles3 = {1.002: ':', 1.018: '--', 1.038: '-'}  # For other maps (currently unused)
     
-    for col, map_key in enumerate(['den_312', 'den_312', 'warehouse', 'warehouse']):
-        axes[1, col].set_title(f"{map_titles[map_key]}", fontsize=18)
-
-    for col, map_key in enumerate(['den_512', 'den_512', 'Paris', 'Paris']):
-        axes[2, col].set_title(f"{map_titles[map_key]}", fontsize=18)
+    # ---------------------------
+    # SUCCESS RATE PLOT (3x3 grid)
+    # ---------------------------
+    fig_sr, axes_sr = plt.subplots(3, 3, figsize=(24, 18))
     
-    # Create separate legends for each row, including the Average marker
-    legend1 = create_legend(fig, row_idx=0, color_map=color_maps[0])
-    legend2 = create_legend(fig, row_idx=1, color_map=color_maps[1])
-    legend3 = create_legend(fig, row_idx=2, color_map=color_maps[2])
+    # Row 0: random, empty, (empty placeholder)
+    plot_success_rate(axes_sr[0, 0], map_files['random']['stat'], [1.02, 1.1, 1.2], line_styles1)
+    axes_sr[0, 0].set_title(f"{map_titles['random']}", fontsize=18)
     
-    # Adjust subplot spacing
-    plt.subplots_adjust(hspace=0.7, wspace=0.22, top=0.85)
+    plot_success_rate(axes_sr[0, 1], map_files['empty']['stat'], [1.02, 1.1, 1.2], line_styles1)
+    axes_sr[0, 1].set_title(f"{map_titles['empty']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_sr[0, 2].set_visible(False)
+    
+    # Row 1: den_312, warehouse, (empty placeholder)
+    plot_success_rate(axes_sr[1, 0], map_files['den_312']['stat'], [1.01, 1.05, 1.1], line_styles2)
+    axes_sr[1, 0].set_title(f"{map_titles['den_312']}", fontsize=18)
+    
+    plot_success_rate(axes_sr[1, 1], map_files['warehouse']['stat'], [1.01, 1.05, 1.1], line_styles2)
+    axes_sr[1, 1].set_title(f"{map_titles['warehouse']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_sr[1, 2].set_visible(False)
+    
+    # Row 2: den_520, Paris, (empty placeholder)
+    plot_success_rate(axes_sr[2, 0], map_files['den_520']['stat'], [1.002, 1.018, 1.038], line_styles3)
+    axes_sr[2, 0].set_title(f"{map_titles['den_520']}", fontsize=18)
+    
+    plot_success_rate(axes_sr[2, 1], map_files['Paris']['stat'], [1.002, 1.018, 1.038], line_styles3)
+    axes_sr[2, 1].set_title(f"{map_titles['Paris']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_sr[2, 2].set_visible(False)
+    
+    # Add row-specific legends for the success rate plot
+    legend1 = create_success_rate_legend(fig_sr, row_idx=0)
+    legend2 = create_success_rate_legend(fig_sr, row_idx=1)
+    legend3 = create_success_rate_legend(fig_sr, row_idx=2)
+    
+    # Adjust layout
+    plt.subplots_adjust(hspace=0.4, wspace=0.3, bottom=0.1, top=0.9)
     
     # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+    os.makedirs(os.path.dirname(args.success_rate_output), exist_ok=True)
     
-    # Save the figure
-    plt.savefig(args.output_path, dpi=300, bbox_inches='tight')
-    print(f"Figure saved to {args.output_path}")
+    # Save the success rate figure as PDF
+    plt.savefig(args.success_rate_output, format='pdf', bbox_inches='tight')
+    print(f"Success rate figure saved to {args.success_rate_output}")
+    
+    # ---------------------------
+    # RUNTIME PLOT (3x3 grid)
+    # ---------------------------
+    fig_rt, axes_rt = plt.subplots(3, 3, figsize=(24, 18))
+    
+    # Row 0: random, empty, (empty placeholder)
+    agents, color_map = plot_time(axes_rt[0, 0], map_files['random']['time'], show_agent_legend=True)
+    axes_rt[0, 0].set_title(f"{map_titles['random']}", fontsize=18)
+    
+    plot_time(axes_rt[0, 1], map_files['empty']['time'], show_agent_legend=True)
+    axes_rt[0, 1].set_title(f"{map_titles['empty']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_rt[0, 2].set_visible(False)
+    
+    # Row 1: den_312, warehouse, (empty placeholder)
+    plot_time(axes_rt[1, 0], map_files['den_312']['time'], show_agent_legend=True)
+    axes_rt[1, 0].set_title(f"{map_titles['den_312']}", fontsize=18)
+    
+    plot_time(axes_rt[1, 1], map_files['warehouse']['time'], show_agent_legend=True)
+    axes_rt[1, 1].set_title(f"{map_titles['warehouse']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_rt[1, 2].set_visible(False)
+    
+    # Row 2: den_520, Paris, (empty placeholder)
+    plot_time(axes_rt[2, 0], map_files['den_520']['time'], show_agent_legend=True)
+    axes_rt[2, 0].set_title(f"{map_titles['den_520']}", fontsize=18)
+    
+    plot_time(axes_rt[2, 1], map_files['Paris']['time'], show_agent_legend=True)
+    axes_rt[2, 1].set_title(f"{map_titles['Paris']}", fontsize=18)
+    
+    # Make the third column empty but still have a title box
+    axes_rt[2, 2].set_visible(False)
+    
+    # No main title for runtime figure
+    
+    # Add overall legend for the runtime plot
+    runtime_legend = create_runtime_legend(fig_rt, color_map)
+    
+    # Adjust layout
+    plt.subplots_adjust(hspace=0.3, wspace=0.3, bottom=0.1, top=0.9)
+    
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(args.runtime_output), exist_ok=True)
+    
+    # Save the runtime figure as PDF
+    plt.savefig(args.runtime_output, format='pdf', bbox_inches='tight')
+    print(f"Runtime figure saved to {args.runtime_output}")

@@ -151,8 +151,7 @@ mod tests {
             start: (1, 1),
             goal: (2, 2),
         }];
-        let map =
-            Map::from_file("map_file/maze-32-32-2-scen-even/maze-32-32-2.map", &agents).unwrap();
+        let map = Map::from_file("map_file/maze-32-32-2/maze-32-32-2.map", &agents).unwrap();
 
         assert_eq!(map.height, 32);
         assert_eq!(map.width, 32);

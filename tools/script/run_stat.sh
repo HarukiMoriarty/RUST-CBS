@@ -4,3 +4,6 @@ python tools/stat.py result/decbs_den_312d_result.csv
 python tools/stat.py result/decbs_warehouse-10-20-10-2-1_result.csv
 python tools/stat.py result/decbs_den_520d_result.csv
 python tools/stat.py result/decbs_Paris_1_256_result.csv
+python tools/stat.py result/decbs_maze-32-32-2_result.csv
+python tools/stat.py result/decbs_room-64-64-8_result.csv
+python tools/stat.py result/decbs_Boston_0_256_result.csv
