@@ -12,33 +12,31 @@ env:
 
 jobs:
   build_and_test:
+    name: Build, Lint, and Test
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: ⚙️ Install dependencies and clippy
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🦀 Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      
+      - name: ⚙️ Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
-          rustup component add clippy
-      - name: ⚡ Cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: ⚡ Cache dependencies
+        uses: Swatinem/rust-cache@v2
+      
       - name: 🔨 Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-      - name: 📎 Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
-      - name: 🔎 Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: cargo build --verbose
+      
+      - name: 📎 Lint with clippy
+        run: cargo clippy -- -D warnings
+      
+      - name: 🔎 Run tests
+        run: cargo test --verbose
