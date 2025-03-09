@@ -225,20 +225,23 @@ pub(crate) fn standard_focal_a_star_search(
                 let old_f_focal_cost = *f_focal_cost_map
                     .get(&(*neighbor, tentative_g_cost))
                     .unwrap();
-                let old_focal_node_wrapper = create_focal_node(
-                    *neighbor,
-                    old_f_focal_cost,
-                    f_focal_cost,
-                    tentative_g_cost,
-                    tentative_time_step,
-                );
 
                 if f_focal_cost < old_f_focal_cost {
                     // Update its corresponding focal cost,
                     // update focal cost map and focal list if it is in there.
                     f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
-                    focal_list.remove(&old_focal_node_wrapper);
-                    focal_list.insert(old_focal_node_wrapper);
+
+                    let old_focal_node_wrapper = create_focal_node(
+                        *neighbor,
+                        f_open_cost,
+                        old_f_focal_cost,
+                        tentative_g_cost,
+                        tentative_time_step,
+                    );
+                    if focal_list.contains(&old_focal_node_wrapper) {
+                        focal_list.remove(&old_focal_node_wrapper);
+                        focal_list.insert(focal_node_wrapper);
+                    }
                 }
             }
         }
@@ -258,6 +261,8 @@ pub(crate) fn standard_focal_a_star_search(
                 });
             }
         }
+
+        trace!("{:?}", open_list);
     }
 
     debug!("cannot find solution");

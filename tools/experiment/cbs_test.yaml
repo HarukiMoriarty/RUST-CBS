@@ -1,8 +1,8 @@
 yaml_path: ["map_file/random-32-32-20/random-32-32-20-random-1.scen"]
 map_path: ["map_file/random-32-32-20/random-32-32-20.map"]
-num_agents: [10, 20, 30, 40, 50]
+num_agents: [10, 20, 30, 40]
 seed_num: 200
-sub_optimal: [1.02, 1.06, 1.10, 1.12]
 solver: ["cbs"]
 time_out: 60
 optimization_level: ["none", "bc", "pc_bc", "all"]
+output: "result/cbs_test_result.csv"

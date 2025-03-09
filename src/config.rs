@@ -12,14 +12,14 @@ pub struct Cli {
     #[arg(
         long,
         help = "Path to the YAML scenario file",
-        default_value = "map_file/Boston-0-256-scen-even/Boston_0_256-even-1.scen"
+        default_value = "map_file/random-32-32-20/random-32-32-20-random-1.scen"
     )]
     pub yaml_path: String,
 
     #[arg(
         long,
         help = "Path to the map file",
-        default_value = "map_file/Boston-0-256-scen-even/Boston_0_256.map"
+        default_value = "map_file/random-32-32-20/random-32-32-20.map"
     )]
     pub map_path: String,
 
