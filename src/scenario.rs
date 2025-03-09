@@ -206,9 +206,8 @@ mod tests {
 
     #[test]
     fn test_read_scenario() {
-        let scen =
-            Scenario::load_from_scen("map_file/maze-32-32-2-scen-even/maze-32-32-2-even-1.scen")
-                .expect("Error loading YAML config");
+        let scen = Scenario::load_from_scen("map_file/maze-32-32-2/maze-32-32-2-random-1.scen")
+            .expect("Error loading YAML config");
 
         let seed = [0u8; 32];
         let mut rng = StdRng::from_seed(seed);
@@ -222,13 +221,13 @@ mod tests {
         let answer = [
             Agent {
                 id: 0,
-                start: (30, 23),
-                goal: (29, 20),
+                start: (9, 25),
+                goal: (8, 28),
             },
             Agent {
                 id: 1,
-                start: (13, 26),
-                goal: (11, 22),
+                start: (8, 19),
+                goal: (10, 17),
             },
         ];
         assert_eq!(agents, answer);

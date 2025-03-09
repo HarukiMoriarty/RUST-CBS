@@ -4,7 +4,7 @@ import numpy as np
 import os
 import sys
 
-def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_histogram.pdf"):
+def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_agent.pdf"):
     """
     Analyze DECBS vs ECBS performance data from multiple CSV files
     and create a 3x2 grid of histogram subplots.
@@ -16,22 +16,22 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
     # Default list of input files if none provided
     if input_files is None:
         input_files = [
-            "result/decbs_random-32-32-20_time.csv",
-            "result/decbs_empty_32_32_time.csv",
-            "result/decbs_den_312d_time.csv",
-            "result/decbs_warehouse-10-20-10-2-1_time.csv",
-            "result/decbs_den_520d_time.csv",
-            "result/decbs_Paris_1_256_time.csv"
+            "result/decbs_random-32-32-20_agents_time.csv",
+            "result/decbs_maze-32-32-2_agents_time.csv",
+            "result/decbs_den_312d_agents_time.csv",
+            "result/decbs_warehouse-10-20-10-2-1_agents_time.csv",
+            "result/decbs_den_520d_agents_time.csv",
+            "result/decbs_Paris_1_256_agents_time.csv"
         ]
     
     # Standard list of suboptimal values to look for in all files
     # This ensures consistent x-axis across all plots
-    std_suboptimal_values = [[1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2],
-                             [1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2],
-                             [1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
-                             [1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1],
-                             [1.01, 1.014, 1.018, 1.022, 1.026, 1.03, 1.034, 1.038],
-                             [1.01, 1.014, 1.018, 1.022, 1.026, 1.03, 1.034, 1.038]]
+    std_agents = [[45, 60, 75, 90, 105, 120, 135],
+                   [20, 30, 40, 50, 60, 70],
+                   [105, 120, 135, 150, 165, 180],
+                   [90, 120, 150, 180, 210, 240, 270],
+                   [50, 100, 150, 200, 250, 300],
+                   [50, 100, 150, 200, 250, 300]]
     
     # Create figure with 3x2 subplots
     fig, axes = plt.subplots(3, 2, figsize=(16, 18))
@@ -53,7 +53,7 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
     
     # Process each file
     for i, file_path in enumerate(input_files):
-        suboptimal = std_suboptimal_values[i]
+        agents = std_agents[i]
         if i >= 6:  # Limit to 6 files (3x2 grid)
             print(f"Warning: Only showing the first 6 files. Skipping {file_path}")
             continue
@@ -64,12 +64,15 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             ax = axes[i]
             ax.text(0.5, 0.5, f"File not found:\n{file_path}", 
                     horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=18, color='red')
+                    transform=ax.transAxes, fontsize=30, color='red')
             continue
         
         # Get title from filename (without extension)
         title = os.path.splitext(os.path.basename(file_path))[0]
-        title = title.replace('_time', '')
+        title = title.replace('decbs_', '')
+        title = title.replace('_agents_time', '')
+        title = title.replace('n_3', 'n3')
+        title = title.replace('n_5', 'n5')
         
         try:
             # Read the CSV file
@@ -83,9 +86,9 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             if config1.empty or config2.empty:
                 raise ValueError(f"Missing data for one or both configurations in file {file_path}")
             
-            # Group by solver and low_level_suboptimal
-            pivot1 = config1.pivot_table(index='low_level_suboptimal', columns='solver', values='avg_time')
-            pivot2 = config2.pivot_table(index='low_level_suboptimal', columns='solver', values='avg_time')
+            # Group by solver and num_agents
+            pivot1 = config1.pivot_table(index='num_agents', columns='solver', values='avg_time')
+            pivot2 = config2.pivot_table(index='num_agents', columns='solver', values='avg_time')
             
             # Check if we have both solvers in the data
             if 'ecbs' not in pivot1.columns or 'decbs' not in pivot1.columns:
@@ -95,32 +98,32 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             pivot1['improvement'] = ((pivot1['ecbs'] - pivot1['decbs']) / pivot1['ecbs']) * 100
             pivot2['improvement'] = ((pivot2['ecbs'] - pivot2['decbs']) / pivot2['ecbs']) * 100
             
-            # Create dictionaries to store improvement values for standard suboptimal values
+            # Create dictionaries to store improvement values for standard agent values
             improvements1 = {}
             improvements2 = {}
             
-            # Get the suboptimal values available in this file
-            available_suboptimal = pivot1.index.tolist()
+            # Get the agent values available in this file
+            available_agents = pivot1.index.tolist()
             
-            # Match the standard suboptimal values with available ones
-            for subopt in suboptimal:
-                if subopt in available_suboptimal:
-                    improvements1[subopt] = pivot1.loc[subopt, 'improvement']
-                    improvements2[subopt] = pivot2.loc[subopt, 'improvement']
+            # Match the standard agent values with available ones
+            for agent in agents:
+                if agent in available_agents:
+                    improvements1[agent] = pivot1.loc[agent, 'improvement']
+                    improvements2[agent] = pivot2.loc[agent, 'improvement']
                 else:
                     # Use NaN for missing values
-                    improvements1[subopt] = np.nan
-                    improvements2[subopt] = np.nan
+                    improvements1[agent] = np.nan
+                    improvements2[agent] = np.nan
             
             # Plot on the corresponding subplot
             ax = axes[i]
             
             # Positions for bars
-            indices = np.arange(len(suboptimal))
+            indices = np.arange(len(agents))
             
             # Extract improvement values for plotting
-            imp1_values = [improvements1.get(s, np.nan) for s in suboptimal]
-            imp2_values = [improvements2.get(s, np.nan) for s in suboptimal]
+            imp1_values = [improvements1.get(s, np.nan) for s in agents]
+            imp2_values = [improvements2.get(s, np.nan) for s in agents]
             
             # Create the bars - for missing values, no bar will be shown
             ax.bar(indices - bar_width/2, imp1_values,
@@ -136,35 +139,67 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             avg_imp1 = np.mean(valid_imp1) if valid_imp1 else np.nan
             avg_imp2 = np.mean(valid_imp2) if valid_imp2 else np.nan
             
-            # Add average lines
+            # Add average lines with the value directly on the line
             if not np.isnan(avg_imp1):
-                ax.axhline(y=avg_imp1, color=avg1_color, linestyle='--', 
-                           label=f'Avg Config1: {avg_imp1:.1f}%', linewidth=2)
+                ax.axhline(y=avg_imp1, color=avg1_color, linestyle='--', linewidth=2)
+                
+                # Add text box with average value on the line
+                # Position it at 80% of x-axis width for the first config
+                ax.text(0.8 * len(indices), avg_imp1, 
+                       f'{avg_imp1:.1f}%', 
+                       backgroundcolor='white',
+                       bbox=dict(facecolor='white', alpha=0.8, edgecolor=avg1_color, boxstyle='round,pad=0.3'),
+                       ha='center', va='center',
+                       fontsize=25,
+                       fontweight='bold',
+                       color=avg1_color)
             
             if not np.isnan(avg_imp2):
-                ax.axhline(y=avg_imp2, color=avg2_color, linestyle='--', 
-                           label=f'Avg Config2: {avg_imp2:.1f}%', linewidth=2)
+                ax.axhline(y=avg_imp2, color=avg2_color, linestyle='--', linewidth=2)
+                
+                # Add text box with average value on the line
+                # Position it at 20% of x-axis width for the second config to avoid overlap
+                ax.text(0.2 * len(indices), avg_imp2, 
+                       f'{avg_imp2:.1f}%', 
+                       backgroundcolor='white',
+                       bbox=dict(facecolor='white', alpha=0.5, edgecolor=avg2_color, boxstyle='round,pad=0.3'),
+                       ha='center', va='center',
+                       fontsize=25,
+                       fontweight='bold',
+                       color=avg2_color)
             
             # Add a horizontal line at y=0
             ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
             
             # Set x-ticks and labels
             ax.set_xticks(indices)
-            ax.set_xticklabels([str(s) for s in suboptimal], fontsize=18)
+            ax.set_xticklabels([str(s) for s in agents], fontsize=30)
             
-            # Set title and labels
-            ax.set_title(title, fontsize=18)
-            ax.set_xlabel('Suboptimality factor', fontsize=18)
-            ax.set_ylabel('Improvement percentage (%)', fontsize=18)
+            # Set title
+            ax.set_title(title, fontsize=30)
+            
+            # Only add x-axis labels for the bottom row (indices 4, 5)
+            if i >= 4:  # Bottom row
+                ax.set_xlabel('Number of agents', fontsize=30)
+            else:
+                ax.set_xlabel('', fontsize=30)  # Empty label for other rows
+            
+            # Only add y-axis label and tick labels for the leftmost subfigures (indices 0, 2, 4)
+            if i % 2 == 0:  # Left column
+                ax.set_ylabel('Improvement\npercentage (%)', fontsize=30)
+                ax.tick_params(axis='y', labelsize=25)
+            else:  # Right column
+                ax.set_ylabel('')  # No label for right column
+                ax.set_yticklabels([])  # Hide y-tick labels for right column
+                
             ax.grid(True, alpha=0.3, axis='y')
-            ax.tick_params(axis='y', labelsize=18)
             
             if i <= 1:
                 ax.set_ylim([-10, 55])
             elif i <= 3:
-                ax.set_ylim([-10, 55])
+                ax.set_ylim([-10, 40])
             elif i <= 5:
-                ax.set_ylim([-55, 10])
+                ax.set_ylim([-35, 5])
             
             # Print summary stats for this file
             print(f"\nFile: {file_path}")
@@ -177,7 +212,7 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
             ax = axes[i]
             ax.text(0.5, 0.5, f"Error processing:\n{file_path}\n{str(e)}", 
                     horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=18, color='red', wrap=True)
+                    transform=ax.transAxes, fontsize=30, color='red', wrap=True)
     
     # Create a custom legend for the entire figure
     custom_lines = [
@@ -195,11 +230,11 @@ def analyze_multiple_files(input_files=None, output_file="fig/decbs_vs_ecbs_hist
     ]
     
     fig.legend(custom_lines, custom_labels, loc='upper center', 
-               bbox_to_anchor=(0.5, 0.99), ncol=4, fontsize=14, frameon=True)
+               bbox_to_anchor=(0.5, 1.06), ncol=2, fontsize=30, frameon=True)
     
     # Adjust layout
     plt.tight_layout()
-    plt.subplots_adjust(top=0.94, hspace=0.25, wspace=0.18)  # Make room for the legend
+    plt.subplots_adjust(top=0.94, hspace=0.25, wspace=0.05)  # Make room for the legend at the bottom
     
     # Create directory for output if it doesn't exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)

@@ -1,104 +1,11 @@
-use super::{construct_mdd, construct_path};
-use crate::common::{Agent, Constraint, LowLevelOpenNode, Path, SearchResult};
+use super::{construct_mdd, construct_path, heuristic_focal};
+use crate::common::{create_focal_node, create_open_node, Agent, Constraint, Path, SearchResult};
 use crate::map::Map;
 use crate::stat::Stats;
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use tracing::{debug, instrument, trace};
 
-#[instrument(skip_all, name="standard_a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
-pub(crate) fn standard_a_star_search(
-    map: &Map,
-    agent: &Agent,
-    constraints: &HashSet<Constraint>,
-    path_length_constraint: usize,
-    constraint_limit_time_step: usize,
-    stats: &mut Stats,
-) -> Option<(Path, usize)> {
-    debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
-
-    let mut open_list = BTreeSet::new();
-    let mut closed_list = HashSet::new();
-    let mut trace = HashMap::new();
-
-    let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
-    let start_node = LowLevelOpenNode {
-        position: agent.start,
-        f_open_cost: start_h_open_cost,
-        g_cost: 0,
-        time_step: 0,
-    };
-    open_list.insert(start_node.clone());
-
-    while let Some(current) = open_list.pop_first() {
-        trace!("expand node: {current:?}");
-        let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
-
-        // Update stats.
-        stats.low_level_expand_open_nodes += 1;
-
-        closed_list.insert((current.position, current.time_step));
-
-        if current.position == agent.goal && current.g_cost > path_length_constraint {
-            return Some((
-                construct_path(&trace, (current.position, current.g_cost)),
-                current.f_open_cost,
-            ));
-        }
-
-        // Assuming uniform cost, which also indicate the current time.
-        let tentative_g_cost = current.g_cost + 1;
-
-        // time step only increase if we haven't passed constraint limit
-        // Tricky: after constraint limit, we fixed time step as T + 1, algorithm
-        // demote to 2-D a star, enable branch pruning
-        let tentative_time_step = if exceed_constraints_limit_time_step {
-            current.time_step
-        } else {
-            current.time_step + 1
-        };
-
-        // Expand nodes from the current position.
-        for neighbor in &map.get_neighbors(
-            current.position.0,
-            current.position.1,
-            !exceed_constraints_limit_time_step,
-        ) {
-            // Check node (position at current time) has closed.
-            if closed_list.contains(&(*neighbor, tentative_time_step)) {
-                continue;
-            }
-
-            // Check for constraints before exploring the neighbor
-            if constraints.iter().any(|constraint| {
-                constraint.is_violated(current.position, *neighbor, tentative_g_cost)
-            }) {
-                continue; // This move is prohibited due to a constraint.
-            }
-
-            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
-
-            // If this node has already in the open list, we ignore this update.
-            if open_list.insert(LowLevelOpenNode {
-                position: *neighbor,
-                f_open_cost: tentative_g_cost + h_open_cost,
-                g_cost: tentative_g_cost,
-                time_step: tentative_time_step,
-            }) {
-                trace.insert(
-                    (*neighbor, tentative_g_cost),
-                    (current.position, current.g_cost),
-                );
-            }
-        }
-        trace!("open list {open_list:?}");
-    }
-
-    debug!("cannot find solution");
-    None
-}
-
-#[instrument(skip_all, name="a_star", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn a_star_search(
     map: &Map,
     agent: &Agent,
@@ -117,7 +24,7 @@ pub(crate) fn a_star_search(
         .unwrap_or(0);
 
     if !build_mdd {
-        return SearchResult::Standard(standard_a_star_search(
+        return SearchResult::Standard(standard_a_star_search_open_cost(
             map,
             agent,
             constraints,
@@ -127,7 +34,7 @@ pub(crate) fn a_star_search(
         ));
     }
 
-    let (path, f_min) = match standard_a_star_search(
+    let (path, f_min) = match standard_a_star_search_open_cost(
         map,
         agent,
         constraints,
@@ -148,6 +55,208 @@ pub(crate) fn a_star_search(
         f_min,
         construct_mdd(map, agent, constraints, f_min),
     )))
+}
+
+#[instrument(skip_all, name="standard_a_star_open_cost", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+pub(crate) fn standard_a_star_search_open_cost(
+    map: &Map,
+    agent: &Agent,
+    constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
+    constraint_limit_time_step: usize,
+    stats: &mut Stats,
+) -> Option<(Path, usize)> {
+    debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
+
+    #[allow(clippy::mutable_key_type)]
+    let mut open_list = BTreeSet::new();
+    let mut closed_list = HashSet::new();
+    let mut trace = HashMap::new();
+
+    let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
+    let start_node = create_open_node(agent.start, start_h_open_cost, 0, 0);
+    open_list.insert(start_node);
+
+    while let Some(current_wrapper) = open_list.pop_first() {
+        let current = current_wrapper.0.borrow();
+        trace!("expand node: {current:?}");
+        let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
+
+        // Update stats.
+        stats.low_level_expand_open_nodes += 1;
+
+        if current.position == agent.goal && current.g_cost > path_length_constraint {
+            return Some((
+                construct_path(&trace, (current.position, current.g_cost)),
+                current.f_open_cost,
+            ));
+        }
+
+        closed_list.insert((current.position, current.time_step));
+
+        // Assuming uniform cost, which also indicates the current time
+        let tentative_g_cost = current.g_cost + 1;
+
+        // Time step only increase if we haven't passed constraint limit
+        // Tricky: after constraint limit, we fixed time step as T + 1, algorithm
+        // demote to 2-D a star, enable branch pruning
+        let tentative_time_step = if exceed_constraints_limit_time_step {
+            current.time_step
+        } else {
+            current.time_step + 1
+        };
+
+        // Expand nodes from the current position.
+        for neighbor in &map.get_neighbors(
+            current.position.0,
+            current.position.1,
+            !exceed_constraints_limit_time_step,
+        ) {
+            // Check if node (position at current time) has been closed.
+            if closed_list.contains(&(*neighbor, tentative_time_step)) {
+                continue;
+            }
+
+            // Check for constraints before exploring the neighbor
+            if constraints.iter().any(|constraint| {
+                constraint.is_violated(current.position, *neighbor, tentative_g_cost)
+            }) {
+                continue; // This move is prohibited due to a constraint.
+            }
+
+            let h_open_cost = map.heuristic[agent.id][neighbor.0][neighbor.1];
+
+            // Create a new open node wrapper
+            let neighbor_wrapper = create_open_node(
+                *neighbor,
+                tentative_g_cost + h_open_cost,
+                tentative_g_cost,
+                tentative_time_step,
+            );
+
+            // If this node has already in the open list, we ignore this update.
+            if open_list.insert(neighbor_wrapper) {
+                trace.insert(
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
+                );
+            }
+        }
+        trace!("open list {open_list:?}");
+    }
+
+    debug!("cannot find solution");
+    None
+}
+
+#[allow(clippy::too_many_arguments)]
+#[instrument(skip_all, name="standard_a_star_focal_cost", fields(agent = agent.id, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+pub(crate) fn standard_a_star_search_focal_cost(
+    map: &Map,
+    agent: &Agent,
+    constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
+    paths: &[Path],
+    constraint_limit_time_step: usize,
+    opt_cost: f64,
+    stats: &mut Stats,
+) -> Option<(Path, usize)> {
+    debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
+
+    #[allow(clippy::mutable_key_type)]
+    let mut focal_list = BTreeSet::new();
+    let mut closed_list = HashSet::new();
+    let mut trace = HashMap::new();
+
+    let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
+    let start_node = create_focal_node(agent.start, start_h_open_cost, 0, 0, 0);
+    focal_list.insert(start_node);
+
+    while let Some(current_wrapper) = focal_list.pop_first() {
+        let current = current_wrapper.0.borrow();
+        trace!("expand node: {current:?}");
+        let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
+
+        // Update stats.
+        stats.low_level_expand_open_nodes += 1;
+
+        if current.position == agent.goal && current.g_cost > path_length_constraint {
+            return Some((
+                construct_path(&trace, (current.position, current.g_cost)),
+                current.f_open_cost,
+            ));
+        }
+
+        closed_list.insert((current.position, current.time_step));
+
+        // Assuming uniform cost, which also indicates the current time
+        let tentative_g_cost = current.g_cost + 1;
+
+        // Time step only increase if we haven't passed constraint limit
+        // Tricky: after constraint limit, we fixed time step as T + 1, algorithm
+        // demote to 2-D a star, enable branch pruning
+        let tentative_time_step = if exceed_constraints_limit_time_step {
+            current.time_step
+        } else {
+            current.time_step + 1
+        };
+
+        // Expand nodes from the current position.
+        for neighbor in &map.get_neighbors(
+            current.position.0,
+            current.position.1,
+            !exceed_constraints_limit_time_step,
+        ) {
+            let f_open_cost = tentative_g_cost + map.heuristic[agent.id][neighbor.0][neighbor.1];
+
+            // Check if node has bounded cost.
+            if f_open_cost as f64 > opt_cost {
+                continue;
+            }
+
+            // Check if node (position at current time) has been closed.
+            if closed_list.contains(&(*neighbor, tentative_time_step)) {
+                continue;
+            }
+
+            // Check for constraints before exploring the neighbor
+            if constraints.iter().any(|constraint| {
+                constraint.is_violated(current.position, *neighbor, tentative_g_cost)
+            }) {
+                continue; // This move is prohibited due to a constraint.
+            }
+
+            let f_focal_cost = current.f_focal_cost
+                + heuristic_focal(
+                    agent.id,
+                    *neighbor,
+                    current.position,
+                    tentative_g_cost,
+                    paths,
+                );
+
+            // Create a new focal node wrapper
+            let neighbor_wrapper = create_focal_node(
+                *neighbor,
+                f_open_cost,
+                f_focal_cost,
+                tentative_g_cost,
+                tentative_time_step,
+            );
+
+            // If this node has already in the open list, we ignore this update.
+            if focal_list.insert(neighbor_wrapper) {
+                trace.insert(
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
+                );
+            }
+        }
+        trace!("open list {focal_list:?}");
+    }
+
+    debug!("cannot find solution");
+    None
 }
 
 #[cfg(test)]

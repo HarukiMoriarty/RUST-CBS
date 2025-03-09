@@ -221,12 +221,12 @@ impl HighLevelOpenNode {
                 "lbcbs" | "bcbs" | "ecbs" | "decbs" => match focal_a_star_search(
                     map,
                     agent,
-                    Some(0),
                     config.sub_optimal.1.unwrap(),
                     &HashSet::new(),
                     0,
                     &paths,
                     config.op_prioritize_conflicts,
+                    false,
                     stats,
                 ) {
                     SearchResult::Standard(Some((path, low_level_f_min))) => {
@@ -472,12 +472,12 @@ impl HighLevelOpenNode {
             "lbcbs" | "bcbs" | "ecbs" => match focal_a_star_search(
                 map,
                 &self.agents[agent_to_update],
-                Some(0),
                 config.sub_optimal.1.unwrap(),
                 &new_constraints[agent_to_update],
                 new_path_length_constraints[agent_to_update],
                 &self.paths,
                 config.op_prioritize_conflicts,
+                false,
                 stats,
             ) {
                 SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {
@@ -491,12 +491,12 @@ impl HighLevelOpenNode {
             "decbs" => match focal_a_star_search(
                 map,
                 &self.agents[agent_to_update],
-                None,
                 config.sub_optimal.1.unwrap(),
                 &new_constraints[agent_to_update],
                 new_path_length_constraints[agent_to_update],
                 &self.paths,
                 config.op_prioritize_conflicts,
+                true,
                 stats,
             ) {
                 SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {

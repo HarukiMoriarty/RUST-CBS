@@ -11,7 +11,6 @@ def plot_expanded_nodes(ax, df, title):
     sns.set_style("whitegrid")
     
     # Create a custom colormap from light blue to dark blue
-    # This will make areas with high density appear darker blue
     colors = ["#E6F3FF", "#ADD8E6", "#5CACEE", "#1E90FF", "#0000CD"]
     custom_blue_cmap = LinearSegmentedColormap.from_list("custom_blues", colors)
     
@@ -57,21 +56,45 @@ def plot_expanded_nodes(ax, df, title):
     ylims = (10**3, 10**7)
     
     # Draw a dashed diagonal line representing y=x (1x)
-    ax.plot([xlims[0], xlims[1]], [xlims[0], xlims[1]], 'k--', lw=1.5, label='1x')
+    ax.plot([xlims[0], xlims[1]], [xlims[0], xlims[1]], 'k--', lw=3, label='1x')
     
-    # Draw a dashed line representing y=5x
-    ax.plot([xlims[0], xlims[1]/5], [5*xlims[0], xlims[1]], 'r--', lw=1.5, label='5x')
+    # Draw a dashed line representing y=4x
+    ax.plot([xlims[0], xlims[1]/4], [4*xlims[0], xlims[1]], 'r--', lw=3, label='4x')
 
+    # Calculate geometric means for x and y (better for log-scale data)
+    x_gmean = np.mean(x)
+    y_gmean = np.mean(y)
+    
+    # Add X marker at the average point
+    ax.scatter(x_gmean, y_gmean, s=200, color='red', marker='X', edgecolor='black', 
+               linewidth=1.5, zorder=10, label='Mean')
+    
+    text = f"({x_gmean:.2f}, {y_gmean:.2f})"
+    # Position the text above the X marker
+    ax.annotate(text, 
+                xy=(x_gmean, y_gmean),
+                xytext=(0, 22),  # Offset text by 20 points above
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+                fontsize=23,
+                bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.6, ec='black'),
+                zorder=11)
+    
     # Set specific limits
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
     
     # Better labels
-    ax.set_xlabel('DECBS low level focal node', fontsize=14)
-    ax.set_ylabel('ECBS low level focal node', fontsize=14)
+    ax.set_xlabel('DECBS low level focal node', fontsize=30)
+    ax.set_ylabel('ECBS low level focal node', fontsize=30)
+    
+    # Enable LaTeX rendering for the legend
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['mathtext.default'] = 'regular'
     
     # Add legend for the reference lines
-    ax.legend(loc='upper left', fontsize=16)
+    ax.legend(loc='upper left', fontsize=25, framealpha=1, edgecolor='black')
     
     # Log scales
     ax.set_xscale('log')
@@ -85,7 +108,7 @@ def plot_expanded_nodes(ax, df, title):
     ax.set_yticks([10**3, 10**4, 10**5, 10**6, 10**7])
     ax.set_xticklabels(['10³', '10⁴', '10⁵', '10⁶', '10⁷'])
     ax.set_yticklabels(['10³', '10⁴', '10⁵', '10⁶', '10⁷'])
-    ax.tick_params(labelsize=14)
+    ax.tick_params(labelsize=30)
 
 def main(data_paths, output_path):
     # Initialize an empty DataFrame to hold combined data
@@ -153,6 +176,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # If data_paths is not provided, use default
-    data_paths = args.data_paths if args.data_paths else ['result/random-32-32-20_result.csv', 'result/decbs_warehouse-10-20-10-2-1_result.csv']
+    data_paths = args.data_paths if args.data_paths else ['result/decbs_random-32-32-20_result.csv', 'result/decbs_maze-32-32-2_result.csv']
     
     main(data_paths, args.output_path)

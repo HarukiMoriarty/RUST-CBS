@@ -1,7 +1,9 @@
 mod astar;
 mod astarfocal;
 
-pub(crate) use astar::{a_star_search, standard_a_star_search};
+pub(crate) use astar::{
+    a_star_search, standard_a_star_search_focal_cost, standard_a_star_search_open_cost,
+};
 pub(crate) use astarfocal::focal_a_star_search;
 
 use std::collections::{HashMap, HashSet};

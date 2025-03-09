@@ -1,5 +1,11 @@
-use super::{construct_mdd, construct_path, heuristic_focal, standard_a_star_search};
-use crate::common::{Agent, Constraint, LowLevelFocalNode, LowLevelOpenNode, Path, SearchResult};
+use super::{
+    construct_mdd, construct_path, heuristic_focal, standard_a_star_search_focal_cost,
+    standard_a_star_search_open_cost,
+};
+use crate::common::{
+    create_focal_node, create_open_focal_node, Agent, Constraint, FocalOrderWrapper,
+    OpenOrderWrapper, Path, SearchResult,
+};
 use crate::map::Map;
 use crate::stat::Stats;
 
@@ -11,12 +17,12 @@ use tracing::{debug, instrument, trace};
 pub(crate) fn focal_a_star_search(
     map: &Map,
     agent: &Agent,
-    last_search_f_min: Option<usize>,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
     paths: &[Path],
     build_mdd: bool,
+    double_search: bool,
     stats: &mut Stats,
 ) -> SearchResult {
     let constraint_limit_time_step = constraints
@@ -28,34 +34,51 @@ pub(crate) fn focal_a_star_search(
         .max()
         .unwrap_or(0);
 
-    if !build_mdd {
-        return SearchResult::Standard(standard_focal_a_star_search(
+    let (sub_optimal_result, f_min) = if double_search {
+        match standard_focal_double_search(
             map,
             agent,
-            last_search_f_min,
             subopt_factor,
             constraints,
             path_length_constraint,
             constraint_limit_time_step,
             paths,
             stats,
-        ));
-    }
-
-    let (sub_optimal_result, f_min) = match standard_focal_a_star_search(
-        map,
-        agent,
-        last_search_f_min,
-        subopt_factor,
-        constraints,
-        path_length_constraint,
-        constraint_limit_time_step,
-        paths,
-        stats,
-    ) {
-        Some((sub_optimal_result, f_min)) => (sub_optimal_result, f_min),
-        None => return SearchResult::WithMDD(None),
+        ) {
+            Some((sub_optimal_result, f_min)) => (sub_optimal_result, f_min),
+            None => {
+                return if build_mdd {
+                    SearchResult::WithMDD(None)
+                } else {
+                    SearchResult::Standard(None)
+                }
+            }
+        }
+    } else {
+        match standard_focal_a_star_search(
+            map,
+            agent,
+            subopt_factor,
+            constraints,
+            path_length_constraint,
+            constraint_limit_time_step,
+            paths,
+            stats,
+        ) {
+            Some((sub_optimal_result, f_min)) => (sub_optimal_result, f_min),
+            None => {
+                return if build_mdd {
+                    SearchResult::WithMDD(None)
+                } else {
+                    SearchResult::Standard(None)
+                }
+            }
+        }
     };
+
+    if !build_mdd {
+        return SearchResult::Standard(Some((sub_optimal_result, f_min)));
+    }
 
     // Assert the solution cost is sub-optimal bounded.
     assert!((sub_optimal_result.len() - 1) as f64 <= f_min as f64 * subopt_factor);
@@ -75,11 +98,10 @@ pub(crate) fn focal_a_star_search(
 }
 
 #[allow(clippy::too_many_arguments)]
-#[instrument(skip_all, name="standard_focal_a_star_search", fields(agent = agent.id, subopt_factor = subopt_factor, last_search_f_min = last_search_f_min, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+#[instrument(skip_all, name="standard_focal_a_star_search", fields(agent = agent.id, subopt_factor = subopt_factor, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
 pub(crate) fn standard_focal_a_star_search(
     map: &Map,
     agent: &Agent,
-    last_search_f_min: Option<usize>,
     subopt_factor: f64,
     constraints: &HashSet<Constraint>,
     path_length_constraint: usize,
@@ -89,25 +111,12 @@ pub(crate) fn standard_focal_a_star_search(
 ) -> Option<(Path, usize)> {
     debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
 
-    let (double_search, mut f_min) = if let Some(last_search_f_min) = last_search_f_min {
-        (false, last_search_f_min)
-    } else {
-        debug!("double search.");
-        match standard_a_star_search(
-            map,
-            agent,
-            constraints,
-            path_length_constraint,
-            constraint_limit_time_step,
-            stats,
-        ) {
-            Some((_, f_min)) => (true, f_min),
-            None => return None,
-        }
-    };
+    let mut f_min = 0;
 
     // Open list is indexed based on (f_open_cost, g_cost(time), position)
+    #[allow(clippy::mutable_key_type)]
     let mut open_list = BTreeSet::new();
+    #[allow(clippy::mutable_key_type)]
     let mut focal_list = BTreeSet::new();
     let mut closed_list = HashSet::new();
     let mut trace = HashMap::new();
@@ -116,22 +125,16 @@ pub(crate) fn standard_focal_a_star_search(
 
     let start_h_open_cost = map.heuristic[agent.id][agent.start.0][agent.start.1];
 
-    open_list.insert(LowLevelOpenNode {
-        position: agent.start,
-        f_open_cost: start_h_open_cost,
-        g_cost: 0,
-        time_step: 0,
-    });
-    focal_list.insert(LowLevelFocalNode {
-        position: agent.start,
-        f_focal_cost: 0,
-        f_open_cost: start_h_open_cost,
-        g_cost: 0,
-        time_step: 0,
-    });
+    let (start_open_node, start_focal_node) =
+        create_open_focal_node(agent.start, start_h_open_cost, 0, 0, 0);
+    open_list.insert(start_open_node);
+    focal_list.insert(start_focal_node);
+
     f_focal_cost_map.insert((agent.start, 0), 0);
 
-    while let Some(current) = focal_list.pop_first() {
+    while let Some(current_wrapper) = focal_list.pop_first() {
+        let current_ref = &current_wrapper.0;
+        let current = current_ref.borrow();
         trace!("expand node: {current:?}");
         let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
 
@@ -140,18 +143,10 @@ pub(crate) fn standard_focal_a_star_search(
 
         closed_list.insert((current.position, current.time_step));
 
-        // If we do not perform double search, we need to update f min.
-        if !double_search {
-            f_min = max(open_list.first().unwrap().f_open_cost, f_min);
-        }
+        f_min = max(open_list.first().unwrap().f_open_cost(), f_min);
 
         // Remove the same node from open list.
-        assert!(open_list.remove(&LowLevelOpenNode {
-            position: current.position,
-            f_open_cost: current.f_open_cost,
-            g_cost: current.g_cost,
-            time_step: current.g_cost,
-        }));
+        assert!(open_list.remove(&OpenOrderWrapper::from_node(current_ref)));
 
         if current.position == agent.goal && current.g_cost > path_length_constraint {
             debug!("find solution with f min {f_min:?}");
@@ -202,14 +197,17 @@ pub(crate) fn standard_focal_a_star_search(
                     paths,
                 );
 
+            let (open_node_wrapper, focal_node_wrapper) = create_open_focal_node(
+                *neighbor,
+                f_open_cost,
+                f_focal_cost,
+                tentative_g_cost,
+                tentative_g_cost,
+            );
+
             // If this node is never appeared before, update open list and trace
             // Also means this node is new to focal history, update focal cost hashmap
-            if open_list.insert(LowLevelOpenNode {
-                position: *neighbor,
-                f_open_cost,
-                g_cost: tentative_g_cost,
-                time_step: tentative_time_step,
-            }) {
+            if open_list.insert(open_node_wrapper) {
                 trace.insert(
                     (*neighbor, tentative_g_cost),
                     (current.position, current.g_cost),
@@ -218,13 +216,7 @@ pub(crate) fn standard_focal_a_star_search(
 
                 // If the node is in the suboptimal bound, push it into focal list.
                 if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
-                    focal_list.insert(LowLevelFocalNode {
-                        position: *neighbor,
-                        f_focal_cost,
-                        f_open_cost,
-                        g_cost: tentative_g_cost,
-                        time_step: tentative_time_step,
-                    });
+                    focal_list.insert(focal_node_wrapper);
                 }
             }
             // If this node is appeared before, we check if we get a smaller focal cost.
@@ -233,54 +225,35 @@ pub(crate) fn standard_focal_a_star_search(
                 let old_f_focal_cost = *f_focal_cost_map
                     .get(&(*neighbor, tentative_g_cost))
                     .unwrap();
+                let old_focal_node_wrapper = create_focal_node(
+                    *neighbor,
+                    old_f_focal_cost,
+                    f_focal_cost,
+                    tentative_g_cost,
+                    tentative_time_step,
+                );
 
                 if f_focal_cost < old_f_focal_cost {
                     // Update its corresponding focal cost,
                     // update focal cost map and focal list if it is in there.
                     f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
-                    if focal_list.contains(&LowLevelFocalNode {
-                        position: *neighbor,
-                        f_focal_cost: old_f_focal_cost,
-                        f_open_cost,
-                        g_cost: tentative_g_cost,
-                        time_step: tentative_time_step,
-                    }) {
-                        focal_list.remove(&LowLevelFocalNode {
-                            position: *neighbor,
-                            f_focal_cost: old_f_focal_cost,
-                            f_open_cost,
-                            g_cost: tentative_g_cost,
-                            time_step: tentative_time_step,
-                        });
-                        focal_list.insert(LowLevelFocalNode {
-                            position: *neighbor,
-                            f_focal_cost,
-                            f_open_cost,
-                            g_cost: tentative_g_cost,
-                            time_step: tentative_time_step,
-                        });
-                    }
+                    focal_list.remove(&old_focal_node_wrapper);
+                    focal_list.insert(old_focal_node_wrapper);
                 }
             }
         }
 
-        if !open_list.is_empty() && !double_search {
+        if !open_list.is_empty() {
             // Maintain the focal list, since we have changed the f min.
-            let new_f_min = open_list.first().unwrap().f_open_cost;
+            let new_f_min = open_list.first().unwrap().0.borrow().f_open_cost;
             if f_min < new_f_min {
-                open_list.iter().for_each(|node| {
+                open_list.iter().for_each(|open_wrapper| {
+                    let node_ref = &open_wrapper.0;
+                    let node = node_ref.borrow();
                     if node.f_open_cost as f64 > f_min as f64 * subopt_factor
                         && node.f_open_cost as f64 <= new_f_min as f64 * subopt_factor
                     {
-                        let f_focal_cost =
-                            *f_focal_cost_map.get(&(node.position, node.g_cost)).unwrap();
-                        focal_list.insert(LowLevelFocalNode {
-                            position: node.position,
-                            f_focal_cost,
-                            f_open_cost: node.f_open_cost,
-                            g_cost: node.g_cost,
-                            time_step: node.time_step,
-                        });
+                        focal_list.insert(FocalOrderWrapper::from_node(node_ref));
                     }
                 });
             }
@@ -289,4 +262,42 @@ pub(crate) fn standard_focal_a_star_search(
 
     debug!("cannot find solution");
     None
+}
+
+#[allow(clippy::too_many_arguments)]
+#[instrument(skip_all, name="double_search", fields(agent = agent.id, subopt_factor = subopt_factor, start = format!("{:?}", agent.start), goal = format!("{:?}", agent.goal)), level = "debug")]
+pub(crate) fn standard_focal_double_search(
+    map: &Map,
+    agent: &Agent,
+    subopt_factor: f64,
+    constraints: &HashSet<Constraint>,
+    path_length_constraint: usize,
+    constraint_limit_time_step: usize,
+    paths: &[Path],
+    stats: &mut Stats,
+) -> Option<(Path, usize)> {
+    debug!("constraints: {constraints:?}, limit time step: {constraint_limit_time_step:?}");
+
+    if let Some((_, f_min)) = standard_a_star_search_open_cost(
+        map,
+        agent,
+        constraints,
+        path_length_constraint,
+        constraint_limit_time_step,
+        stats,
+    ) {
+        standard_a_star_search_focal_cost(
+            map,
+            agent,
+            constraints,
+            path_length_constraint,
+            paths,
+            constraint_limit_time_step,
+            f_min as f64 * subopt_factor,
+            stats,
+        )
+    } else {
+        debug!("cannot find solution");
+        None
+    }
 }

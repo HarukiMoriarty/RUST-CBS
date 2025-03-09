@@ -2,7 +2,10 @@ mod highlevel;
 mod lowlevel;
 
 pub(crate) use highlevel::{CardinalType, Constraint, HighLevelOpenNode};
-pub(crate) use lowlevel::{LowLevelFocalNode, LowLevelOpenNode};
+pub(crate) use lowlevel::{
+    create_focal_node, create_open_focal_node, create_open_node, FocalOrderWrapper,
+    OpenOrderWrapper,
+};
 
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};

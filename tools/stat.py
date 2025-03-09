@@ -289,6 +289,58 @@ def calculate_avg_time_stats(data: pd.DataFrame) -> pd.DataFrame:
     
     return pd.DataFrame(results)
 
+def calculate_agents_time_stats(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate average time statistics grouped by num_agents and op_BC parameters.
+    
+    Args:
+        data: DataFrame containing experiment results
+        
+    Returns:
+        DataFrame containing average time statistics grouped by num_agents and op_BC
+    """
+    """
+    Calculate average time statistics using filtered data with a different grouping.
+    
+    Args:
+        data: DataFrame containing experiment results
+        
+    Returns:
+        DataFrame containing average time statistics
+    """
+    group = ['op_PC', 'op_BC', 'op_TR',
+                          'high_level_suboptimal', 'low_level_suboptimal']
+    
+    filtered_rows = []
+    
+    for group_key, group_data in data.groupby(group):
+        # Filter excluded pairs for this group
+        filtered_group_data = filter_excluded_pairs(group_data)
+        
+        # Add the filtered data to our list
+        filtered_rows.append(filtered_group_data)
+    
+    # Concatenate all filtered groups into a new DataFrame
+    result_df = pd.concat(filtered_rows, ignore_index=True)
+
+    results = []
+    # For avg_time, we use a different grouping that excludes num_agents
+    avg_time_group_cols = ['solver', 'op_PC', 'op_BC', 'op_TR',
+                          'high_level_suboptimal', 'num_agents']
+    
+    # Process filtered data for avg_time calculation with different grouping
+    for group_key, group_data in result_df.groupby(avg_time_group_cols):
+        # Create result dictionary
+        result = dict(zip(avg_time_group_cols, group_key))
+        
+        # Calculate average time (including timeouts)
+        avg_time = group_data['time(us)'].mean() / MICROSECONDS_PER_SECOND
+        result['avg_time'] = avg_time
+        
+        results.append(result)
+    
+    return pd.DataFrame(results)
+
 def analyze_experiments(input_path: str) -> None:
     """
     Main analysis function that processes experiment data and saves results.
@@ -317,6 +369,14 @@ def analyze_experiments(input_path: str) -> None:
         
         LOG.info(f"Saving average time results to {avg_time_output}")
         avg_time_df.to_csv(avg_time_output, index=False)
+        
+        # Generate and save average time stats grouped by num_agents and op_BC
+        agents_time_output = input_path.replace('result.csv', 'agents_time.csv')
+        LOG.info(f"Calculating time statistics grouped by num_agents and op_BC")
+        agents_time_df = calculate_agents_time_stats(data)
+        
+        LOG.info(f"Saving agents_time results to {agents_time_output}")
+        agents_time_df.to_csv(agents_time_output, index=False)
         
         LOG.info("Analysis completed successfully")
         
