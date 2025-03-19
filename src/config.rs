@@ -120,7 +120,7 @@ impl Config {
                     ));
                 }
             }
-            "lbcbs" | "ecbs" | "decbs" => {
+            "lbcbs" | "ecbs" | "decbs" | "acbs" => {
                 // Only low-level sub optimal should be Some
                 if self.sub_optimal.0.is_some() || self.sub_optimal.1.is_none() {
                     return Err(anyhow!(

@@ -218,7 +218,7 @@ impl HighLevelOpenNode {
                     }
                     _ => return None,
                 },
-                "lbcbs" | "bcbs" | "ecbs" | "decbs" => match focal_a_star_search(
+                "lbcbs" | "bcbs" | "ecbs" | "decbs" | "acbs" => match focal_a_star_search(
                     map,
                     agent,
                     config.sub_optimal.1.unwrap(),
@@ -226,7 +226,7 @@ impl HighLevelOpenNode {
                     0,
                     &paths,
                     config.op_prioritize_conflicts,
-                    false,
+                    &config.solver,
                     stats,
                 ) {
                     SearchResult::Standard(Some((path, low_level_f_min))) => {
@@ -469,7 +469,7 @@ impl HighLevelOpenNode {
                 }
                 _ => return None,
             },
-            "lbcbs" | "bcbs" | "ecbs" => match focal_a_star_search(
+            "lbcbs" | "bcbs" | "ecbs" | "decbs" | "acbs" => match focal_a_star_search(
                 map,
                 &self.agents[agent_to_update],
                 config.sub_optimal.1.unwrap(),
@@ -477,26 +477,7 @@ impl HighLevelOpenNode {
                 new_path_length_constraints[agent_to_update],
                 &self.paths,
                 config.op_prioritize_conflicts,
-                false,
-                stats,
-            ) {
-                SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {
-                    (new_path, new_low_level_f_min, None)
-                }
-                SearchResult::WithMDD(Some((new_path, new_low_level_f_min, new_mdd))) => {
-                    (new_path, new_low_level_f_min, Some(new_mdd))
-                }
-                _ => return None,
-            },
-            "decbs" => match focal_a_star_search(
-                map,
-                &self.agents[agent_to_update],
-                config.sub_optimal.1.unwrap(),
-                &new_constraints[agent_to_update],
-                new_path_length_constraints[agent_to_update],
-                &self.paths,
-                config.op_prioritize_conflicts,
-                true,
+                &config.solver,
                 stats,
             ) {
                 SearchResult::Standard(Some((new_path, new_low_level_f_min))) => {
