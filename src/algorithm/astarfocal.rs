@@ -3,8 +3,8 @@ use super::{
     standard_a_star_search_open_cost,
 };
 use crate::common::{
-    create_focal_node, create_open_focal_node, Agent, Constraint, FocalOrderWrapper,
-    OpenOrderWrapper, Path, SearchResult,
+    create_open_focal_node, Agent, Constraint, FocalOrderWrapper, OpenOrderWrapper, Path,
+    SearchResult,
 };
 use crate::map::Map;
 use crate::stat::Stats;
@@ -249,9 +249,40 @@ pub(crate) fn standard_focal_a_star_search(
                 tentative_g_cost,
             );
 
-            // If this node is never appeared before, update open list and trace
-            // Also means this node is new to focal history, update focal cost hashmap
-            if open_list.insert(open_node_wrapper) {
+            // Check if we seen this node before
+            if let Some(&old_f_focal_cost) = f_focal_cost_map.get(&(*neighbor, tentative_g_cost)) {
+                // This node is appeared before, we need to check whether it has smaller focal cost
+                if f_focal_cost < old_f_focal_cost {
+                    // Update its corresponding focal cost,
+                    // update focal cost map and focal list if it is in there.
+                    f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
+
+                    // We need to check if this node still remain unexpanded
+                    let (old_open_node_wrapper, old_focal_node_wrapper) = create_open_focal_node(
+                        *neighbor,
+                        f_open_cost,
+                        old_f_focal_cost,
+                        tentative_g_cost,
+                        tentative_time_step,
+                    );
+
+                    if focal_list.remove(&old_focal_node_wrapper) {
+                        // If focal list has this node, then open list must also have
+                        assert!(open_list.remove(&old_open_node_wrapper));
+                        open_list.insert(open_node_wrapper);
+
+                        // Update old node in focal list
+                        focal_list.insert(focal_node_wrapper);
+                    } else if open_list.remove(&old_open_node_wrapper) {
+                        // There still has possible only open list contain this old node
+                        open_list.insert(open_node_wrapper);
+                    }
+                }
+            } else {
+                // This node is never appeared before, update open list and trace
+                // Also means this node is new to focal history, update focal cost hashmap
+                assert!(open_list.insert(open_node_wrapper));
+
                 trace.insert(
                     (*neighbor, tentative_g_cost),
                     (current.position, current.g_cost),
@@ -261,31 +292,6 @@ pub(crate) fn standard_focal_a_star_search(
                 // If the node is in the suboptimal bound, push it into focal list.
                 if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
                     focal_list.insert(focal_node_wrapper);
-                }
-            }
-            // If this node is appeared before, we check if we get a smaller focal cost.
-            else {
-                // If this node appeared before in open list, we must have its focal cost history
-                let old_f_focal_cost = *f_focal_cost_map
-                    .get(&(*neighbor, tentative_g_cost))
-                    .unwrap();
-
-                if f_focal_cost < old_f_focal_cost {
-                    // Update its corresponding focal cost,
-                    // update focal cost map and focal list if it is in there.
-                    f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
-
-                    let old_focal_node_wrapper = create_focal_node(
-                        *neighbor,
-                        f_open_cost,
-                        old_f_focal_cost,
-                        tentative_g_cost,
-                        tentative_time_step,
-                    );
-                    if focal_list.contains(&old_focal_node_wrapper) {
-                        focal_list.remove(&old_focal_node_wrapper);
-                        focal_list.insert(focal_node_wrapper);
-                    }
                 }
             }
         }
@@ -401,6 +407,7 @@ pub(crate) fn alternating_focal_a_star_search(
             let focal_wrapper = focal_list.pop_first().unwrap();
             current_ref = focal_wrapper.0;
             current = current_ref.borrow();
+            trace!("expand node from focal: {current:?}");
 
             // Update f_min based on the first node in open list
             f_min = max(open_list.first().unwrap().f_open_cost(), f_min);
@@ -418,9 +425,10 @@ pub(crate) fn alternating_focal_a_star_search(
             let open_wrapper = open_list.pop_first().unwrap();
             current_ref = open_wrapper.0;
             current = current_ref.borrow();
+            trace!("expand node from open: {current:?}");
 
-            // Update f_min based on the first node in open list
-            f_min = max(open_list.first().unwrap().f_open_cost(), f_min);
+            // Update f_min based on the first node in open list (which is current)
+            f_min = max(current.f_open_cost, f_min);
 
             // Remove the corresponding node from focal list if it's there
             focal_list.remove(&FocalOrderWrapper::from_node(&current_ref));
@@ -432,7 +440,6 @@ pub(crate) fn alternating_focal_a_star_search(
             use_focal = true;
         }
 
-        trace!("expand node: {current:?}");
         let exceed_constraints_limit_time_step = current.time_step > constraint_limit_time_step;
 
         // Update stats
@@ -501,43 +508,49 @@ pub(crate) fn alternating_focal_a_star_search(
                 tentative_time_step,
             );
 
-            // If this node is never appeared before, update open list and trace
-            // Also means this node is new to focal history, update focal cost hashmap
-            if open_list.insert(open_node_wrapper) {
-                trace.insert(
-                    (*neighbor, tentative_g_cost),
-                    (current.position, current.g_cost),
-                );
-                f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
-
-                // If the node is in the suboptimal bound, push it into focal list
-                if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
-                    focal_list.insert(focal_node_wrapper);
-                }
-            }
-            // If this node is appeared before, we check if we get a smaller focal cost
-            else {
-                // If this node appeared before in open list, we must have its focal cost history
-                let old_f_focal_cost = *f_focal_cost_map
-                    .get(&(*neighbor, tentative_g_cost))
-                    .unwrap();
-
+            // Check if we see this node before
+            if let Some(&old_f_focal_cost) = f_focal_cost_map.get(&(*neighbor, tentative_g_cost)) {
+                // This node is appeared before, we need to check whether it has smaller focal cost
                 if f_focal_cost < old_f_focal_cost {
                     // Update its corresponding focal cost,
-                    // update focal cost map and focal list if it is in there
+                    // update focal cost map and focal list if it is in there.
                     f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
 
-                    let old_focal_node_wrapper = create_focal_node(
+                    // We need to check if this node still remain unexpanded
+                    let (old_open_node_wrapper, old_focal_node_wrapper) = create_open_focal_node(
                         *neighbor,
                         f_open_cost,
                         old_f_focal_cost,
                         tentative_g_cost,
                         tentative_time_step,
                     );
-                    if focal_list.contains(&old_focal_node_wrapper) {
-                        focal_list.remove(&old_focal_node_wrapper);
+
+                    if focal_list.remove(&old_focal_node_wrapper) {
+                        // If focal list has this node, then open list must also have
+                        assert!(open_list.remove(&old_open_node_wrapper));
+                        open_list.insert(open_node_wrapper);
+
+                        // Update old node in focal list
                         focal_list.insert(focal_node_wrapper);
+                    } else if open_list.remove(&old_open_node_wrapper) {
+                        // There still has possible only open list contain this old node
+                        open_list.insert(open_node_wrapper);
                     }
+                }
+            } else {
+                // This node is never appeared before, update open list and trace
+                // Also means this node is new to focal history, update focal cost hashmap
+                assert!(open_list.insert(open_node_wrapper));
+
+                trace.insert(
+                    (*neighbor, tentative_g_cost),
+                    (current.position, current.g_cost),
+                );
+                f_focal_cost_map.insert((*neighbor, tentative_g_cost), f_focal_cost);
+
+                // If the node is in the suboptimal bound, push it into focal list.
+                if f_open_cost as f64 <= (f_min as f64 * subopt_factor) {
+                    focal_list.insert(focal_node_wrapper);
                 }
             }
         }
@@ -561,7 +574,8 @@ pub(crate) fn alternating_focal_a_star_search(
             }
         }
 
-        trace!("{:?}", open_list);
+        trace!("open list {:?}", open_list);
+        trace!("focal list {:?}", focal_list);
     }
 
     debug!("cannot find solution");

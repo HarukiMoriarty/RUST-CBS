@@ -20,8 +20,11 @@ impl PartialEq for OpenOrderWrapper {
         let self_node = self.0.borrow();
         let other_node = other.0.borrow();
 
-        // If we have same position, we should have same h_cost, thus we have same f_cost
-        self_node.position == other_node.position && self_node.g_cost == other_node.g_cost
+        // If we have same position, we should have same h_cost
+        // If we have g cost, then we have same f_cost
+        self_node.position == other_node.position
+            && self_node.g_cost == other_node.g_cost
+            && self_node.f_focal_cost == other_node.f_focal_cost
     }
 }
 
@@ -46,6 +49,14 @@ impl Ord for OpenOrderWrapper {
             // Ticky thing: if g cost is the same, then time step must be same;
             // If time step is the same, g cost might be different
             .then_with(|| self_node.position.cmp(&other_node.position))
+            // We need this for distinguish open node with only difference in focal cost
+            // Ideally we keep smaller focal cost as possible
+            .then_with(|| {
+                self_node
+                    .f_focal_cost
+                    .cmp(&other_node.f_focal_cost)
+                    .reverse()
+            })
     }
 }
 
@@ -68,7 +79,8 @@ impl PartialEq for FocalOrderWrapper {
         let self_node = self.0.borrow();
         let other_node = other.0.borrow();
 
-        // If we have same position, we should have same h_cost, thus we have same f_cost
+        // If we have same position, we should have same h_cost
+        // If we have g cost, then we have same f_cost
         self_node.position == other_node.position
             && self_node.g_cost == other_node.g_cost
             && self_node.f_focal_cost == other_node.f_focal_cost

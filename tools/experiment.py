@@ -175,7 +175,7 @@ def write_error_csv(params: ExperimentParameters, error_msg: str):
         # Handle suboptimality values based on solver type
         if params["solver"] == "cbs":
             subopt_values = ["NaN", "NaN"]
-        elif params["solver"] in ["lbcbs", "ecbs", "decbs"]:
+        elif params["solver"] in ["lbcbs", "ecbs", "decbs", "acbs"]:
             subopt_values = ["NaN", str(params["sub_optimal"])]
         elif params["solver"] == "hbcbs":
             subopt_values = [str(params["sub_optimal"]), "NaN"]
@@ -217,7 +217,7 @@ def run_experiment(params: ExperimentParameters):
 
     # Add solver-specific parameters
     solver = params["solver"]
-    if solver in ["lbcbs", "ecbs", "decbs"]:
+    if solver in ["lbcbs", "ecbs", "decbs", "acbs"]:
         cmd_base.extend(["--low-level-sub-optimal", str(params["sub_optimal"])])
     elif solver == "hbcbs":
         cmd_base.extend(["--high-level-sub-optimal", str(params["sub_optimal"])])
