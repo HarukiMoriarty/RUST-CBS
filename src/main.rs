@@ -51,8 +51,8 @@ fn main() -> anyhow::Result<()> {
     };
 
     if let Some(solution) = solver.solve(&config) {
-        solution.log_solution(&cli.solver);
         assert!(solution.verify(&map, &agents));
+        solution.log_solution(&config);
     } else {
         error!("{} solve fails", cli.solver);
         exit(1);

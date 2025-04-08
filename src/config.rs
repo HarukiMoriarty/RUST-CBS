@@ -30,6 +30,9 @@ pub struct Cli {
     )]
     pub output_path: String,
 
+    #[arg(long, help = "Output LACAM-style formatted solution to a file")]
+    pub solution_path: String,
+
     #[arg(long, help = "Number of agents", default_value_t = 10)]
     pub num_agents: usize,
 
@@ -78,6 +81,7 @@ pub struct Config {
     pub yaml_path: String,
     pub map_path: String,
     pub output_path: String,
+    pub solution_path: String,
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
     pub seed: usize,
@@ -94,6 +98,7 @@ impl Config {
         Self {
             yaml_path: cli.yaml_path.clone(),
             map_path: cli.map_path.clone(),
+            solution_path: cli.solution_path.clone(),
             output_path: cli.output_path.clone(),
             num_agents: cli.num_agents,
             agents_dist: cli.agents_dist.clone(),

@@ -10,9 +10,11 @@ pub(crate) use lowlevel::{
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
+use std::fs::write;
 use std::hash::Hash;
-use tracing::{debug, error};
+use tracing::error;
 
+use crate::config::Config;
 use crate::map::Map;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -112,16 +114,81 @@ impl Solution {
             || (pos1.0 == pos2.0 && pos1.1 == pos2.1)
     }
 
-    pub fn log_solution(&self, solver: &str) {
-        let mut formatted_solution = String::new();
-        for (index, path) in self.paths.iter().enumerate() {
-            formatted_solution.push_str(&format!(" agent{}:\n", index));
-            for (t, &(x, y)) in path.iter().enumerate() {
-                formatted_solution
-                    .push_str(&format!("   - x: {}\n     y: {}\n     t: {}\n", x, y, t));
-            }
+    pub fn log_solution(&self, config: &Config) {
+        let agents = self.paths.len();
+        let mut soc = 0;
+        let mut makespan = 0;
+        let mut starts = Vec::new();
+        let mut goals = Vec::new();
+
+        // Determine soc and makespan
+        for path in &self.paths {
+            soc += path.len();
+            makespan = makespan.max(path.len());
         }
-        debug!("{} solution:\n{}", solver, formatted_solution);
+
+        // Pad agent paths with final position to match makespan
+        let mut padded_paths = Vec::with_capacity(agents);
+        for path in &self.paths {
+            let mut padded = path.clone();
+            if let Some(&last) = path.last() {
+                while padded.len() < makespan {
+                    padded.push(last);
+                }
+            }
+            padded_paths.push(padded);
+
+            // record starts & goals
+            starts.push(format!(
+                "({}, {})",
+                path.first().unwrap().0,
+                path.first().unwrap().1
+            ));
+            goals.push(format!(
+                "({}, {})",
+                path.last().unwrap().0,
+                path.last().unwrap().1
+            ));
+        }
+
+        let mut formatted = String::new();
+        formatted.push_str(&format!("agents={}\n", agents));
+        formatted.push_str(&format!("map_file={}\n", config.map_path));
+        formatted.push_str(&format!("solver={}\n", config.solver));
+        formatted.push_str("solved=1\n");
+        formatted.push_str(&format!("soc={}\n", soc));
+        formatted.push_str("soc_lb=\n");
+        formatted.push_str(&format!("makespan={}\n", makespan));
+        formatted.push_str("makespan_lb=\n");
+        formatted.push_str("sum_of_loss=\n");
+        formatted.push_str("sum_of_loss_lb=\n");
+        formatted.push_str("comp_time=\n");
+        formatted.push_str("seed=\n");
+        formatted.push_str("checkpoints=-1\n");
+        formatted.push_str("comp_time_initial_solution=\n");
+        formatted.push_str("cost_initial_solution=\n");
+        formatted.push_str("search_iteration=\n");
+        formatted.push_str("num_high_level_node=\n");
+        formatted.push_str("num_low_level_node=\n");
+
+        formatted.push_str(&format!("starts={}\n", starts.join(",")));
+        formatted.push_str(&format!("goals={}\n", goals.join(",")));
+        formatted.push_str("solution=\n");
+
+        // Print each timestep
+        for t in 0..makespan {
+            let timestep_line: Vec<String> = padded_paths
+                .iter()
+                .map(|path| {
+                    let (x, y) = path[t];
+                    format!("({}, {})", x, y)
+                })
+                .collect();
+
+            formatted.push_str(&format!("{}:{}\n", t, timestep_line.join(",")));
+        }
+
+        write(config.solution_path.clone(), formatted).unwrap();
     }
 }
 
