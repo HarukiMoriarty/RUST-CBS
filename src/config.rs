@@ -23,11 +23,7 @@ pub struct Cli {
     )]
     pub map_path: String,
 
-    #[arg(
-        long,
-        help = "Path to the output file",
-        default_value = "result/result.csv"
-    )]
+    #[arg(long, help = "Path to the output file")]
     pub output_path: Option<String>,
 
     #[arg(long, help = "Output LACAM-style formatted solution to a file")]
