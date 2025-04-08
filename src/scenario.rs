@@ -24,6 +24,7 @@ pub struct Scenario {
     pub map_width: usize,
     pub map_height: usize,
     pub buckets: Option<HashMap<usize, Bucket>>,
+    pub ordered_routes: Vec<Route>,
 }
 
 impl Scenario {
@@ -41,6 +42,7 @@ impl Scenario {
             map_width: 0,
             map_height: 0,
             buckets: Some(HashMap::new()),
+            ordered_routes: vec![],
         };
 
         for line in lines {
@@ -68,7 +70,9 @@ impl Scenario {
                 .unwrap()
                 .entry(bucket_index)
                 .or_default()
-                .push(route);
+                .push(route.clone());
+
+            scenario.ordered_routes.push(route);
         }
 
         Ok(scenario)
@@ -178,6 +182,27 @@ impl Scenario {
 
         info!("Generate scen: {agents:?}");
         Self::write_agents_to_yaml("debug.yaml", &agents).unwrap();
+        Ok(agents)
+    }
+
+    pub fn generate_agents_in_order(&self, num_agents: usize) -> Result<Vec<Agent>, String> {
+        if self.ordered_routes.len() != num_agents {
+            return Err(format!(
+                "Requested {} agents, but only {} available in scenario",
+                num_agents,
+                self.ordered_routes.len()
+            ));
+        }
+
+        let mut agents = Vec::with_capacity(num_agents);
+        for (i, route) in self.ordered_routes.iter().take(num_agents).enumerate() {
+            agents.push(Agent {
+                id: i,
+                start: (route.start_x, route.start_y),
+                goal: (route.goal_x, route.goal_y),
+            });
+        }
+
         Ok(agents)
     }
 

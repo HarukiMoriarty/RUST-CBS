@@ -41,6 +41,13 @@ pub struct Cli {
 
     #[arg(
         long,
+        help = "Use deterministic agent selection from .scen (no randomness)",
+        default_value_t = false
+    )]
+    pub deterministic_scen: bool,
+
+    #[arg(
+        long,
         help = "Seed for the random number generator",
         default_value_t = 0
     )]
@@ -84,6 +91,7 @@ pub struct Config {
     pub solution_path: String,
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
+    pub deterministic_scen: bool,
     pub seed: usize,
     pub sub_optimal: (Option<f64>, Option<f64>), // (high level sub optimal, low level sub optimal)
     pub solver: String,
@@ -102,6 +110,7 @@ impl Config {
             output_path: cli.output_path.clone(),
             num_agents: cli.num_agents,
             agents_dist: cli.agents_dist.clone(),
+            deterministic_scen: cli.deterministic_scen,
             seed: cli.seed,
             sub_optimal: (cli.high_level_sub_optimal, cli.low_level_sub_optimal),
             solver: cli.solver.clone(),

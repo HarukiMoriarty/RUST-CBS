@@ -28,10 +28,14 @@ fn main() -> anyhow::Result<()> {
     } else {
         let setting =
             Scenario::load_from_scen(&config.yaml_path).expect("Error loading YAML config");
-        let mut rng = SmallRng::seed_from_u64(config.seed as u64);
-        setting
-            .generate_agents_randomly(config.num_agents, &mut rng)
-            .unwrap()
+        if config.deterministic_scen {
+            setting.generate_agents_in_order(config.num_agents).unwrap()
+        } else {
+            let mut rng = SmallRng::seed_from_u64(config.seed as u64);
+            setting
+                .generate_agents_randomly(config.num_agents, &mut rng)
+                .unwrap()
+        }
     };
 
     let map = Map::from_file(&config.map_path, &agents).expect("Error loading map");
