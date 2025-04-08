@@ -28,7 +28,7 @@ pub struct Cli {
         help = "Path to the output file",
         default_value = "result/result.csv"
     )]
-    pub output_path: String,
+    pub output_path: Option<String>,
 
     #[arg(long, help = "Output LACAM-style formatted solution to a file")]
     pub solution_path: String,
@@ -81,13 +81,16 @@ pub struct Cli {
 
     #[arg(long, help = "Optimization: Target Reasoning", default_value_t = false)]
     pub op_target_reasoning: bool,
+
+    #[arg(long, help = "Timeout seconds", default_value = "60")]
+    pub timeout_secs: u64,
 }
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub yaml_path: String,
     pub map_path: String,
-    pub output_path: String,
+    pub output_path: Option<String>,
     pub solution_path: String,
     pub num_agents: usize,
     pub agents_dist: Vec<usize>,
@@ -99,6 +102,7 @@ pub struct Config {
     pub op_prioritize_conflicts: bool,
     pub op_bypass_conflicts: bool,
     pub op_target_reasoning: bool,
+    pub timeout_secs: u64,
 }
 
 impl Config {
@@ -118,6 +122,7 @@ impl Config {
             op_prioritize_conflicts: cli.op_prioritize_conflicts,
             op_bypass_conflicts: cli.op_bypass_conflicts,
             op_target_reasoning: cli.op_target_reasoning,
+            timeout_secs: cli.timeout_secs,
         }
     }
 

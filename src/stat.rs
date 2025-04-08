@@ -15,9 +15,13 @@ pub(crate) struct Stats {
 
 impl Stats {
     pub(crate) fn print(&self, config: &Config) {
+        if config.output_path.is_none() {
+            return;
+        }
+        let output_path = config.output_path.as_ref().unwrap().clone();
         let mut file = OpenOptions::new()
             .append(true)
-            .open(&config.output_path)
+            .open(&output_path)
             .unwrap();
 
         let file_content = format!(
@@ -47,7 +51,7 @@ impl Stats {
         );
 
         if let Err(e) = file.write_all(file_content.as_bytes()) {
-            error!("Failed to write to file '{}': {}", config.output_path, e);
+            error!("Failed to write to file '{output_path}': {e}");
         }
     }
 }

@@ -17,7 +17,7 @@ pub use lbcbs::LBCBS;
 use crate::common::{HighLevelOpenNode, Solution};
 use crate::config::Config;
 
-pub trait Solver {
+pub trait Solver: Send {
     fn solve(&mut self, config: &Config) -> Option<Solution>;
 }
 

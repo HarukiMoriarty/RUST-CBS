@@ -8,17 +8,19 @@ use mapf_rust::solver::{Solver, ACBS, BCBS, CBS, DECBS, ECBS, HBCBS, LBCBS};
 use clap::Parser;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
+use tokio::time::{timeout, Duration};
 use tracing::{error, info};
 use tracing_subscriber::{fmt, EnvFilter};
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
         .init();
-    let cli = Cli::parse();
 
+    let cli = Cli::parse();
     let config = Config::new(&cli);
     config.validate()?;
     info!("Config: {config:#?}");
@@ -54,12 +56,33 @@ fn main() -> anyhow::Result<()> {
         _ => unreachable!(),
     };
 
-    if let Some(solution) = solver.solve(&config) {
-        assert!(solution.verify(&map, &agents));
-        solution.log_solution(&config);
-    } else {
-        error!("{} solve fails", cli.solver);
-        exit(1);
+    let map_clone = map.clone();
+    let agents_clone = agents.clone();
+    let config_clone = config.clone();
+
+    let solve_future = tokio::task::spawn_blocking(move || solver.solve(&config_clone));
+    let result = timeout(Duration::from_secs(config.timeout_secs), solve_future).await;
+
+    match result {
+        Ok(Ok(Some(solution))) => {
+            assert!(solution.verify(&map_clone, &agents_clone));
+            solution.log_solution(&config);
+        }
+        Ok(Ok(None)) => {
+            error!("{} solve failured with no solution", cli.solver);
+            exit(1);
+        }
+        Ok(Err(e)) => {
+            error!("Solver thread panicked: {e:?}");
+            exit(1);
+        }
+        Err(_) => {
+            error!(
+                "{} solve timed out after {} seconds",
+                cli.solver, config.timeout_secs
+            );
+            exit(1);
+        }
     }
 
     Ok(())
