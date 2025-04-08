@@ -140,12 +140,12 @@ impl Solution {
 
             // record starts & goals
             starts.push(format!(
-                "({}, {})",
+                "({},{})",
                 path.first().unwrap().0,
                 path.first().unwrap().1
             ));
             goals.push(format!(
-                "({}, {})",
+                "({},{})",
                 path.last().unwrap().0,
                 path.last().unwrap().1
             ));
@@ -181,7 +181,7 @@ impl Solution {
                 .iter()
                 .map(|path| {
                     let (x, y) = path[t];
-                    format!("({}, {})", x, y)
+                    format!("({},{})", x, y)
                 })
                 .collect();
 
